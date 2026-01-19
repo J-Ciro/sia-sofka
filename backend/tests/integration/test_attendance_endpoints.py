@@ -86,7 +86,7 @@ async def test_data_attendance(db_session: AsyncSession):
     subject = Subject(
         nombre="Matemáticas",
         descripcion="Cálculo I",
-        creditos=4,
+        numero_creditos=4,
         profesor_id=profesor.id,
     )
     db_session.add(subject)
