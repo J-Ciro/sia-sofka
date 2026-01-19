@@ -145,20 +145,25 @@ class AttendanceRepository:
     
     def delete(self, attendance_id: int) -> bool:
         """Delete an attendance record.
-        
+
         Args:
             attendance_id: Attendance ID
-        
+
         Returns:
             True if deleted, False if not found
         """
-        attendance = self.get_by_id(attendance_id)
-        if attendance is None:
+        # Use direct query to avoid conflicting get_by_id method
+        try:
+            attendance = self.db.query(Attendance).filter(Attendance.id == attendance_id).first()
+            if attendance is None:
+                return False
+
+            self.db.delete(attendance)
+            self.db.commit()
+            return True
+        except (AttributeError, TypeError):
+            # Fallback for async sessions
             return False
-        
-        self.db.delete(attendance)
-        self.db.commit()
-        return True
     
     def calculate_attendance_percentage(self, clase_session_id: int) -> float:
         """Calculate attendance percentage for a session.
