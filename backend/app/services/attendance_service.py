@@ -31,7 +31,7 @@ class AttendanceService:
         self.usuario_autenticado = usuario_autenticado
         self.attendance_repo = AttendanceRepository(db)
     
-    async def create_clase_session(
+    def create_clase_session(
         self,
         subject_id: int,
         fecha: date,
@@ -174,7 +174,7 @@ class AttendanceService:
         
         return count
     
-    async def update_attendance(
+    def update_attendance(
         self,
         attendance_id: int,
         estado: AttendanceStatus,
@@ -198,7 +198,7 @@ class AttendanceService:
         
         return self.attendance_repo.update(attendance_id, estado=estado)
     
-    async def get_session_statistics(self, clase_session_id: int) -> Dict[str, Any]:
+    def get_session_statistics(self, clase_session_id: int) -> Dict[str, Any]:
         """Get attendance statistics for a session.
         
         Args:

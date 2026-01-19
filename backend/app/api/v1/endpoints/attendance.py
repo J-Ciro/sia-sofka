@@ -41,7 +41,7 @@ async def create_clase_session(
     service = AttendanceService(db, current_user)
     
     try:
-        clase_session = await service.create_clase_session(
+        clase_session = service.create_clase_session(
             subject_id=session_data.subject_id,
             fecha=session_data.fecha,
             hora_inicio=session_data.hora_inicio,
@@ -99,7 +99,7 @@ async def update_attendance(
         raise HTTPException(status_code=404, detail=f"Attendance {attendance_id} not found")
     
     # Update attendance
-    updated_attendance = await service.update_attendance(
+    updated_attendance = service.update_attendance(
         attendance_id=attendance_id,
         estado=attendance_data.estado,
     )
@@ -126,7 +126,7 @@ async def get_session_statistics(
         raise HTTPException(status_code=404, detail=f"ClaseSession {session_id} not found")
     
     # Get statistics
-    stats = await service.get_session_statistics(session_id)
+    stats = service.get_session_statistics(session_id)
     
     return SessionStatisticsResponse(**stats)
 
