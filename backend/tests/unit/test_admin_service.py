@@ -16,10 +16,10 @@ from decimal import Decimal
 
 
 @pytest.mark.asyncio
-async def test_admin_service_create_estudiante(db_session: AsyncSession):
+async def test_admin_service_create_estudiante(async_db_session: AsyncSession):
     """Test AdminService can create estudiante."""
     # Create admin first
-    codigo_admin = await generar_codigo_institucional(db_session, "Admin")
+    codigo_admin = await generar_codigo_institucional(async_db_session, "Admin")
     admin = User(
         email="admin@example.com",
         password_hash=get_password_hash("admin123"),
@@ -29,10 +29,10 @@ async def test_admin_service_create_estudiante(db_session: AsyncSession):
         codigo_institucional=codigo_admin,
         fecha_nacimiento=date(1975, 1, 1),
     )
-    db_session.add(admin)
-    await db_session.commit()
+    async_db_session.add(admin)
+    await async_db_session.commit()
     
-    service = AdminService(db_session, admin)
+    service = AdminService(async_db_session, admin)
     
     user_data = UserCreate(
         email="newestudiante@example.com",
@@ -52,9 +52,9 @@ async def test_admin_service_create_estudiante(db_session: AsyncSession):
 
 
 @pytest.mark.asyncio
-async def test_admin_service_create_profesor(db_session: AsyncSession):
+async def test_admin_service_create_profesor(async_db_session: AsyncSession):
     """Test AdminService can create profesor."""
-    codigo_admin = await generar_codigo_institucional(db_session, "Admin")
+    codigo_admin = await generar_codigo_institucional(async_db_session, "Admin")
     admin = User(
         email="admin@example.com",
         password_hash=get_password_hash("admin123"),
@@ -64,10 +64,10 @@ async def test_admin_service_create_profesor(db_session: AsyncSession):
         codigo_institucional=codigo_admin,
         fecha_nacimiento=date(1975, 1, 1),
     )
-    db_session.add(admin)
-    await db_session.commit()
+    async_db_session.add(admin)
+    await async_db_session.commit()
     
-    service = AdminService(db_session, admin)
+    service = AdminService(async_db_session, admin)
     
     user_data = UserCreate(
         email="newprofesor@example.com",
@@ -87,9 +87,9 @@ async def test_admin_service_create_profesor(db_session: AsyncSession):
 
 
 @pytest.mark.asyncio
-async def test_admin_service_create_subject(db_session: AsyncSession):
+async def test_admin_service_create_subject(async_db_session: AsyncSession):
     """Test AdminService can create subject."""
-    codigo_admin = await generar_codigo_institucional(db_session, "Admin")
+    codigo_admin = await generar_codigo_institucional(async_db_session, "Admin")
     admin = User(
         email="admin@example.com",
         password_hash=get_password_hash("admin123"),
@@ -99,9 +99,9 @@ async def test_admin_service_create_subject(db_session: AsyncSession):
         codigo_institucional=codigo_admin,
         fecha_nacimiento=date(1975, 1, 1),
     )
-    db_session.add(admin)
+    async_db_session.add(admin)
     
-    codigo_prof = await generar_codigo_institucional(db_session, "Profesor")
+    codigo_prof = await generar_codigo_institucional(async_db_session, "Profesor")
     profesor = User(
         email="prof@example.com",
         password_hash=get_password_hash("pass"),
@@ -111,11 +111,11 @@ async def test_admin_service_create_subject(db_session: AsyncSession):
         codigo_institucional=codigo_prof,
         fecha_nacimiento=date(1980, 1, 1),
     )
-    db_session.add(profesor)
-    await db_session.commit()
-    await db_session.refresh(profesor)
+    async_db_session.add(profesor)
+    await async_db_session.commit()
+    await async_db_session.refresh(profesor)
     
-    service = AdminService(db_session, admin)
+    service = AdminService(async_db_session, admin)
     
     subject_data = SubjectCreate(
         nombre="Nueva Materia",
@@ -132,10 +132,10 @@ async def test_admin_service_create_subject(db_session: AsyncSession):
 
 
 @pytest.mark.asyncio
-async def test_admin_service_generate_average(db_session: AsyncSession):
+async def test_admin_service_generate_average(async_db_session: AsyncSession):
     """Test AdminService can generate average for estudiante and subject."""
     # Setup
-    codigo_admin = await generar_codigo_institucional(db_session, "Admin")
+    codigo_admin = await generar_codigo_institucional(async_db_session, "Admin")
     admin = User(
         email="admin@example.com",
         password_hash=get_password_hash("admin123"),
@@ -145,9 +145,9 @@ async def test_admin_service_generate_average(db_session: AsyncSession):
         codigo_institucional=codigo_admin,
         fecha_nacimiento=date(1975, 1, 1),
     )
-    db_session.add(admin)
+    async_db_session.add(admin)
     
-    codigo_est = await generar_codigo_institucional(db_session, "Estudiante")
+    codigo_est = await generar_codigo_institucional(async_db_session, "Estudiante")
     estudiante = User(
         email="est@example.com",
         password_hash=get_password_hash("pass"),
@@ -157,9 +157,9 @@ async def test_admin_service_generate_average(db_session: AsyncSession):
         codigo_institucional=codigo_est,
         fecha_nacimiento=date(2000, 1, 1),
     )
-    db_session.add(estudiante)
+    async_db_session.add(estudiante)
     
-    codigo_prof = await generar_codigo_institucional(db_session, "Profesor")
+    codigo_prof = await generar_codigo_institucional(async_db_session, "Profesor")
     profesor = User(
         email="prof@example.com",
         password_hash=get_password_hash("pass"),
@@ -169,10 +169,10 @@ async def test_admin_service_generate_average(db_session: AsyncSession):
         codigo_institucional=codigo_prof,
         fecha_nacimiento=date(1980, 1, 1),
     )
-    db_session.add(profesor)
-    await db_session.commit()
-    await db_session.refresh(estudiante)
-    await db_session.refresh(profesor)
+    async_db_session.add(profesor)
+    await async_db_session.commit()
+    await async_db_session.refresh(estudiante)
+    await async_db_session.refresh(profesor)
     
     subject = Subject(
         nombre="Matemáticas",
@@ -181,17 +181,17 @@ async def test_admin_service_generate_average(db_session: AsyncSession):
         horario="Lunes 8:00",
         profesor_id=profesor.id,
     )
-    db_session.add(subject)
-    await db_session.commit()
-    await db_session.refresh(subject)
+    async_db_session.add(subject)
+    await async_db_session.commit()
+    await async_db_session.refresh(subject)
     
     enrollment = Enrollment(
         estudiante_id=estudiante.id,
         subject_id=subject.id,
     )
-    db_session.add(enrollment)
-    await db_session.commit()
-    await db_session.refresh(enrollment)
+    async_db_session.add(enrollment)
+    await async_db_session.commit()
+    await async_db_session.refresh(enrollment)
     
     # Create grades
     grade1 = Grade(
@@ -212,10 +212,10 @@ async def test_admin_service_generate_average(db_session: AsyncSession):
         periodo="2024-1",
         fecha=date.today(),
     )
-    db_session.add_all([grade1, grade2, grade3])
-    await db_session.commit()
+    async_db_session.add_all([grade1, grade2, grade3])
+    await async_db_session.commit()
     
-    service = AdminService(db_session, admin)
+    service = AdminService(async_db_session, admin)
     
     average = await service.generate_average(estudiante.id, subject.id)
     
@@ -224,9 +224,9 @@ async def test_admin_service_generate_average(db_session: AsyncSession):
 
 
 @pytest.mark.asyncio
-async def test_admin_service_get_all_estudiantes(db_session: AsyncSession):
+async def test_admin_service_get_all_estudiantes(async_db_session: AsyncSession):
     """Test AdminService can get all estudiantes."""
-    codigo_admin = await generar_codigo_institucional(db_session, "Admin")
+    codigo_admin = await generar_codigo_institucional(async_db_session, "Admin")
     admin = User(
         email="admin@example.com",
         password_hash=get_password_hash("admin123"),
@@ -236,11 +236,11 @@ async def test_admin_service_get_all_estudiantes(db_session: AsyncSession):
         codigo_institucional=codigo_admin,
         fecha_nacimiento=date(1975, 1, 1),
     )
-    db_session.add(admin)
+    async_db_session.add(admin)
     
     # Create multiple estudiantes
     for i in range(3):
-        codigo = await generar_codigo_institucional(db_session, "Estudiante")
+        codigo = await generar_codigo_institucional(async_db_session, "Estudiante")
         estudiante = User(
             email=f"est{i}@example.com",
             password_hash=get_password_hash("pass"),
@@ -250,11 +250,11 @@ async def test_admin_service_get_all_estudiantes(db_session: AsyncSession):
             codigo_institucional=codigo,
             fecha_nacimiento=date(2000, 1, 1),
         )
-        db_session.add(estudiante)
+        async_db_session.add(estudiante)
     
-    await db_session.commit()
+    await async_db_session.commit()
     
-    service = AdminService(db_session, admin)
+    service = AdminService(async_db_session, admin)
     estudiantes = await service.get_all_estudiantes()
     
     assert len(estudiantes) == 3
@@ -262,9 +262,9 @@ async def test_admin_service_get_all_estudiantes(db_session: AsyncSession):
 
 
 @pytest.mark.asyncio
-async def test_admin_service_get_all_profesores(db_session: AsyncSession):
+async def test_admin_service_get_all_profesores(async_db_session: AsyncSession):
     """Test AdminService can get all profesores."""
-    codigo_admin = await generar_codigo_institucional(db_session, "Admin")
+    codigo_admin = await generar_codigo_institucional(async_db_session, "Admin")
     admin = User(
         email="admin@example.com",
         password_hash=get_password_hash("admin123"),
@@ -274,11 +274,11 @@ async def test_admin_service_get_all_profesores(db_session: AsyncSession):
         codigo_institucional=codigo_admin,
         fecha_nacimiento=date(1975, 1, 1),
     )
-    db_session.add(admin)
+    async_db_session.add(admin)
     
     # Create multiple profesores
     for i in range(2):
-        codigo = await generar_codigo_institucional(db_session, "Profesor")
+        codigo = await generar_codigo_institucional(async_db_session, "Profesor")
         profesor = User(
             email=f"prof{i}@example.com",
             password_hash=get_password_hash("pass"),
@@ -288,11 +288,11 @@ async def test_admin_service_get_all_profesores(db_session: AsyncSession):
             codigo_institucional=codigo,
             fecha_nacimiento=date(1980, 1, 1),
         )
-        db_session.add(profesor)
+        async_db_session.add(profesor)
     
-    await db_session.commit()
+    await async_db_session.commit()
     
-    service = AdminService(db_session, admin)
+    service = AdminService(async_db_session, admin)
     profesores = await service.get_all_profesores()
     
     assert len(profesores) == 2

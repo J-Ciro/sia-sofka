@@ -16,10 +16,10 @@ from app.core.security import get_password_hash
 # ==================== Fixtures ====================
 
 @pytest.fixture
-async def test_data_estudiante_reports(db_session: AsyncSession):
+async def test_data_estudiante_reports(async_db_session: AsyncSession):
     """Create comprehensive test data for estudiante report generation."""
     # Profesor
-    codigo_prof = await generar_codigo_institucional(db_session, "Profesor")
+    codigo_prof = await generar_codigo_institucional(async_db_session, "Profesor")
     profesor = User(
         email="profesor@reports.com",
         password_hash=get_password_hash("prof123"),
@@ -29,10 +29,10 @@ async def test_data_estudiante_reports(db_session: AsyncSession):
         codigo_institucional=codigo_prof,
         fecha_nacimiento=date(1980, 1, 1),
     )
-    db_session.add(profesor)
+    async_db_session.add(profesor)
     
     # Estudiante
-    codigo_est = await generar_codigo_institucional(db_session, "Estudiante")
+    codigo_est = await generar_codigo_institucional(async_db_session, "Estudiante")
     estudiante = User(
         email="estudiante@reports.com",
         password_hash=get_password_hash("est123"),
@@ -43,11 +43,11 @@ async def test_data_estudiante_reports(db_session: AsyncSession):
         fecha_nacimiento=date(2000, 1, 1),
         programa_academico="Ingeniería de Sistemas",
     )
-    db_session.add(estudiante)
+    async_db_session.add(estudiante)
     
-    await db_session.commit()
-    await db_session.refresh(profesor)
-    await db_session.refresh(estudiante)
+    await async_db_session.commit()
+    await async_db_session.refresh(profesor)
+    await async_db_session.refresh(estudiante)
     
     # Subject 1 (with credits = 4)
     subject1 = Subject(
@@ -58,7 +58,7 @@ async def test_data_estudiante_reports(db_session: AsyncSession):
         descripcion="Curso de cálculo",
         profesor_id=profesor.id,
     )
-    db_session.add(subject1)
+    async_db_session.add(subject1)
     
     # Subject 2 (with credits = 3)
     subject2 = Subject(
@@ -69,29 +69,29 @@ async def test_data_estudiante_reports(db_session: AsyncSession):
         descripcion="Curso de programación",
         profesor_id=profesor.id,
     )
-    db_session.add(subject2)
+    async_db_session.add(subject2)
     
-    await db_session.commit()
-    await db_session.refresh(subject1)
-    await db_session.refresh(subject2)
+    await async_db_session.commit()
+    await async_db_session.refresh(subject1)
+    await async_db_session.refresh(subject2)
     
     # Enrollment 1
     enrollment1 = Enrollment(
         estudiante_id=estudiante.id,
         subject_id=subject1.id,
     )
-    db_session.add(enrollment1)
+    async_db_session.add(enrollment1)
     
     # Enrollment 2
     enrollment2 = Enrollment(
         estudiante_id=estudiante.id,
         subject_id=subject2.id,
     )
-    db_session.add(enrollment2)
+    async_db_session.add(enrollment2)
     
-    await db_session.commit()
-    await db_session.refresh(enrollment1)
-    await db_session.refresh(enrollment2)
+    await async_db_session.commit()
+    await async_db_session.refresh(enrollment1)
+    await async_db_session.refresh(enrollment2)
     
     # Grades for enrollment 1 (average = 4.0)
     grade1_1 = Grade(
@@ -108,7 +108,7 @@ async def test_data_estudiante_reports(db_session: AsyncSession):
         fecha=date(2024, 2, 15),
         observaciones="Segunda evaluación",
     )
-    db_session.add_all([grade1_1, grade1_2])
+    async_db_session.add_all([grade1_1, grade1_2])
     
     # Grades for enrollment 2 (average = 5.0)
     grade2_1 = Grade(
@@ -125,11 +125,11 @@ async def test_data_estudiante_reports(db_session: AsyncSession):
         fecha=date(2024, 2, 20),
         observaciones="Segunda evaluación",
     )
-    db_session.add_all([grade2_1, grade2_2])
+    async_db_session.add_all([grade2_1, grade2_2])
     
-    await db_session.commit()
+    await async_db_session.commit()
     for grade in [grade1_1, grade1_2, grade2_1, grade2_2]:
-        await db_session.refresh(grade)
+        await async_db_session.refresh(grade)
     
     return {
         "profesor": profesor,
@@ -143,11 +143,11 @@ async def test_data_estudiante_reports(db_session: AsyncSession):
 # ==================== generate_general_report Tests ====================
 
 @pytest.mark.asyncio
-async def test_generate_general_report_json_format_complete_data(db_session: AsyncSession, test_data_estudiante_reports):
+async def test_generate_general_report_json_format_complete_data(async_db_session: AsyncSession, test_data_estudiante_reports):
     """Test generate_general_report in JSON format with complete data (covers lines 111-178)."""
     estudiante = test_data_estudiante_reports["estudiante"]
     
-    service = EstudianteService(db_session, estudiante)
+    service = EstudianteService(async_db_session, estudiante)
     
     report = await service.generate_general_report("json")
     
@@ -198,11 +198,11 @@ async def test_generate_general_report_json_format_complete_data(db_session: Asy
 
 
 @pytest.mark.asyncio
-async def test_generate_general_report_pdf_format(db_session: AsyncSession, test_data_estudiante_reports):
+async def test_generate_general_report_pdf_format(async_db_session: AsyncSession, test_data_estudiante_reports):
     """Test generate_general_report in PDF format (covers lines 176-178)."""
     estudiante = test_data_estudiante_reports["estudiante"]
     
-    service = EstudianteService(db_session, estudiante)
+    service = EstudianteService(async_db_session, estudiante)
     
     report = await service.generate_general_report("pdf")
     
@@ -220,11 +220,11 @@ async def test_generate_general_report_pdf_format(db_session: AsyncSession, test
 
 
 @pytest.mark.asyncio
-async def test_generate_general_report_html_format(db_session: AsyncSession, test_data_estudiante_reports):
+async def test_generate_general_report_html_format(async_db_session: AsyncSession, test_data_estudiante_reports):
     """Test generate_general_report in HTML format (covers lines 176-178)."""
     estudiante = test_data_estudiante_reports["estudiante"]
     
-    service = EstudianteService(db_session, estudiante)
+    service = EstudianteService(async_db_session, estudiante)
     
     report = await service.generate_general_report("html")
     
@@ -243,10 +243,10 @@ async def test_generate_general_report_html_format(db_session: AsyncSession, tes
 
 
 @pytest.mark.asyncio
-async def test_generate_general_report_no_enrollments(db_session: AsyncSession, test_data_estudiante_reports):
+async def test_generate_general_report_no_enrollments(async_db_session: AsyncSession, test_data_estudiante_reports):
     """Test generate_general_report with estudiante that has no enrollments (covers lines 122-124, 134-135, 174)."""
     # Create estudiante without enrollments
-    codigo_est = await generar_codigo_institucional(db_session, "Estudiante")
+    codigo_est = await generar_codigo_institucional(async_db_session, "Estudiante")
     estudiante = User(
         email="est_no_enrollments@reports.com",
         password_hash=get_password_hash("est123"),
@@ -257,11 +257,11 @@ async def test_generate_general_report_no_enrollments(db_session: AsyncSession, 
         fecha_nacimiento=date(2000, 1, 1),
         programa_academico="Ingeniería",
     )
-    db_session.add(estudiante)
-    await db_session.commit()
-    await db_session.refresh(estudiante)
+    async_db_session.add(estudiante)
+    await async_db_session.commit()
+    await async_db_session.refresh(estudiante)
     
-    service = EstudianteService(db_session, estudiante)
+    service = EstudianteService(async_db_session, estudiante)
     
     report = await service.generate_general_report("json")
     
@@ -280,7 +280,7 @@ async def test_generate_general_report_no_enrollments(db_session: AsyncSession, 
 
 
 @pytest.mark.asyncio
-async def test_generate_general_report_enrollment_without_grades(db_session: AsyncSession, test_data_estudiante_reports):
+async def test_generate_general_report_enrollment_without_grades(async_db_session: AsyncSession, test_data_estudiante_reports):
     """Test generate_general_report with enrollment that has no grades (covers lines 142-146)."""
     estudiante = test_data_estudiante_reports["estudiante"]
     profesor = test_data_estudiante_reports["profesor"]
@@ -293,19 +293,19 @@ async def test_generate_general_report_enrollment_without_grades(db_session: Asy
         horario="Jueves 8:00",
         profesor_id=profesor.id,
     )
-    db_session.add(subject)
-    await db_session.commit()
-    await db_session.refresh(subject)
+    async_db_session.add(subject)
+    await async_db_session.commit()
+    await async_db_session.refresh(subject)
     
     enrollment = Enrollment(
         estudiante_id=estudiante.id,
         subject_id=subject.id,
     )
-    db_session.add(enrollment)
-    await db_session.commit()
-    await db_session.refresh(enrollment)
+    async_db_session.add(enrollment)
+    await async_db_session.commit()
+    await async_db_session.refresh(enrollment)
     
-    service = EstudianteService(db_session, estudiante)
+    service = EstudianteService(async_db_session, estudiante)
     
     report = await service.generate_general_report("json")
     
@@ -324,7 +324,7 @@ async def test_generate_general_report_enrollment_without_grades(db_session: Asy
 
 
 @pytest.mark.asyncio
-async def test_generate_general_report_subject_not_found_skipped(db_session: AsyncSession, test_data_estudiante_reports):
+async def test_generate_general_report_subject_not_found_skipped(async_db_session: AsyncSession, test_data_estudiante_reports):
     """Test generate_general_report skips enrollment when subject not found (covers lines 138-140)."""
     estudiante = test_data_estudiante_reports["estudiante"]
     
@@ -333,11 +333,11 @@ async def test_generate_general_report_subject_not_found_skipped(db_session: Asy
         estudiante_id=estudiante.id,
         subject_id=99999,  # Non-existent subject
     )
-    db_session.add(enrollment)
-    await db_session.commit()
-    await db_session.refresh(enrollment)
+    async_db_session.add(enrollment)
+    await async_db_session.commit()
+    await async_db_session.refresh(enrollment)
     
-    service = EstudianteService(db_session, estudiante)
+    service = EstudianteService(async_db_session, estudiante)
     
     # Should not raise error, but skip the enrollment with non-existent subject
     report = await service.generate_general_report("json")
@@ -355,11 +355,11 @@ async def test_generate_general_report_subject_not_found_skipped(db_session: Asy
 
 
 @pytest.mark.asyncio
-async def test_generate_general_report_general_average_calculation(db_session: AsyncSession, test_data_estudiante_reports):
+async def test_generate_general_report_general_average_calculation(async_db_session: AsyncSession, test_data_estudiante_reports):
     """Test generate_general_report calculates general average correctly (covers lines 159-172)."""
     estudiante = test_data_estudiante_reports["estudiante"]
     
-    service = EstudianteService(db_session, estudiante)
+    service = EstudianteService(async_db_session, estudiante)
     
     report = await service.generate_general_report("json")
     
@@ -379,10 +379,10 @@ async def test_generate_general_report_general_average_calculation(db_session: A
 
 
 @pytest.mark.asyncio
-async def test_generate_general_report_general_average_none_when_no_valid_averages(db_session: AsyncSession, test_data_estudiante_reports):
+async def test_generate_general_report_general_average_none_when_no_valid_averages(async_db_session: AsyncSession, test_data_estudiante_reports):
     """Test generate_general_report sets general_average to None when no valid averages (covers lines 173-174)."""
     # Create estudiante with enrollments but no grades
-    codigo_est = await generar_codigo_institucional(db_session, "Estudiante")
+    codigo_est = await generar_codigo_institucional(async_db_session, "Estudiante")
     estudiante = User(
         email="est_no_grades@reports.com",
         password_hash=get_password_hash("est123"),
@@ -392,7 +392,7 @@ async def test_generate_general_report_general_average_none_when_no_valid_averag
         codigo_institucional=codigo_est,
         fecha_nacimiento=date(2000, 1, 1),
     )
-    db_session.add(estudiante)
+    async_db_session.add(estudiante)
     
     profesor = test_data_estudiante_reports["profesor"]
     subject = Subject(
@@ -402,20 +402,20 @@ async def test_generate_general_report_general_average_none_when_no_valid_averag
         horario="Lunes 8:00",
         profesor_id=profesor.id,
     )
-    db_session.add(subject)
-    await db_session.commit()
-    await db_session.refresh(estudiante)
-    await db_session.refresh(subject)
+    async_db_session.add(subject)
+    await async_db_session.commit()
+    await async_db_session.refresh(estudiante)
+    await async_db_session.refresh(subject)
     
     # Enrollment without grades
     enrollment = Enrollment(
         estudiante_id=estudiante.id,
         subject_id=subject.id,
     )
-    db_session.add(enrollment)
-    await db_session.commit()
+    async_db_session.add(enrollment)
+    await async_db_session.commit()
     
-    service = EstudianteService(db_session, estudiante)
+    service = EstudianteService(async_db_session, estudiante)
     
     report = await service.generate_general_report("json")
     
@@ -433,11 +433,11 @@ async def test_generate_general_report_general_average_none_when_no_valid_averag
 
 
 @pytest.mark.asyncio
-async def test_generate_general_report_grades_serialization(db_session: AsyncSession, test_data_estudiante_reports):
+async def test_generate_general_report_grades_serialization(async_db_session: AsyncSession, test_data_estudiante_reports):
     """Test generate_general_report correctly serializes grades (covers línea 155)."""
     estudiante = test_data_estudiante_reports["estudiante"]
     
-    service = EstudianteService(db_session, estudiante)
+    service = EstudianteService(async_db_session, estudiante)
     
     report = await service.generate_general_report("json")
     
@@ -464,7 +464,7 @@ async def test_generate_general_report_grades_serialization(db_session: AsyncSes
 
 
 @pytest.mark.asyncio
-async def test_generate_general_report_calculates_average_exception_handling(db_session: AsyncSession, test_data_estudiante_reports):
+async def test_generate_general_report_calculates_average_exception_handling(async_db_session: AsyncSession, test_data_estudiante_reports):
     """Test generate_general_report handles ValueError from calculate_average (covers lines 143-146)."""
     estudiante = test_data_estudiante_reports["estudiante"]
     profesor = test_data_estudiante_reports["profesor"]
@@ -478,19 +478,19 @@ async def test_generate_general_report_calculates_average_exception_handling(db_
         horario="Viernes 8:00",
         profesor_id=profesor.id,
     )
-    db_session.add(subject)
-    await db_session.commit()
-    await db_session.refresh(subject)
+    async_db_session.add(subject)
+    await async_db_session.commit()
+    await async_db_session.refresh(subject)
     
     enrollment = Enrollment(
         estudiante_id=estudiante.id,
         subject_id=subject.id,
     )
-    db_session.add(enrollment)
-    await db_session.commit()
-    await db_session.refresh(enrollment)
+    async_db_session.add(enrollment)
+    await async_db_session.commit()
+    await async_db_session.refresh(enrollment)
     
-    service = EstudianteService(db_session, estudiante)
+    service = EstudianteService(async_db_session, estudiante)
     
     # Should not raise error, but set average to None
     report = await service.generate_general_report("json")
@@ -509,7 +509,7 @@ async def test_generate_general_report_calculates_average_exception_handling(db_
 
 
 @pytest.mark.asyncio
-async def test_generate_general_report_multiple_subjects_weighted_average(db_session: AsyncSession, test_data_estudiante_reports):
+async def test_generate_general_report_multiple_subjects_weighted_average(async_db_session: AsyncSession, test_data_estudiante_reports):
     """Test generate_general_report calculates weighted average correctly with multiple subjects (covers lines 163-168)."""
     estudiante = test_data_estudiante_reports["estudiante"]
     profesor = test_data_estudiante_reports["profesor"]
@@ -522,17 +522,17 @@ async def test_generate_general_report_multiple_subjects_weighted_average(db_ses
         horario="Jueves 14:00",
         profesor_id=profesor.id,
     )
-    db_session.add(subject3)
-    await db_session.commit()
-    await db_session.refresh(subject3)
+    async_db_session.add(subject3)
+    await async_db_session.commit()
+    await async_db_session.refresh(subject3)
     
     enrollment3 = Enrollment(
         estudiante_id=estudiante.id,
         subject_id=subject3.id,
     )
-    db_session.add(enrollment3)
-    await db_session.commit()
-    await db_session.refresh(enrollment3)
+    async_db_session.add(enrollment3)
+    await async_db_session.commit()
+    await async_db_session.refresh(enrollment3)
     
     # Add grades with average = 4.5
     grade3_1 = Grade(
@@ -547,10 +547,10 @@ async def test_generate_general_report_multiple_subjects_weighted_average(db_ses
         periodo="2024-1",
         fecha=date(2024, 2, 25),
     )
-    db_session.add_all([grade3_1, grade3_2])
-    await db_session.commit()
+    async_db_session.add_all([grade3_1, grade3_2])
+    await async_db_session.commit()
     
-    service = EstudianteService(db_session, estudiante)
+    service = EstudianteService(async_db_session, estudiante)
     
     report = await service.generate_general_report("json")
     
@@ -576,11 +576,11 @@ async def test_generate_general_report_multiple_subjects_weighted_average(db_ses
 # ==================== Additional Edge Cases ====================
 
 @pytest.mark.asyncio
-async def test_generate_general_report_estudiante_data_correct(db_session: AsyncSession, test_data_estudiante_reports):
+async def test_generate_general_report_estudiante_data_correct(async_db_session: AsyncSession, test_data_estudiante_reports):
     """Test generate_general_report includes correct estudiante data (covers lines 126-133)."""
     estudiante = test_data_estudiante_reports["estudiante"]
     
-    service = EstudianteService(db_session, estudiante)
+    service = EstudianteService(async_db_session, estudiante)
     
     report = await service.generate_general_report("json")
     

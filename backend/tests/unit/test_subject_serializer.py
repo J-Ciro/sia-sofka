@@ -11,7 +11,7 @@ from app.core.security import get_password_hash
 
 
 @pytest.fixture
-async def test_data_subject_serializer(db_session: AsyncSession):
+async def test_data_subject_serializer(async_db_session: AsyncSession):
     """Create test data for subject serializer tests."""
     import uuid
     # Use UUID to ensure unique codes
@@ -40,11 +40,11 @@ async def test_data_subject_serializer(db_session: AsyncSession):
         fecha_nacimiento=date(1985, 1, 1),
     )
     
-    db_session.add(profesor1)
-    db_session.add(profesor2)
-    await db_session.commit()
-    await db_session.refresh(profesor1)
-    await db_session.refresh(profesor2)
+    async_db_session.add(profesor1)
+    async_db_session.add(profesor2)
+    await async_db_session.commit()
+    await async_db_session.refresh(profesor1)
+    await async_db_session.refresh(profesor2)
     
     # Subjects
     subject1 = Subject(
@@ -74,9 +74,9 @@ async def test_data_subject_serializer(db_session: AsyncSession):
         codigo_institucional=codigo_prof3,
         fecha_nacimiento=date(1990, 1, 1),
     )
-    db_session.add(profesor3)
-    await db_session.commit()
-    await db_session.refresh(profesor3)
+    async_db_session.add(profesor3)
+    await async_db_session.commit()
+    await async_db_session.refresh(profesor3)
     
     subject3 = Subject(
         nombre="Arte",
@@ -87,13 +87,13 @@ async def test_data_subject_serializer(db_session: AsyncSession):
         profesor_id=profesor3.id,  # Assign profesor3
     )
     
-    db_session.add(subject1)
-    db_session.add(subject2)
-    db_session.add(subject3)
-    await db_session.commit()
-    await db_session.refresh(subject1)
-    await db_session.refresh(subject2)
-    await db_session.refresh(subject3)
+    async_db_session.add(subject1)
+    async_db_session.add(subject2)
+    async_db_session.add(subject3)
+    await async_db_session.commit()
+    await async_db_session.refresh(subject1)
+    await async_db_session.refresh(subject2)
+    await async_db_session.refresh(subject3)
     
     # Manually set relationships for testing
     subject1.profesor = profesor1

@@ -10,12 +10,12 @@ from app.models.grade import Grade
 
 
 @pytest.mark.asyncio
-async def test_user_model_creation(db_session: AsyncSession):
+async def test_user_model_creation(async_db_session: AsyncSession):
     """Test User model creation."""
     from app.utils.codigo_generator import generar_codigo_institucional
     from app.models.user import UserRole
     
-    codigo = await generar_codigo_institucional(db_session, "Estudiante")
+    codigo = await generar_codigo_institucional(async_db_session, "Estudiante")
     
     user = User(
         email="test@example.com",
@@ -30,9 +30,9 @@ async def test_user_model_creation(db_session: AsyncSession):
         ciudad_residencia="Bogotá",
     )
     
-    db_session.add(user)
-    await db_session.commit()
-    await db_session.refresh(user)
+    async_db_session.add(user)
+    await async_db_session.commit()
+    await async_db_session.refresh(user)
     
     assert user.id is not None
     assert user.email == "test@example.com"
@@ -45,12 +45,12 @@ async def test_user_model_creation(db_session: AsyncSession):
 
 
 @pytest.mark.asyncio
-async def test_profesor_model_creation(db_session: AsyncSession):
+async def test_profesor_model_creation(async_db_session: AsyncSession):
     """Test Profesor model creation."""
     from app.utils.codigo_generator import generar_codigo_institucional
     from app.models.user import UserRole
     
-    codigo = await generar_codigo_institucional(db_session, "Profesor")
+    codigo = await generar_codigo_institucional(async_db_session, "Profesor")
     
     profesor = User(
         email="profesor@example.com",
@@ -64,9 +64,9 @@ async def test_profesor_model_creation(db_session: AsyncSession):
         area_ensenanza="Matemáticas",
     )
     
-    db_session.add(profesor)
-    await db_session.commit()
-    await db_session.refresh(profesor)
+    async_db_session.add(profesor)
+    await async_db_session.commit()
+    await async_db_session.refresh(profesor)
     
     assert profesor.id is not None
     assert profesor.role == UserRole.PROFESOR
@@ -75,12 +75,12 @@ async def test_profesor_model_creation(db_session: AsyncSession):
 
 
 @pytest.mark.asyncio
-async def test_admin_model_creation(db_session: AsyncSession):
+async def test_admin_model_creation(async_db_session: AsyncSession):
     """Test Admin model creation."""
     from app.utils.codigo_generator import generar_codigo_institucional
     from app.models.user import UserRole
     
-    codigo = await generar_codigo_institucional(db_session, "Admin")
+    codigo = await generar_codigo_institucional(async_db_session, "Admin")
     
     admin = User(
         email="admin@example.com",
@@ -93,9 +93,9 @@ async def test_admin_model_creation(db_session: AsyncSession):
         numero_contacto="5555555555",
     )
     
-    db_session.add(admin)
-    await db_session.commit()
-    await db_session.refresh(admin)
+    async_db_session.add(admin)
+    await async_db_session.commit()
+    await async_db_session.refresh(admin)
     
     assert admin.id is not None
     assert admin.role == UserRole.ADMIN
@@ -103,12 +103,12 @@ async def test_admin_model_creation(db_session: AsyncSession):
 
 
 @pytest.mark.asyncio
-async def test_subject_model_creation(db_session: AsyncSession):
+async def test_subject_model_creation(async_db_session: AsyncSession):
     """Test Subject model creation."""
     from app.utils.codigo_generator import generar_codigo_institucional
     from app.models.user import UserRole
     
-    codigo = await generar_codigo_institucional(db_session, "Profesor")
+    codigo = await generar_codigo_institucional(async_db_session, "Profesor")
     
     profesor = User(
         email="profesor@example.com",
@@ -120,9 +120,9 @@ async def test_subject_model_creation(db_session: AsyncSession):
         fecha_nacimiento=date(1980, 1, 1),
         numero_contacto="123",
     )
-    db_session.add(profesor)
-    await db_session.commit()
-    await db_session.refresh(profesor)
+    async_db_session.add(profesor)
+    await async_db_session.commit()
+    await async_db_session.refresh(profesor)
     
     subject = Subject(
         nombre="Matemáticas I",
@@ -133,9 +133,9 @@ async def test_subject_model_creation(db_session: AsyncSession):
         profesor_id=profesor.id,
     )
     
-    db_session.add(subject)
-    await db_session.commit()
-    await db_session.refresh(subject)
+    async_db_session.add(subject)
+    await async_db_session.commit()
+    await async_db_session.refresh(subject)
     
     assert subject.id is not None
     assert subject.nombre == "Matemáticas I"
@@ -145,13 +145,13 @@ async def test_subject_model_creation(db_session: AsyncSession):
 
 
 @pytest.mark.asyncio
-async def test_enrollment_model_creation(db_session: AsyncSession):
+async def test_enrollment_model_creation(async_db_session: AsyncSession):
     """Test Enrollment model creation."""
     from app.utils.codigo_generator import generar_codigo_institucional
     from app.models.user import UserRole
     
-    codigo_est = await generar_codigo_institucional(db_session, "Estudiante")
-    codigo_prof = await generar_codigo_institucional(db_session, "Profesor")
+    codigo_est = await generar_codigo_institucional(async_db_session, "Estudiante")
+    codigo_prof = await generar_codigo_institucional(async_db_session, "Profesor")
     
     estudiante = User(
         email="estudiante@example.com",
@@ -163,7 +163,7 @@ async def test_enrollment_model_creation(db_session: AsyncSession):
         fecha_nacimiento=date(2000, 1, 1),
         numero_contacto="123",
     )
-    db_session.add(estudiante)
+    async_db_session.add(estudiante)
     
     profesor = User(
         email="prof@example.com",
@@ -175,10 +175,10 @@ async def test_enrollment_model_creation(db_session: AsyncSession):
         fecha_nacimiento=date(1980, 1, 1),
         numero_contacto="123",
     )
-    db_session.add(profesor)
-    await db_session.commit()
-    await db_session.refresh(estudiante)
-    await db_session.refresh(profesor)
+    async_db_session.add(profesor)
+    await async_db_session.commit()
+    await async_db_session.refresh(estudiante)
+    await async_db_session.refresh(profesor)
     
     subject = Subject(
         nombre="Matemáticas",
@@ -187,18 +187,18 @@ async def test_enrollment_model_creation(db_session: AsyncSession):
         horario="Lunes 8:00",
         profesor_id=profesor.id,
     )
-    db_session.add(subject)
-    await db_session.commit()
-    await db_session.refresh(subject)
+    async_db_session.add(subject)
+    await async_db_session.commit()
+    await async_db_session.refresh(subject)
     
     enrollment = Enrollment(
         estudiante_id=estudiante.id,
         subject_id=subject.id,
     )
     
-    db_session.add(enrollment)
-    await db_session.commit()
-    await db_session.refresh(enrollment)
+    async_db_session.add(enrollment)
+    await async_db_session.commit()
+    await async_db_session.refresh(enrollment)
     
     assert enrollment.id is not None
     assert enrollment.estudiante_id == estudiante.id
@@ -206,13 +206,13 @@ async def test_enrollment_model_creation(db_session: AsyncSession):
 
 
 @pytest.mark.asyncio
-async def test_grade_model_creation(db_session: AsyncSession):
+async def test_grade_model_creation(async_db_session: AsyncSession):
     """Test Grade model creation."""
     from app.utils.codigo_generator import generar_codigo_institucional
     from app.models.user import UserRole
     
-    codigo_est = await generar_codigo_institucional(db_session, "Estudiante")
-    codigo_prof = await generar_codigo_institucional(db_session, "Profesor")
+    codigo_est = await generar_codigo_institucional(async_db_session, "Estudiante")
+    codigo_prof = await generar_codigo_institucional(async_db_session, "Profesor")
     
     estudiante = User(
         email="est@example.com",
@@ -224,7 +224,7 @@ async def test_grade_model_creation(db_session: AsyncSession):
         fecha_nacimiento=date(2000, 1, 1),
         numero_contacto="123",
     )
-    db_session.add(estudiante)
+    async_db_session.add(estudiante)
     
     profesor = User(
         email="prof@example.com",
@@ -236,10 +236,10 @@ async def test_grade_model_creation(db_session: AsyncSession):
         fecha_nacimiento=date(1980, 1, 1),
         numero_contacto="123",
     )
-    db_session.add(profesor)
-    await db_session.commit()
-    await db_session.refresh(estudiante)
-    await db_session.refresh(profesor)
+    async_db_session.add(profesor)
+    await async_db_session.commit()
+    await async_db_session.refresh(estudiante)
+    await async_db_session.refresh(profesor)
     
     subject = Subject(
         nombre="Matemáticas",
@@ -248,17 +248,17 @@ async def test_grade_model_creation(db_session: AsyncSession):
         horario="Lunes 8:00",
         profesor_id=profesor.id,
     )
-    db_session.add(subject)
-    await db_session.commit()
-    await db_session.refresh(subject)
+    async_db_session.add(subject)
+    await async_db_session.commit()
+    await async_db_session.refresh(subject)
     
     enrollment = Enrollment(
         estudiante_id=estudiante.id,
         subject_id=subject.id,
     )
-    db_session.add(enrollment)
-    await db_session.commit()
-    await db_session.refresh(enrollment)
+    async_db_session.add(enrollment)
+    await async_db_session.commit()
+    await async_db_session.refresh(enrollment)
     
     grade = Grade(
         enrollment_id=enrollment.id,
@@ -268,9 +268,9 @@ async def test_grade_model_creation(db_session: AsyncSession):
         observaciones="Buen desempeño",
     )
     
-    db_session.add(grade)
-    await db_session.commit()
-    await db_session.refresh(grade)
+    async_db_session.add(grade)
+    await async_db_session.commit()
+    await async_db_session.refresh(grade)
     
     assert grade.id is not None
     assert grade.enrollment_id == enrollment.id
@@ -279,12 +279,12 @@ async def test_grade_model_creation(db_session: AsyncSession):
 
 
 @pytest.mark.asyncio
-async def test_user_subject_relationship(db_session: AsyncSession):
+async def test_user_subject_relationship(async_db_session: AsyncSession):
     """Test relationship between User (profesor) and Subject."""
     from app.utils.codigo_generator import generar_codigo_institucional
     from app.models.user import UserRole
     
-    codigo = await generar_codigo_institucional(db_session, "Profesor")
+    codigo = await generar_codigo_institucional(async_db_session, "Profesor")
     
     profesor = User(
         email="prof@example.com",
@@ -296,9 +296,9 @@ async def test_user_subject_relationship(db_session: AsyncSession):
         fecha_nacimiento=date(1980, 1, 1),
         numero_contacto="123",
     )
-    db_session.add(profesor)
-    await db_session.commit()
-    await db_session.refresh(profesor)
+    async_db_session.add(profesor)
+    await async_db_session.commit()
+    await async_db_session.refresh(profesor)
     
     subject1 = Subject(
         nombre="Matemáticas",
@@ -314,14 +314,14 @@ async def test_user_subject_relationship(db_session: AsyncSession):
         horario="Martes 8:00",
         profesor_id=profesor.id,
     )
-    db_session.add_all([subject1, subject2])
-    await db_session.commit()
+    async_db_session.add_all([subject1, subject2])
+    await async_db_session.commit()
     
     # Test relationship - need to load relationship explicitly in async
     from sqlalchemy.orm import selectinload
     from sqlalchemy import select
     
-    result = await db_session.execute(
+    result = await async_db_session.execute(
         select(User).options(selectinload(User.subjects)).where(User.id == profesor.id)
     )
     profesor_loaded = result.scalar_one()
@@ -329,14 +329,14 @@ async def test_user_subject_relationship(db_session: AsyncSession):
 
 
 @pytest.mark.asyncio
-async def test_enrollment_unique_constraint(db_session: AsyncSession):
+async def test_enrollment_unique_constraint(async_db_session: AsyncSession):
     """Test that enrollment has unique constraint on (estudiante_id, subject_id)."""
     from app.utils.codigo_generator import generar_codigo_institucional
     from app.models.user import UserRole
     from sqlalchemy.exc import IntegrityError
     
-    codigo_est = await generar_codigo_institucional(db_session, "Estudiante")
-    codigo_prof = await generar_codigo_institucional(db_session, "Profesor")
+    codigo_est = await generar_codigo_institucional(async_db_session, "Estudiante")
+    codigo_prof = await generar_codigo_institucional(async_db_session, "Profesor")
     
     estudiante = User(
         email="est@example.com",
@@ -348,7 +348,7 @@ async def test_enrollment_unique_constraint(db_session: AsyncSession):
         fecha_nacimiento=date(2000, 1, 1),
         numero_contacto="123",
     )
-    db_session.add(estudiante)
+    async_db_session.add(estudiante)
     
     profesor = User(
         email="prof@example.com",
@@ -360,10 +360,10 @@ async def test_enrollment_unique_constraint(db_session: AsyncSession):
         fecha_nacimiento=date(1980, 1, 1),
         numero_contacto="123",
     )
-    db_session.add(profesor)
-    await db_session.commit()
-    await db_session.refresh(estudiante)
-    await db_session.refresh(profesor)
+    async_db_session.add(profesor)
+    await async_db_session.commit()
+    await async_db_session.refresh(estudiante)
+    await async_db_session.refresh(profesor)
     
     subject = Subject(
         nombre="Matemáticas",
@@ -372,24 +372,24 @@ async def test_enrollment_unique_constraint(db_session: AsyncSession):
         horario="Lunes 8:00",
         profesor_id=profesor.id,
     )
-    db_session.add(subject)
-    await db_session.commit()
-    await db_session.refresh(subject)
+    async_db_session.add(subject)
+    await async_db_session.commit()
+    await async_db_session.refresh(subject)
     
     enrollment1 = Enrollment(
         estudiante_id=estudiante.id,
         subject_id=subject.id,
     )
-    db_session.add(enrollment1)
-    await db_session.commit()
+    async_db_session.add(enrollment1)
+    await async_db_session.commit()
     
     # Try to create duplicate enrollment
     enrollment2 = Enrollment(
         estudiante_id=estudiante.id,
         subject_id=subject.id,
     )
-    db_session.add(enrollment2)
+    async_db_session.add(enrollment2)
     
     with pytest.raises(IntegrityError):  # Should raise IntegrityError
-        await db_session.commit()
+        await async_db_session.commit()
 

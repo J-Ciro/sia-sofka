@@ -16,9 +16,9 @@ from app.core.security import get_password_hash
 
 
 @pytest.mark.asyncio
-async def test_admin_service_generate_student_report_json(db_session: AsyncSession):
+async def test_admin_service_generate_student_report_json(async_db_session: AsyncSession):
     """Test AdminService can generate student report in JSON format."""
-    codigo_admin = await generar_codigo_institucional(db_session, "Admin")
+    codigo_admin = await generar_codigo_institucional(async_db_session, "Admin")
     admin = User(
         email="admin@example.com",
         password_hash=get_password_hash("admin123"),
@@ -28,9 +28,9 @@ async def test_admin_service_generate_student_report_json(db_session: AsyncSessi
         codigo_institucional=codigo_admin,
         fecha_nacimiento=date(1975, 1, 1),
     )
-    db_session.add(admin)
+    async_db_session.add(admin)
     
-    codigo_est = await generar_codigo_institucional(db_session, "Estudiante")
+    codigo_est = await generar_codigo_institucional(async_db_session, "Estudiante")
     estudiante = User(
         email="est@example.com",
         password_hash=get_password_hash("pass"),
@@ -41,9 +41,9 @@ async def test_admin_service_generate_student_report_json(db_session: AsyncSessi
         fecha_nacimiento=date(2000, 1, 1),
         programa_academico="Ingeniería",
     )
-    db_session.add(estudiante)
+    async_db_session.add(estudiante)
     
-    codigo_prof = await generar_codigo_institucional(db_session, "Profesor")
+    codigo_prof = await generar_codigo_institucional(async_db_session, "Profesor")
     profesor = User(
         email="prof@example.com",
         password_hash=get_password_hash("pass"),
@@ -53,10 +53,10 @@ async def test_admin_service_generate_student_report_json(db_session: AsyncSessi
         codigo_institucional=codigo_prof,
         fecha_nacimiento=date(1980, 1, 1),
     )
-    db_session.add(profesor)
-    await db_session.commit()
-    await db_session.refresh(estudiante)
-    await db_session.refresh(profesor)
+    async_db_session.add(profesor)
+    await async_db_session.commit()
+    await async_db_session.refresh(estudiante)
+    await async_db_session.refresh(profesor)
     
     subject = Subject(
         nombre="Matemáticas",
@@ -65,17 +65,17 @@ async def test_admin_service_generate_student_report_json(db_session: AsyncSessi
         horario="Lunes 8:00",
         profesor_id=profesor.id,
     )
-    db_session.add(subject)
-    await db_session.commit()
-    await db_session.refresh(subject)
+    async_db_session.add(subject)
+    await async_db_session.commit()
+    await async_db_session.refresh(subject)
     
     enrollment = Enrollment(
         estudiante_id=estudiante.id,
         subject_id=subject.id,
     )
-    db_session.add(enrollment)
-    await db_session.commit()
-    await db_session.refresh(enrollment)
+    async_db_session.add(enrollment)
+    await async_db_session.commit()
+    await async_db_session.refresh(enrollment)
     
     grade = Grade(
         enrollment_id=enrollment.id,
@@ -83,10 +83,10 @@ async def test_admin_service_generate_student_report_json(db_session: AsyncSessi
         periodo="2024-1",
         fecha=date.today(),
     )
-    db_session.add(grade)
-    await db_session.commit()
+    async_db_session.add(grade)
+    await async_db_session.commit()
     
-    service = AdminService(db_session, admin)
+    service = AdminService(async_db_session, admin)
     report = await service.generate_student_report(estudiante.id, "json")
     
     assert "content" in report
@@ -96,9 +96,9 @@ async def test_admin_service_generate_student_report_json(db_session: AsyncSessi
 
 
 @pytest.mark.asyncio
-async def test_admin_service_generate_student_report_pdf(db_session: AsyncSession):
+async def test_admin_service_generate_student_report_pdf(async_db_session: AsyncSession):
     """Test AdminService can generate student report in PDF format."""
-    codigo_admin = await generar_codigo_institucional(db_session, "Admin")
+    codigo_admin = await generar_codigo_institucional(async_db_session, "Admin")
     admin = User(
         email="admin@example.com",
         password_hash=get_password_hash("admin123"),
@@ -108,9 +108,9 @@ async def test_admin_service_generate_student_report_pdf(db_session: AsyncSessio
         codigo_institucional=codigo_admin,
         fecha_nacimiento=date(1975, 1, 1),
     )
-    db_session.add(admin)
+    async_db_session.add(admin)
     
-    codigo_est = await generar_codigo_institucional(db_session, "Estudiante")
+    codigo_est = await generar_codigo_institucional(async_db_session, "Estudiante")
     estudiante = User(
         email="est@example.com",
         password_hash=get_password_hash("pass"),
@@ -121,9 +121,9 @@ async def test_admin_service_generate_student_report_pdf(db_session: AsyncSessio
         fecha_nacimiento=date(2000, 1, 1),
         programa_academico="Ingeniería",
     )
-    db_session.add(estudiante)
+    async_db_session.add(estudiante)
     
-    codigo_prof = await generar_codigo_institucional(db_session, "Profesor")
+    codigo_prof = await generar_codigo_institucional(async_db_session, "Profesor")
     profesor = User(
         email="prof@example.com",
         password_hash=get_password_hash("pass"),
@@ -133,10 +133,10 @@ async def test_admin_service_generate_student_report_pdf(db_session: AsyncSessio
         codigo_institucional=codigo_prof,
         fecha_nacimiento=date(1980, 1, 1),
     )
-    db_session.add(profesor)
-    await db_session.commit()
-    await db_session.refresh(estudiante)
-    await db_session.refresh(profesor)
+    async_db_session.add(profesor)
+    await async_db_session.commit()
+    await async_db_session.refresh(estudiante)
+    await async_db_session.refresh(profesor)
     
     subject = Subject(
         nombre="Matemáticas",
@@ -145,19 +145,19 @@ async def test_admin_service_generate_student_report_pdf(db_session: AsyncSessio
         horario="Lunes 8:00",
         profesor_id=profesor.id,
     )
-    db_session.add(subject)
-    await db_session.commit()
-    await db_session.refresh(subject)
+    async_db_session.add(subject)
+    await async_db_session.commit()
+    await async_db_session.refresh(subject)
     
     enrollment = Enrollment(
         estudiante_id=estudiante.id,
         subject_id=subject.id,
     )
-    db_session.add(enrollment)
-    await db_session.commit()
-    await db_session.refresh(enrollment)
+    async_db_session.add(enrollment)
+    await async_db_session.commit()
+    await async_db_session.refresh(enrollment)
     
-    service = AdminService(db_session, admin)
+    service = AdminService(async_db_session, admin)
     report = await service.generate_student_report(estudiante.id, "pdf")
     
     assert "content" in report
@@ -167,9 +167,9 @@ async def test_admin_service_generate_student_report_pdf(db_session: AsyncSessio
 
 
 @pytest.mark.asyncio
-async def test_admin_service_generate_student_report_html(db_session: AsyncSession):
+async def test_admin_service_generate_student_report_html(async_db_session: AsyncSession):
     """Test AdminService can generate student report in HTML format."""
-    codigo_admin = await generar_codigo_institucional(db_session, "Admin")
+    codigo_admin = await generar_codigo_institucional(async_db_session, "Admin")
     admin = User(
         email="admin@example.com",
         password_hash=get_password_hash("admin123"),
@@ -179,9 +179,9 @@ async def test_admin_service_generate_student_report_html(db_session: AsyncSessi
         codigo_institucional=codigo_admin,
         fecha_nacimiento=date(1975, 1, 1),
     )
-    db_session.add(admin)
+    async_db_session.add(admin)
     
-    codigo_est = await generar_codigo_institucional(db_session, "Estudiante")
+    codigo_est = await generar_codigo_institucional(async_db_session, "Estudiante")
     estudiante = User(
         email="est@example.com",
         password_hash=get_password_hash("pass"),
@@ -192,11 +192,11 @@ async def test_admin_service_generate_student_report_html(db_session: AsyncSessi
         fecha_nacimiento=date(2000, 1, 1),
         programa_academico="Ingeniería",
     )
-    db_session.add(estudiante)
-    await db_session.commit()
-    await db_session.refresh(estudiante)
+    async_db_session.add(estudiante)
+    await async_db_session.commit()
+    await async_db_session.refresh(estudiante)
     
-    service = AdminService(db_session, admin)
+    service = AdminService(async_db_session, admin)
     report = await service.generate_student_report(estudiante.id, "html")
     
     assert "content" in report
@@ -206,9 +206,9 @@ async def test_admin_service_generate_student_report_html(db_session: AsyncSessi
 
 
 @pytest.mark.asyncio
-async def test_profesor_service_generate_subject_report_json(db_session: AsyncSession):
+async def test_profesor_service_generate_subject_report_json(async_db_session: AsyncSession):
     """Test ProfesorService can generate subject report in JSON format."""
-    codigo_prof = await generar_codigo_institucional(db_session, "Profesor")
+    codigo_prof = await generar_codigo_institucional(async_db_session, "Profesor")
     profesor = User(
         email="prof@example.com",
         password_hash=get_password_hash("pass"),
@@ -218,9 +218,9 @@ async def test_profesor_service_generate_subject_report_json(db_session: AsyncSe
         codigo_institucional=codigo_prof,
         fecha_nacimiento=date(1980, 1, 1),
     )
-    db_session.add(profesor)
+    async_db_session.add(profesor)
     
-    codigo_est = await generar_codigo_institucional(db_session, "Estudiante")
+    codigo_est = await generar_codigo_institucional(async_db_session, "Estudiante")
     estudiante = User(
         email="est@example.com",
         password_hash=get_password_hash("pass"),
@@ -230,10 +230,10 @@ async def test_profesor_service_generate_subject_report_json(db_session: AsyncSe
         codigo_institucional=codigo_est,
         fecha_nacimiento=date(2000, 1, 1),
     )
-    db_session.add(estudiante)
-    await db_session.commit()
-    await db_session.refresh(profesor)
-    await db_session.refresh(estudiante)
+    async_db_session.add(estudiante)
+    await async_db_session.commit()
+    await async_db_session.refresh(profesor)
+    await async_db_session.refresh(estudiante)
     
     subject = Subject(
         nombre="Matemáticas",
@@ -242,17 +242,17 @@ async def test_profesor_service_generate_subject_report_json(db_session: AsyncSe
         horario="Lunes 8:00",
         profesor_id=profesor.id,
     )
-    db_session.add(subject)
-    await db_session.commit()
-    await db_session.refresh(subject)
+    async_db_session.add(subject)
+    await async_db_session.commit()
+    await async_db_session.refresh(subject)
     
     enrollment = Enrollment(
         estudiante_id=estudiante.id,
         subject_id=subject.id,
     )
-    db_session.add(enrollment)
-    await db_session.commit()
-    await db_session.refresh(enrollment)
+    async_db_session.add(enrollment)
+    await async_db_session.commit()
+    await async_db_session.refresh(enrollment)
     
     grade = Grade(
         enrollment_id=enrollment.id,
@@ -260,10 +260,10 @@ async def test_profesor_service_generate_subject_report_json(db_session: AsyncSe
         periodo="2024-1",
         fecha=date.today(),
     )
-    db_session.add(grade)
-    await db_session.commit()
+    async_db_session.add(grade)
+    await async_db_session.commit()
     
-    service = ProfesorService(db_session, profesor)
+    service = ProfesorService(async_db_session, profesor)
     report = await service.generate_subject_report(subject.id, "json")
     
     assert "content" in report
@@ -273,9 +273,9 @@ async def test_profesor_service_generate_subject_report_json(db_session: AsyncSe
 
 
 @pytest.mark.asyncio
-async def test_profesor_service_generate_subject_report_pdf(db_session: AsyncSession):
+async def test_profesor_service_generate_subject_report_pdf(async_db_session: AsyncSession):
     """Test ProfesorService can generate subject report in PDF format."""
-    codigo_prof = await generar_codigo_institucional(db_session, "Profesor")
+    codigo_prof = await generar_codigo_institucional(async_db_session, "Profesor")
     profesor = User(
         email="prof@example.com",
         password_hash=get_password_hash("pass"),
@@ -285,9 +285,9 @@ async def test_profesor_service_generate_subject_report_pdf(db_session: AsyncSes
         codigo_institucional=codigo_prof,
         fecha_nacimiento=date(1980, 1, 1),
     )
-    db_session.add(profesor)
-    await db_session.commit()
-    await db_session.refresh(profesor)
+    async_db_session.add(profesor)
+    await async_db_session.commit()
+    await async_db_session.refresh(profesor)
     
     subject = Subject(
         nombre="Matemáticas",
@@ -296,11 +296,11 @@ async def test_profesor_service_generate_subject_report_pdf(db_session: AsyncSes
         horario="Lunes 8:00",
         profesor_id=profesor.id,
     )
-    db_session.add(subject)
-    await db_session.commit()
-    await db_session.refresh(subject)
+    async_db_session.add(subject)
+    await async_db_session.commit()
+    await async_db_session.refresh(subject)
     
-    service = ProfesorService(db_session, profesor)
+    service = ProfesorService(async_db_session, profesor)
     report = await service.generate_subject_report(subject.id, "pdf")
     
     assert "content" in report
@@ -310,9 +310,9 @@ async def test_profesor_service_generate_subject_report_pdf(db_session: AsyncSes
 
 
 @pytest.mark.asyncio
-async def test_profesor_service_get_subject_with_students(db_session: AsyncSession):
+async def test_profesor_service_get_subject_with_students(async_db_session: AsyncSession):
     """Test ProfesorService can get subject with students."""
-    codigo_prof = await generar_codigo_institucional(db_session, "Profesor")
+    codigo_prof = await generar_codigo_institucional(async_db_session, "Profesor")
     profesor = User(
         email="prof@example.com",
         password_hash=get_password_hash("pass"),
@@ -322,9 +322,9 @@ async def test_profesor_service_get_subject_with_students(db_session: AsyncSessi
         codigo_institucional=codigo_prof,
         fecha_nacimiento=date(1980, 1, 1),
     )
-    db_session.add(profesor)
+    async_db_session.add(profesor)
     
-    codigo_est = await generar_codigo_institucional(db_session, "Estudiante")
+    codigo_est = await generar_codigo_institucional(async_db_session, "Estudiante")
     estudiante = User(
         email="est@example.com",
         password_hash=get_password_hash("pass"),
@@ -334,10 +334,10 @@ async def test_profesor_service_get_subject_with_students(db_session: AsyncSessi
         codigo_institucional=codigo_est,
         fecha_nacimiento=date(2000, 1, 1),
     )
-    db_session.add(estudiante)
-    await db_session.commit()
-    await db_session.refresh(profesor)
-    await db_session.refresh(estudiante)
+    async_db_session.add(estudiante)
+    await async_db_session.commit()
+    await async_db_session.refresh(profesor)
+    await async_db_session.refresh(estudiante)
     
     subject = Subject(
         nombre="Matemáticas",
@@ -346,18 +346,18 @@ async def test_profesor_service_get_subject_with_students(db_session: AsyncSessi
         horario="Lunes 8:00",
         profesor_id=profesor.id,
     )
-    db_session.add(subject)
-    await db_session.commit()
-    await db_session.refresh(subject)
+    async_db_session.add(subject)
+    await async_db_session.commit()
+    await async_db_session.refresh(subject)
     
     enrollment = Enrollment(
         estudiante_id=estudiante.id,
         subject_id=subject.id,
     )
-    db_session.add(enrollment)
-    await db_session.commit()
+    async_db_session.add(enrollment)
+    await async_db_session.commit()
     
-    service = ProfesorService(db_session, profesor)
+    service = ProfesorService(async_db_session, profesor)
     result = await service.get_subject_with_students(subject.id)
     
     assert "subject" in result
@@ -367,9 +367,9 @@ async def test_profesor_service_get_subject_with_students(db_session: AsyncSessi
 
 
 @pytest.mark.asyncio
-async def test_estudiante_service_generate_general_report_json(db_session: AsyncSession):
+async def test_estudiante_service_generate_general_report_json(async_db_session: AsyncSession):
     """Test EstudianteService can generate general report in JSON format."""
-    codigo_est = await generar_codigo_institucional(db_session, "Estudiante")
+    codigo_est = await generar_codigo_institucional(async_db_session, "Estudiante")
     estudiante = User(
         email="est@example.com",
         password_hash=get_password_hash("pass"),
@@ -380,9 +380,9 @@ async def test_estudiante_service_generate_general_report_json(db_session: Async
         fecha_nacimiento=date(2000, 1, 1),
         programa_academico="Ingeniería",
     )
-    db_session.add(estudiante)
+    async_db_session.add(estudiante)
     
-    codigo_prof = await generar_codigo_institucional(db_session, "Profesor")
+    codigo_prof = await generar_codigo_institucional(async_db_session, "Profesor")
     profesor = User(
         email="prof@example.com",
         password_hash=get_password_hash("pass"),
@@ -392,10 +392,10 @@ async def test_estudiante_service_generate_general_report_json(db_session: Async
         codigo_institucional=codigo_prof,
         fecha_nacimiento=date(1980, 1, 1),
     )
-    db_session.add(profesor)
-    await db_session.commit()
-    await db_session.refresh(estudiante)
-    await db_session.refresh(profesor)
+    async_db_session.add(profesor)
+    await async_db_session.commit()
+    await async_db_session.refresh(estudiante)
+    await async_db_session.refresh(profesor)
     
     subject = Subject(
         nombre="Matemáticas",
@@ -404,17 +404,17 @@ async def test_estudiante_service_generate_general_report_json(db_session: Async
         horario="Lunes 8:00",
         profesor_id=profesor.id,
     )
-    db_session.add(subject)
-    await db_session.commit()
-    await db_session.refresh(subject)
+    async_db_session.add(subject)
+    await async_db_session.commit()
+    await async_db_session.refresh(subject)
     
     enrollment = Enrollment(
         estudiante_id=estudiante.id,
         subject_id=subject.id,
     )
-    db_session.add(enrollment)
-    await db_session.commit()
-    await db_session.refresh(enrollment)
+    async_db_session.add(enrollment)
+    await async_db_session.commit()
+    await async_db_session.refresh(enrollment)
     
     grade = Grade(
         enrollment_id=enrollment.id,
@@ -422,10 +422,10 @@ async def test_estudiante_service_generate_general_report_json(db_session: Async
         periodo="2024-1",
         fecha=date.today(),
     )
-    db_session.add(grade)
-    await db_session.commit()
+    async_db_session.add(grade)
+    await async_db_session.commit()
     
-    service = EstudianteService(db_session, estudiante)
+    service = EstudianteService(async_db_session, estudiante)
     report = await service.generate_general_report("json")
     
     assert "content" in report
@@ -435,9 +435,9 @@ async def test_estudiante_service_generate_general_report_json(db_session: Async
 
 
 @pytest.mark.asyncio
-async def test_estudiante_service_generate_general_report_pdf(db_session: AsyncSession):
+async def test_estudiante_service_generate_general_report_pdf(async_db_session: AsyncSession):
     """Test EstudianteService can generate general report in PDF format."""
-    codigo_est = await generar_codigo_institucional(db_session, "Estudiante")
+    codigo_est = await generar_codigo_institucional(async_db_session, "Estudiante")
     estudiante = User(
         email="est@example.com",
         password_hash=get_password_hash("pass"),
@@ -448,11 +448,11 @@ async def test_estudiante_service_generate_general_report_pdf(db_session: AsyncS
         fecha_nacimiento=date(2000, 1, 1),
         programa_academico="Ingeniería",
     )
-    db_session.add(estudiante)
-    await db_session.commit()
-    await db_session.refresh(estudiante)
+    async_db_session.add(estudiante)
+    await async_db_session.commit()
+    await async_db_session.refresh(estudiante)
     
-    service = EstudianteService(db_session, estudiante)
+    service = EstudianteService(async_db_session, estudiante)
     report = await service.generate_general_report("pdf")
     
     assert "content" in report
@@ -462,9 +462,9 @@ async def test_estudiante_service_generate_general_report_pdf(db_session: AsyncS
 
 
 @pytest.mark.asyncio
-async def test_admin_service_generate_average_error_case(db_session: AsyncSession):
+async def test_admin_service_generate_average_error_case(async_db_session: AsyncSession):
     """Test AdminService raises error when enrollment not found."""
-    codigo_admin = await generar_codigo_institucional(db_session, "Admin")
+    codigo_admin = await generar_codigo_institucional(async_db_session, "Admin")
     admin = User(
         email="admin@example.com",
         password_hash=get_password_hash("admin123"),
@@ -474,9 +474,9 @@ async def test_admin_service_generate_average_error_case(db_session: AsyncSessio
         codigo_institucional=codigo_admin,
         fecha_nacimiento=date(1975, 1, 1),
     )
-    db_session.add(admin)
+    async_db_session.add(admin)
     
-    codigo_est = await generar_codigo_institucional(db_session, "Estudiante")
+    codigo_est = await generar_codigo_institucional(async_db_session, "Estudiante")
     estudiante = User(
         email="est@example.com",
         password_hash=get_password_hash("pass"),
@@ -486,9 +486,9 @@ async def test_admin_service_generate_average_error_case(db_session: AsyncSessio
         codigo_institucional=codigo_est,
         fecha_nacimiento=date(2000, 1, 1),
     )
-    db_session.add(estudiante)
+    async_db_session.add(estudiante)
     
-    codigo_prof = await generar_codigo_institucional(db_session, "Profesor")
+    codigo_prof = await generar_codigo_institucional(async_db_session, "Profesor")
     profesor = User(
         email="prof@example.com",
         password_hash=get_password_hash("pass"),
@@ -498,10 +498,10 @@ async def test_admin_service_generate_average_error_case(db_session: AsyncSessio
         codigo_institucional=codigo_prof,
         fecha_nacimiento=date(1980, 1, 1),
     )
-    db_session.add(profesor)
-    await db_session.commit()
-    await db_session.refresh(estudiante)
-    await db_session.refresh(profesor)
+    async_db_session.add(profesor)
+    await async_db_session.commit()
+    await async_db_session.refresh(estudiante)
+    await async_db_session.refresh(profesor)
     
     subject = Subject(
         nombre="Matemáticas",
@@ -510,11 +510,11 @@ async def test_admin_service_generate_average_error_case(db_session: AsyncSessio
         horario="Lunes 8:00",
         profesor_id=profesor.id,
     )
-    db_session.add(subject)
-    await db_session.commit()
-    await db_session.refresh(subject)
+    async_db_session.add(subject)
+    await async_db_session.commit()
+    await async_db_session.refresh(subject)
     
-    service = AdminService(db_session, admin)
+    service = AdminService(async_db_session, admin)
     
     # Should raise error because estudiante is not enrolled
     with pytest.raises(ValueError):
@@ -522,9 +522,9 @@ async def test_admin_service_generate_average_error_case(db_session: AsyncSessio
 
 
 @pytest.mark.asyncio
-async def test_profesor_service_generate_subject_report_error(db_session: AsyncSession):
+async def test_profesor_service_generate_subject_report_error(async_db_session: AsyncSession):
     """Test ProfesorService raises error for unassigned subject."""
-    codigo_prof1 = await generar_codigo_institucional(db_session, "Profesor")
+    codigo_prof1 = await generar_codigo_institucional(async_db_session, "Profesor")
     profesor1 = User(
         email="prof1@example.com",
         password_hash=get_password_hash("pass"),
@@ -534,9 +534,9 @@ async def test_profesor_service_generate_subject_report_error(db_session: AsyncS
         codigo_institucional=codigo_prof1,
         fecha_nacimiento=date(1980, 1, 1),
     )
-    db_session.add(profesor1)
+    async_db_session.add(profesor1)
     
-    codigo_prof2 = await generar_codigo_institucional(db_session, "Profesor")
+    codigo_prof2 = await generar_codigo_institucional(async_db_session, "Profesor")
     profesor2 = User(
         email="prof2@example.com",
         password_hash=get_password_hash("pass"),
@@ -546,10 +546,10 @@ async def test_profesor_service_generate_subject_report_error(db_session: AsyncS
         codigo_institucional=codigo_prof2,
         fecha_nacimiento=date(1980, 1, 1),
     )
-    db_session.add(profesor2)
-    await db_session.commit()
-    await db_session.refresh(profesor1)
-    await db_session.refresh(profesor2)
+    async_db_session.add(profesor2)
+    await async_db_session.commit()
+    await async_db_session.refresh(profesor1)
+    await async_db_session.refresh(profesor2)
     
     # Subject assigned to profesor2
     subject = Subject(
@@ -559,11 +559,11 @@ async def test_profesor_service_generate_subject_report_error(db_session: AsyncS
         horario="Lunes 8:00",
         profesor_id=profesor2.id,
     )
-    db_session.add(subject)
-    await db_session.commit()
-    await db_session.refresh(subject)
+    async_db_session.add(subject)
+    await async_db_session.commit()
+    await async_db_session.refresh(subject)
     
-    service = ProfesorService(db_session, profesor1)  # profesor1 trying to access
+    service = ProfesorService(async_db_session, profesor1)  # profesor1 trying to access
     
     # Should raise error because profesor1 is not assigned
     with pytest.raises(ValueError):
