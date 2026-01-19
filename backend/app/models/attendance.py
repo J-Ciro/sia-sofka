@@ -10,9 +10,9 @@ from app.core.database import Base
 
 class AttendanceStatus(str, enum.Enum):
     """Attendance status enum."""
-    PRESENTE = "Presente"
-    AUSENTE = "Ausente"
-    TARDANZA = "Tardanza"
+    PRESENTE = "PRESENTE"
+    AUSENTE = "AUSENTE"
+    TARDANZA = "TARDANZA"
 
 
 class ClaseSession(Base):

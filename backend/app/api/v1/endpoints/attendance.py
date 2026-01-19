@@ -5,7 +5,8 @@ Implements role-based access control (Profesor can manage, Estudiante can view).
 """
 
 from datetime import datetime, date
-from fastapi import APIRouter, Depends, HTTPException, status
+from typing import Optional
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.dependencies import get_db, get_current_user
@@ -41,7 +42,7 @@ async def create_clase_session(
     service = AttendanceService(db, current_user)
     
     try:
-        clase_session = service.create_clase_session(
+        clase_session = await service.create_clase_session(
             subject_id=session_data.subject_id,
             fecha=session_data.fecha,
             hora_inicio=session_data.hora_inicio,
@@ -53,6 +54,30 @@ async def create_clase_session(
         raise HTTPException(status_code=400, detail=str(e))
     except (NotFoundError, UnauthorizedError, ValidationError) as e:
         raise HTTPException(status_code=400, detail=e.detail if hasattr(e, 'detail') else str(e))
+
+
+@router.get("/sessions", response_model=list[ClaseSessionResponse])
+async def list_clase_sessions(
+    subject_id: Optional[int] = Query(None, description="Filter by subject ID"),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """List all class sessions.
+    
+    Profesores see only their sessions.
+    Students see sessions from their enrolled subjects.
+    """
+    from app.repositories.attendance_repository import AttendanceRepository
+    repo = AttendanceRepository(db)
+    
+    if current_user.role == UserRole.PROFESOR:
+        # Profesores see their own sessions
+        sessions = await repo.get_sessions_by_profesor(current_user.id, subject_id)
+    else:
+        # Estudiantes see sessions from enrolled subjects
+        sessions = await repo.get_sessions_for_student(current_user.id, subject_id)
+    
+    return [ClaseSessionResponse.model_validate(s) for s in sessions]
 
 
 @router.get("/sessions/{session_id}", response_model=ClaseSessionResponse)
@@ -71,6 +96,74 @@ async def get_clase_session(
         raise HTTPException(status_code=404, detail=f"ClaseSession {session_id} not found")
     
     return ClaseSessionResponse.model_validate(clase_session)
+
+
+@router.get("/sessions/{session_id}/attendances", response_model=list[AttendanceResponse])
+async def get_session_attendances(
+    session_id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Get all attendance records for a class session."""
+    from app.repositories.attendance_repository import AttendanceRepository
+    repo = AttendanceRepository(db)
+    
+    # Verify session exists
+    clase_session = await repo.get_by_id(ClaseSession, session_id)
+    if not clase_session:
+        raise HTTPException(status_code=404, detail=f"ClaseSession {session_id} not found")
+    
+    # Get attendances
+    attendances = await repo.get_attendances_by_session(session_id)
+    
+    return [AttendanceResponse.model_validate(a) for a in attendances]
+
+
+@router.post("/sessions/{session_id}/save", status_code=status.HTTP_200_OK)
+async def save_session_attendances(
+    session_id: int,
+    attendance_updates: list[AttendanceUpdate],
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Save multiple attendance updates for a session.
+    
+    This endpoint updates all attendance records for a session in a single transaction.
+    """
+    if current_user.role != UserRole.PROFESOR:
+        raise HTTPException(status_code=403, detail="Only professors can save attendance")
+    
+    from app.repositories.attendance_repository import AttendanceRepository
+    from sqlalchemy import select
+    
+    repo = AttendanceRepository(db)
+    
+    # Verify session exists
+    clase_session = await repo.get_by_id(ClaseSession, session_id)
+    if not clase_session:
+        raise HTTPException(status_code=404, detail=f"ClaseSession {session_id} not found")
+    
+    # Update each attendance record
+    updated_count = 0
+    for update in attendance_updates:
+        # Find attendance by session and student
+        query = select(Attendance).where(
+            Attendance.clase_session_id == session_id,
+            Attendance.estudiante_id == update.estudiante_id
+        )
+        result = await db.execute(query)
+        attendance = result.scalar_one_or_none()
+        
+        if attendance:
+            attendance.estado = update.estado
+            updated_count += 1
+    
+    await db.commit()
+    
+    return {
+        "message": f"Successfully updated {updated_count} attendance records",
+        "updated_count": updated_count
+    }
 
 
 @router.patch("/{attendance_id}", response_model=AttendanceResponse)
@@ -126,7 +219,7 @@ async def get_session_statistics(
         raise HTTPException(status_code=404, detail=f"ClaseSession {session_id} not found")
     
     # Get statistics
-    stats = service.get_session_statistics(session_id)
+    stats = await service.get_session_statistics(session_id)
     
     return SessionStatisticsResponse(**stats)
 

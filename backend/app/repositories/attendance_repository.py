@@ -1,5 +1,6 @@
 """Attendance Repository - Data access layer for attendance operations."""
 
+from datetime import date
 from typing import Optional, Dict, Any, Union
 from sqlalchemy.orm import Session
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -203,3 +204,168 @@ class AttendanceRepository:
             counts[attendance.estado] += 1
         
         return counts
+    
+    # Async methods for FastAPI endpoints
+    
+    async def get_by_id(self, model_class, entity_id: int):
+        """Get entity by ID (async version for endpoints).
+        
+        Args:
+            model_class: Model class (ClaseSession or Attendance)
+            entity_id: Entity ID
+        
+        Returns:
+            Entity instance or None
+        """
+        if isinstance(self.db, AsyncSession):
+            result = await self.db.execute(
+                select(model_class).where(model_class.id == entity_id)
+            )
+            return result.scalar_one_or_none()
+        else:
+            return self.db.query(model_class).filter(model_class.id == entity_id).first()
+    
+    async def get_sessions_by_profesor(
+        self,
+        profesor_id: int,
+        subject_id: Optional[int] = None,
+    ) -> list[ClaseSession]:
+        """Get all clase sessions created by a profesor.
+        
+        Args:
+            profesor_id: Profesor user ID
+            subject_id: Optional subject ID filter
+        
+        Returns:
+            List of ClaseSession instances
+        """
+        query = select(ClaseSession).where(ClaseSession.creado_por == profesor_id)
+        
+        if subject_id:
+            query = query.where(ClaseSession.subject_id == subject_id)
+        
+        query = query.order_by(ClaseSession.fecha.desc(), ClaseSession.hora_inicio.desc())
+        
+        result = await self.db.execute(query)
+        return list(result.scalars().all())
+    
+    async def get_sessions_for_student(
+        self,
+        estudiante_id: int,
+        subject_id: Optional[int] = None,
+    ) -> list[ClaseSession]:
+        """Get all clase sessions for a student's enrolled subjects.
+        
+        Args:
+            estudiante_id: Student user ID
+            subject_id: Optional subject ID filter
+        
+        Returns:
+            List of ClaseSession instances
+        """
+        from app.models.enrollment import Enrollment
+        
+        # Get enrolled subject IDs
+        enrollment_query = select(Enrollment.subject_id).where(
+            Enrollment.estudiante_id == estudiante_id
+        )
+        
+        if subject_id:
+            enrollment_query = enrollment_query.where(Enrollment.subject_id == subject_id)
+        
+        result = await self.db.execute(enrollment_query)
+        enrolled_subject_ids = [row[0] for row in result.all()]
+        
+        if not enrolled_subject_ids:
+            return []
+        
+        # Get sessions for enrolled subjects
+        query = select(ClaseSession).where(
+            ClaseSession.subject_id.in_(enrolled_subject_ids)
+        ).order_by(ClaseSession.fecha.desc(), ClaseSession.hora_inicio.desc())
+        
+        result = await self.db.execute(query)
+        return list(result.scalars().all())
+    
+    async def get_attendances_by_session(self, clase_session_id: int) -> list[Attendance]:
+        """Get all attendance records for a session (async version).
+        
+        Args:
+            clase_session_id: ClaseSession ID
+        
+        Returns:
+            List of Attendance instances
+        """
+        query = select(Attendance).where(
+            Attendance.clase_session_id == clase_session_id
+        ).order_by(Attendance.estudiante_id)
+        
+        result = await self.db.execute(query)
+        return list(result.scalars().all())
+    
+    async def count_by_status_async(self, clase_session_id: int) -> Dict[AttendanceStatus, int]:
+        """Count attendance records by status for a session (async version).
+        
+        Args:
+            clase_session_id: ID of the clase session
+        
+        Returns:
+            Dictionary with counts by status
+        """
+        attendances = await self.get_attendances_by_session(clase_session_id)
+        
+        counts = {
+            AttendanceStatus.PRESENTE: 0,
+            AttendanceStatus.AUSENTE: 0,
+            AttendanceStatus.TARDANZA: 0,
+        }
+        
+        for attendance in attendances:
+            counts[attendance.estado] += 1
+        
+        return counts
+    
+    async def calculate_attendance_percentage_async(self, clase_session_id: int) -> float:
+        """Calculate attendance percentage for a session (async version).
+        
+        Attendance percentage = (PRESENTE + TARDANZA) / TOTAL * 100
+        
+        Args:
+            clase_session_id: ID of the clase session
+        
+        Returns:
+            Attendance percentage (0-100)
+        """
+        attendances = await self.get_attendances_by_session(clase_session_id)
+        
+        if not attendances:
+            return 0.0
+        
+        present_or_late = sum(
+            1 for a in attendances
+            if a.estado in (AttendanceStatus.PRESENTE, AttendanceStatus.TARDANZA)
+        )
+        
+        return (present_or_late / len(attendances)) * 100
+    
+    async def get_session_by_subject_and_date(
+        self,
+        subject_id: int,
+        fecha: date,
+    ) -> Optional[ClaseSession]:
+        """Check if session exists for subject on given date.
+        
+        Args:
+            subject_id: Subject ID
+            fecha: Date to check
+        
+        Returns:
+            ClaseSession if exists, None otherwise
+        """
+        query = select(ClaseSession).where(
+            ClaseSession.subject_id == subject_id,
+            ClaseSession.fecha == fecha
+        )
+        
+        result = await self.db.execute(query)
+        return result.scalar_one_or_none()

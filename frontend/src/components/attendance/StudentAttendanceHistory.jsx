@@ -12,6 +12,8 @@ import {
   BarChart3
 } from 'lucide-react'
 import Loading from '../common/Loading'
+import { AttendanceStatus, getAttendanceColorClasses } from '../../utils/attendanceHelpers'
+import { formatDate, formatTime, getAlertLevel } from '../../utils/formatters'
 
 const StudentAttendanceHistory = () => {
   const { user } = useAuth()
@@ -117,16 +119,13 @@ const StudentAttendanceHistory = () => {
 
   const calculateStats = (history) => {
     const total = history.length
-    const presente = history.filter(h => h.estado === 'PRESENTE').length
-    const ausente = history.filter(h => h.estado === 'AUSENTE').length
-    const tardanza = history.filter(h => h.estado === 'TARDANZA').length
+    const presente = history.filter(h => h.estado === AttendanceStatus.PRESENTE).length
+    const ausente = history.filter(h => h.estado === AttendanceStatus.AUSENTE).length
+    const tardanza = history.filter(h => h.estado === AttendanceStatus.TARDANZA).length
     
     // Fórmula: (Presente + Tardanza) / Total * 100
     const porcentaje = total > 0 ? ((presente + tardanza) / total * 100).toFixed(1) : 0
-    
-    let alertLevel = 'success'
-    if (porcentaje < 70) alertLevel = 'critical'
-    else if (porcentaje < 80) alertLevel = 'warning'
+    const alertLevel = getAlertLevel(parseFloat(porcentaje))
     
     setStats({
       total,
@@ -140,27 +139,14 @@ const StudentAttendanceHistory = () => {
 
   const getAttendanceIcon = (estado) => {
     switch (estado) {
-      case 'PRESENTE':
+      case AttendanceStatus.PRESENTE:
         return <CheckCircle className="w-5 h-5 text-green-600" />
-      case 'AUSENTE':
+      case AttendanceStatus.AUSENTE:
         return <XCircle className="w-5 h-5 text-red-600" />
-      case 'TARDANZA':
+      case AttendanceStatus.TARDANZA:
         return <Clock className="w-5 h-5 text-yellow-600" />
       default:
         return null
-    }
-  }
-
-  const getAttendanceColor = (estado) => {
-    switch (estado) {
-      case 'PRESENTE':
-        return 'bg-green-50 border-green-200 text-green-700'
-      case 'AUSENTE':
-        return 'bg-red-50 border-red-200 text-red-700'
-      case 'TARDANZA':
-        return 'bg-yellow-50 border-yellow-200 text-yellow-700'
-      default:
-        return 'bg-gray-50 border-gray-200 text-gray-700'
     }
   }
 
@@ -196,11 +182,6 @@ const StudentAttendanceHistory = () => {
           barColor: 'bg-green-600'
         }
     }
-  }
-
-  const formatDate = (dateString) => {
-    const options = { year: 'numeric', month: 'long', day: 'numeric' }
-    return new Date(dateString).toLocaleDateString('es-ES', options)
   }
 
   if (loading) {
@@ -343,7 +324,7 @@ const StudentAttendanceHistory = () => {
                 {attendanceHistory.map(record => (
                   <div 
                     key={record.id}
-                    className={`p-4 rounded-lg border-2 ${getAttendanceColor(record.estado)} transition-all`}
+                    className={`p-4 rounded-lg border-2 ${getAttendanceColorClasses(record.estado)} transition-all`}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3 flex-1">

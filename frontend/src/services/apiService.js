@@ -393,9 +393,16 @@ export const attendanceService = {
     return response.data
   },
 
-  // Obtener todas las sesiones de una materia
+  // Obtener todas las sesiones (con filtro opcional de materia)
   getSessionsBySubject: async (subjectId) => {
-    const response = await api.get('/attendance/sessions', { params: { subject_id: subjectId } })
+    const params = subjectId ? { subject_id: subjectId } : {}
+    const response = await api.get('/attendance/sessions', { params })
+    return response.data
+  },
+
+  // Obtener asistencias de una sesión
+  getSessionAttendances: async (sessionId) => {
+    const response = await api.get(`/attendance/sessions/${sessionId}/attendances`)
     return response.data
   },
 
@@ -422,6 +429,12 @@ export const attendanceService = {
   // Marcar asistencia masiva
   markAllAttendance: async (sessionId, estado) => {
     const response = await api.post(`/attendance/sessions/${sessionId}/mark-all`, { estado })
+    return response.data
+  },
+
+  // Guardar asistencias de una sesión
+  saveSessionAttendances: async (sessionId, attendanceUpdates) => {
+    const response = await api.post(`/attendance/sessions/${sessionId}/save`, attendanceUpdates)
     return response.data
   },
 }
