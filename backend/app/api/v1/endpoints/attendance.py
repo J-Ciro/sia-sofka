@@ -21,7 +21,7 @@ from app.models.attendance import ClaseSession, Attendance
 from app.services.attendance_service import AttendanceService
 from app.core.exceptions import NotFoundError, UnauthorizedError, ValidationError
 
-router = APIRouter(prefix="/api/v1/attendance", tags=["attendance"])
+router = APIRouter(tags=["attendance"])
 
 
 @router.post("/sessions", response_model=ClaseSessionResponse, status_code=status.HTTP_201_CREATED)
@@ -73,7 +73,7 @@ async def get_clase_session(
     return ClaseSessionResponse.model_validate(clase_session)
 
 
-@router.patch("/attendance/{attendance_id}", response_model=AttendanceResponse)
+@router.patch("/{attendance_id}", response_model=AttendanceResponse)
 async def update_attendance(
     attendance_id: int,
     attendance_data: AttendanceUpdate,
