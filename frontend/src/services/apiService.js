@@ -379,3 +379,49 @@ export const estudianteService = {
   },
 }
 
+// ==================== ATTENDANCE ====================
+export const attendanceService = {
+  // Crear sesión de clase
+  createSession: async (sessionData) => {
+    const response = await api.post('/attendance/sessions', sessionData)
+    return response.data
+  },
+
+  // Obtener sesión por ID
+  getSession: async (sessionId) => {
+    const response = await api.get(`/attendance/sessions/${sessionId}`)
+    return response.data
+  },
+
+  // Obtener todas las sesiones de una materia
+  getSessionsBySubject: async (subjectId) => {
+    const response = await api.get('/attendance/sessions', { params: { subject_id: subjectId } })
+    return response.data
+  },
+
+  // Actualizar estado de asistencia individual
+  updateAttendance: async (attendanceId, estado) => {
+    const response = await api.patch(`/attendance/${attendanceId}`, { estado })
+    return response.data
+  },
+
+  // Obtener estadísticas de una sesión
+  getSessionStats: async (sessionId) => {
+    const response = await api.get(`/attendance/sessions/${sessionId}/stats`)
+    return response.data
+  },
+
+  // Obtener historial de asistencia de un estudiante
+  getStudentHistory: async (studentId, subjectId) => {
+    const response = await api.get(`/attendance/student/${studentId}`, {
+      params: { subject_id: subjectId },
+    })
+    return response.data
+  },
+
+  // Marcar asistencia masiva
+  markAllAttendance: async (sessionId, estado) => {
+    const response = await api.post(`/attendance/sessions/${sessionId}/mark-all`, { estado })
+    return response.data
+  },
+}

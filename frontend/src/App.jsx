@@ -10,6 +10,8 @@ import EstudianteSubjects from './components/dashboard/EstudianteSubjects'
 import Enrollments from './components/dashboard/Enrollments'
 import Grades from './components/dashboard/Grades'
 import Reports from './components/dashboard/Reports'
+import TakeAttendance from './components/attendance/TakeAttendance'
+import StudentAttendanceHistory from './components/attendance/StudentAttendanceHistory'
 
 // Componente para renderizar Subjects según el rol
 const SubjectsRoute = () => {
@@ -21,6 +23,19 @@ const SubjectsRoute = () => {
     return <EstudianteSubjects />
   } else {
     return <Subjects />
+  }
+}
+
+// Componente para renderizar Attendance según el rol
+const AttendanceRoute = () => {
+  const { user } = useAuth()
+  
+  if (user?.role === 'Profesor') {
+    return <TakeAttendance />
+  } else if (user?.role === 'Estudiante') {
+    return <StudentAttendanceHistory />
+  } else {
+    return <Navigate to="/" replace />
   }
 }
 
@@ -37,6 +52,7 @@ function App() {
             <Route path="enrollments" element={<Enrollments />} />
             <Route path="grades" element={<Grades />} />
             <Route path="reports" element={<Reports />} />
+            <Route path="attendance" element={<AttendanceRoute />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
