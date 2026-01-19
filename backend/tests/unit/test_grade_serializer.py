@@ -147,7 +147,7 @@ async def test_serialize_batch_without_enrollment(
         fecha=date.today(),
     )
     async_db_session.add(grade)
-    async_db_session.commit()
+    await async_db_session.commit()
     await async_db_session.refresh(grade)
     
     # Manually set enrollment to None for testing
@@ -177,7 +177,7 @@ async def test_serialize_batch_batch_loading_efficiency(
         fecha=date.today(),
     )
     async_db_session.add(grade3)
-    async_db_session.commit()
+    await async_db_session.commit()
     await async_db_session.refresh(grade3)
     grade3.enrollment = enrollment
     grades.append(grade3)

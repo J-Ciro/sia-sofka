@@ -83,7 +83,7 @@ async def setup_test_data(async_db_session: AsyncSession):
         fecha=dt_date(2024, 12, 10)
     )
     async_db_session.add_all([grade1, grade2])
-    async_db_session.commit()
+    await async_db_session.commit()
     
     return {
         'profesor': profesor,
@@ -356,7 +356,7 @@ class TestGradeRepositoryAdvanced:
             subject_id=new_subject.id
         )
         async_db_session.add(new_enrollment)
-        async_db_session.commit()
+        await async_db_session.commit()
         await async_db_session.refresh(new_enrollment)
         
         repo = GradeRepository(async_db_session)
@@ -779,7 +779,7 @@ class TestEnrollmentRepositoryAdvanced:
             subject_id=subject2.id
         )
         async_db_session.add(enrollment2)
-        async_db_session.commit()
+        await async_db_session.commit()
         
         repo = EnrollmentRepository(async_db_session)
         
@@ -853,7 +853,7 @@ class TestEnrollmentRepositoryAdvanced:
             subject_id=subject.id
         )
         async_db_session.add(enrollment2)
-        async_db_session.commit()
+        await async_db_session.commit()
         
         repo = EnrollmentRepository(async_db_session)
         

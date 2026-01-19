@@ -149,7 +149,7 @@ async def test_verify_profesor_subject_permission_subject_not_found(
         subject_id=99999,
     )
     async_db_session.add(enrollment)
-    async_db_session.commit()
+    await async_db_session.commit()
     await async_db_session.refresh(enrollment)
     
     with pytest.raises(ForbiddenError) as exc_info:
