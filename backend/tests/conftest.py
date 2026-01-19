@@ -13,8 +13,10 @@ os.environ.setdefault("DEBUG", "false")
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession as AsyncSessionType, async_sessionmaker
 from datetime import date, datetime
 from bcrypt import hashpw, gensalt
+from httpx import AsyncClient, ASGITransport
 
 # Import models (now safe because database.py uses lazy initialization)
 from app.models.user import User, UserRole
@@ -52,6 +54,60 @@ def db_session():
     session.rollback()
     session.close()
     Base.metadata.drop_all(bind=engine)
+
+
+# ===== ASYNC SESSION (for integration tests) =====
+@pytest.fixture(scope="function")
+async def db_session():
+    """Create an asynchronous test database session for integration tests."""
+    TEST_DATABASE_URL_ASYNC = "sqlite+aiosqlite:///:memory:"
+    
+    engine = create_async_engine(
+        TEST_DATABASE_URL_ASYNC,
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
+    
+    # Create all tables
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    
+    AsyncSessionLocal = async_sessionmaker(
+        engine,
+        class_=AsyncSessionType,
+        expire_on_commit=False,
+    )
+    
+    session = AsyncSessionLocal()
+    yield session
+    
+    # Cleanup
+    await session.rollback()
+    await session.close()
+    
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+    
+    await engine.dispose()
+
+
+# ===== HTTP CLIENT (for integration tests) =====
+@pytest.fixture
+async def client(db_session: AsyncSessionType):
+    """Create an async HTTP client for testing endpoints."""
+    # Override the dependency
+    from app.api.v1.dependencies import get_db
+    
+    async def override_get_db():
+        yield db_session
+    
+    app.dependency_overrides[get_db] = override_get_db
+    
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as ac:
+        yield ac
+    
+    app.dependency_overrides.clear()
 
 
 # ===== USER FIXTURES =====
