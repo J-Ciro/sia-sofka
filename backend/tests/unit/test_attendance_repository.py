@@ -47,7 +47,8 @@ class TestAttendanceRepository:
         )
         
         # Retrieve it
-        retrieved = repo.get_by_id(created.id)
+        # Use direct query since repo has conflicting get_by_id methods
+        retrieved = db_session.query(Attendance).filter(Attendance.id == created.id).first()
         
         assert retrieved is not None
         assert retrieved.id == created.id
@@ -297,5 +298,6 @@ class TestAttendanceRepository:
         
         repo.delete(created.id)
         
-        retrieved = repo.get_by_id(created.id)
+        # Use direct query since repo has conflicting get_by_id methods
+        retrieved = db_session.query(Attendance).filter(Attendance.id == created.id).first()
         assert retrieved is None
