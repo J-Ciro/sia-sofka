@@ -23,6 +23,7 @@ from app.models.user import User, UserRole
 from app.models.subject import Subject
 from app.models.enrollment import Enrollment
 from app.models.attendance import ClaseSession
+from app.models.schedule import Classroom, Schedule
 
 # Import app and Base
 from app.main import app
@@ -136,6 +137,21 @@ def enrollment(db_session, estudiante_user, subject):
     db_session.add(enrollment_obj)
     db_session.commit()
     return enrollment_obj
+
+
+# ===== CLASSROOM FIXTURES (horarios-calendario) =====
+@pytest.fixture
+def classroom(db_session):
+    """Create a test classroom (aula) for schedules."""
+    c = Classroom(
+        codigo="AULA-301",
+        nombre="Aula 301",
+        capacidad=40,
+        ubicacion="Edificio A, Tercer piso",
+    )
+    db_session.add(c)
+    db_session.commit()
+    return c
 
 
 # ===== CLASE SESSION FIXTURES =====
