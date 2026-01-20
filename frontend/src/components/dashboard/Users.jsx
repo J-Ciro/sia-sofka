@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { userService } from '../../services/apiService'
-import { Plus, Edit, Trash2, GraduationCap, Users as UsersIcon } from 'lucide-react'
+import { Plus, Edit, Trash2, GraduationCap, Users as UsersIcon, FileSpreadsheet } from 'lucide-react'
 import UserModal from '../modals/UserModal'
+import BulkImportModal from '../modals/BulkImportModal'
 import Loading from '../common/Loading'
 
 const Users = () => {
@@ -10,6 +11,7 @@ const Users = () => {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isBulkModalOpen, setIsBulkModalOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState(null)
   const [deleteConfirm, setDeleteConfirm] = useState(null)
 
@@ -153,13 +155,22 @@ const Users = () => {
           </h1>
           <p className="text-gray-600 text-sm">Gestiona los usuarios del sistema</p>
         </div>
-        <button
-          onClick={handleCreate}
-          className="flex items-center space-x-2 px-5 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl hover:from-purple-700 hover:to-purple-800 shadow-lg hover:shadow-xl transition-all duration-200 font-semibold transform hover:scale-105"
-        >
-          <Plus className="w-5 h-5" />
-          <span>Nuevo Usuario</span>
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setIsBulkModalOpen(true)}
+            className="flex items-center space-x-2 px-4 py-3 bg-white border-2 border-purple-600 text-purple-600 rounded-xl hover:bg-purple-50 shadow transition-all duration-200 font-semibold"
+          >
+            <FileSpreadsheet className="w-5 h-5" />
+            <span>Importar Excel</span>
+          </button>
+          <button
+            onClick={handleCreate}
+            className="flex items-center space-x-2 px-5 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl hover:from-purple-700 hover:to-purple-800 shadow-lg hover:shadow-xl transition-all duration-200 font-semibold transform hover:scale-105"
+          >
+            <Plus className="w-5 h-5" />
+            <span>Nuevo Usuario</span>
+          </button>
+        </div>
       </div>
 
       {error && (
@@ -412,6 +423,12 @@ const Users = () => {
         }}
         user={selectedUser}
         onSubmit={handleModalSubmit}
+      />
+
+      <BulkImportModal
+        isOpen={isBulkModalOpen}
+        onClose={() => setIsBulkModalOpen(false)}
+        onSuccess={fetchUsers}
       />
     </div>
   )

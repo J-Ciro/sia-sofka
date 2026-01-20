@@ -56,6 +56,39 @@ export const userService = {
   delete: async (userId) => {
     await api.delete(`/users/${userId}`)
   },
+
+  /** Importar estudiantes desde Excel. Retorna { created, updated, errors }. En 400 con errores, res.data ya tiene ese formato. */
+  bulkImport: async (file) => {
+    const fd = new FormData()
+    fd.append('file', file)
+    const res = await api.post('/users/bulk-import', fd, {
+      validateStatus: (s) => s === 200 || s === 400,
+    })
+    return res.data
+  },
+
+  /** Exportar usuarios a Excel. Descarga el archivo. */
+  exportToExcel: async (role = null) => {
+    const params = role ? { role } : {}
+    const res = await api.get('/users/export', { params, responseType: 'blob' })
+    const url = window.URL.createObjectURL(res.data)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `usuarios${role ? `_${role}` : ''}.xlsx`
+    a.click()
+    window.URL.revokeObjectURL(url)
+  },
+
+  /** Descargar plantilla Excel para importación. */
+  downloadImportTemplate: async () => {
+    const res = await api.get('/users/template', { responseType: 'blob' })
+    const url = window.URL.createObjectURL(res.data)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'plantilla_estudiantes.xlsx'
+    a.click()
+    window.URL.revokeObjectURL(url)
+  },
 }
 
 // ==================== SUBJECTS ====================
