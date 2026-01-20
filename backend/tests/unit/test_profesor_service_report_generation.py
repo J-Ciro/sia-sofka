@@ -17,10 +17,10 @@ from app.core.security import get_password_hash
 # ==================== Fixtures ====================
 
 @pytest.fixture
-async def test_data_profesor_reports(db_session: AsyncSession):
+async def test_data_profesor_reports(async_db_session: AsyncSession):
     """Create comprehensive test data for profesor report generation."""
     # Profesor
-    codigo_prof = await generar_codigo_institucional(db_session, "Profesor")
+    codigo_prof = await generar_codigo_institucional(async_db_session, "Profesor")
     profesor = User(
         email="profesor@reports.com",
         password_hash=get_password_hash("prof123"),
@@ -30,10 +30,10 @@ async def test_data_profesor_reports(db_session: AsyncSession):
         codigo_institucional=codigo_prof,
         fecha_nacimiento=date(1980, 1, 1),
     )
-    db_session.add(profesor)
+    async_db_session.add(profesor)
     
     # Estudiante 1
-    codigo_est1 = await generar_codigo_institucional(db_session, "Estudiante")
+    codigo_est1 = await generar_codigo_institucional(async_db_session, "Estudiante")
     estudiante1 = User(
         email="estudiante1@reports.com",
         password_hash=get_password_hash("est123"),
@@ -43,10 +43,10 @@ async def test_data_profesor_reports(db_session: AsyncSession):
         codigo_institucional=codigo_est1,
         fecha_nacimiento=date(2000, 1, 1),
     )
-    db_session.add(estudiante1)
+    async_db_session.add(estudiante1)
     
     # Estudiante 2
-    codigo_est2 = await generar_codigo_institucional(db_session, "Estudiante")
+    codigo_est2 = await generar_codigo_institucional(async_db_session, "Estudiante")
     estudiante2 = User(
         email="estudiante2@reports.com",
         password_hash=get_password_hash("est123"),
@@ -56,12 +56,12 @@ async def test_data_profesor_reports(db_session: AsyncSession):
         codigo_institucional=codigo_est2,
         fecha_nacimiento=date(2001, 1, 1),
     )
-    db_session.add(estudiante2)
+    async_db_session.add(estudiante2)
     
-    await db_session.commit()
-    await db_session.refresh(profesor)
-    await db_session.refresh(estudiante1)
-    await db_session.refresh(estudiante2)
+    await async_db_session.commit()
+    await async_db_session.refresh(profesor)
+    await async_db_session.refresh(estudiante1)
+    await async_db_session.refresh(estudiante2)
     
     # Subject
     subject = Subject(
@@ -72,27 +72,27 @@ async def test_data_profesor_reports(db_session: AsyncSession):
         descripcion="Curso avanzado de matemáticas",
         profesor_id=profesor.id,
     )
-    db_session.add(subject)
-    await db_session.commit()
-    await db_session.refresh(subject)
+    async_db_session.add(subject)
+    await async_db_session.commit()
+    await async_db_session.refresh(subject)
     
     # Enrollment 1
     enrollment1 = Enrollment(
         estudiante_id=estudiante1.id,
         subject_id=subject.id,
     )
-    db_session.add(enrollment1)
+    async_db_session.add(enrollment1)
     
     # Enrollment 2
     enrollment2 = Enrollment(
         estudiante_id=estudiante2.id,
         subject_id=subject.id,
     )
-    db_session.add(enrollment2)
+    async_db_session.add(enrollment2)
     
-    await db_session.commit()
-    await db_session.refresh(enrollment1)
-    await db_session.refresh(enrollment2)
+    await async_db_session.commit()
+    await async_db_session.refresh(enrollment1)
+    await async_db_session.refresh(enrollment2)
     
     # Grades for enrollment 1 (average = 4.5)
     grade1_1 = Grade(
@@ -109,7 +109,7 @@ async def test_data_profesor_reports(db_session: AsyncSession):
         fecha=date(2024, 2, 15),
         observaciones="Segunda evaluación",
     )
-    db_session.add_all([grade1_1, grade1_2])
+    async_db_session.add_all([grade1_1, grade1_2])
     
     # Grades for enrollment 2 (average = 4.0)
     grade2_1 = Grade(
@@ -126,11 +126,11 @@ async def test_data_profesor_reports(db_session: AsyncSession):
         fecha=date(2024, 2, 20),
         observaciones="Segunda evaluación",
     )
-    db_session.add_all([grade2_1, grade2_2])
+    async_db_session.add_all([grade2_1, grade2_2])
     
-    await db_session.commit()
+    await async_db_session.commit()
     for grade in [grade1_1, grade1_2, grade2_1, grade2_2]:
-        await db_session.refresh(grade)
+        await async_db_session.refresh(grade)
     
     return {
         "profesor": profesor,
@@ -144,12 +144,12 @@ async def test_data_profesor_reports(db_session: AsyncSession):
 # ==================== generate_subject_report Tests ====================
 
 @pytest.mark.asyncio
-async def test_generate_subject_report_json_format_complete_data(db_session: AsyncSession, test_data_profesor_reports):
+async def test_generate_subject_report_json_format_complete_data(async_db_session: AsyncSession, test_data_profesor_reports):
     """Test generate_subject_report in JSON format with complete data (covers lines 122-177)."""
     profesor = test_data_profesor_reports["profesor"]
     subject = test_data_profesor_reports["subject"]
     
-    service = ProfesorService(db_session, profesor)
+    service = ProfesorService(async_db_session, profesor)
     
     report = await service.generate_subject_report(subject.id, "json")
     
@@ -191,12 +191,12 @@ async def test_generate_subject_report_json_format_complete_data(db_session: Asy
 
 
 @pytest.mark.asyncio
-async def test_generate_subject_report_pdf_format(db_session: AsyncSession, test_data_profesor_reports):
+async def test_generate_subject_report_pdf_format(async_db_session: AsyncSession, test_data_profesor_reports):
     """Test generate_subject_report in PDF format (covers lines 175-177)."""
     profesor = test_data_profesor_reports["profesor"]
     subject = test_data_profesor_reports["subject"]
     
-    service = ProfesorService(db_session, profesor)
+    service = ProfesorService(async_db_session, profesor)
     
     report = await service.generate_subject_report(subject.id, "pdf")
     
@@ -214,12 +214,12 @@ async def test_generate_subject_report_pdf_format(db_session: AsyncSession, test
 
 
 @pytest.mark.asyncio
-async def test_generate_subject_report_html_format(db_session: AsyncSession, test_data_profesor_reports):
+async def test_generate_subject_report_html_format(async_db_session: AsyncSession, test_data_profesor_reports):
     """Test generate_subject_report in HTML format (covers lines 175-177)."""
     profesor = test_data_profesor_reports["profesor"]
     subject = test_data_profesor_reports["subject"]
     
-    service = ProfesorService(db_session, profesor)
+    service = ProfesorService(async_db_session, profesor)
     
     report = await service.generate_subject_report(subject.id, "html")
     
@@ -238,12 +238,12 @@ async def test_generate_subject_report_html_format(db_session: AsyncSession, tes
 
 
 @pytest.mark.asyncio
-async def test_generate_subject_report_unassigned_subject(db_session: AsyncSession, test_data_profesor_reports):
+async def test_generate_subject_report_unassigned_subject(async_db_session: AsyncSession, test_data_profesor_reports):
     """Test generate_subject_report raises ValueError for unassigned subject (covers lines 136-139)."""
     profesor = test_data_profesor_reports["profesor"]
     
     # Create another profesor and subject
-    codigo_prof2 = await generar_codigo_institucional(db_session, "Profesor")
+    codigo_prof2 = await generar_codigo_institucional(async_db_session, "Profesor")
     profesor2 = User(
         email="profesor2@reports.com",
         password_hash=get_password_hash("prof123"),
@@ -253,9 +253,9 @@ async def test_generate_subject_report_unassigned_subject(db_session: AsyncSessi
         codigo_institucional=codigo_prof2,
         fecha_nacimiento=date(1981, 1, 1),
     )
-    db_session.add(profesor2)
-    await db_session.commit()
-    await db_session.refresh(profesor2)
+    async_db_session.add(profesor2)
+    await async_db_session.commit()
+    await async_db_session.refresh(profesor2)
     
     subject2 = Subject(
         nombre="Física",
@@ -264,11 +264,11 @@ async def test_generate_subject_report_unassigned_subject(db_session: AsyncSessi
         horario="Jueves 8:00",
         profesor_id=profesor2.id,  # Assigned to profesor2, not profesor
     )
-    db_session.add(subject2)
-    await db_session.commit()
-    await db_session.refresh(subject2)
+    async_db_session.add(subject2)
+    await async_db_session.commit()
+    await async_db_session.refresh(subject2)
     
-    service = ProfesorService(db_session, profesor)
+    service = ProfesorService(async_db_session, profesor)
     
     # Should raise ValueError because subject is not assigned to profesor
     with pytest.raises(ValueError, match="Subject is not assigned to this profesor"):
@@ -276,7 +276,7 @@ async def test_generate_subject_report_unassigned_subject(db_session: AsyncSessi
 
 
 @pytest.mark.asyncio
-async def test_generate_subject_report_no_enrollments(db_session: AsyncSession, test_data_profesor_reports):
+async def test_generate_subject_report_no_enrollments(async_db_session: AsyncSession, test_data_profesor_reports):
     """Test generate_subject_report with subject that has no enrollments (covers lines 142, 150-151)."""
     profesor = test_data_profesor_reports["profesor"]
     
@@ -288,11 +288,11 @@ async def test_generate_subject_report_no_enrollments(db_session: AsyncSession, 
         horario="Viernes 8:00",
         profesor_id=profesor.id,
     )
-    db_session.add(subject)
-    await db_session.commit()
-    await db_session.refresh(subject)
+    async_db_session.add(subject)
+    await async_db_session.commit()
+    await async_db_session.refresh(subject)
     
-    service = ProfesorService(db_session, profesor)
+    service = ProfesorService(async_db_session, profesor)
     
     report = await service.generate_subject_report(subject.id, "json")
     
@@ -311,13 +311,13 @@ async def test_generate_subject_report_no_enrollments(db_session: AsyncSession, 
 
 
 @pytest.mark.asyncio
-async def test_generate_subject_report_enrollment_without_grades(db_session: AsyncSession, test_data_profesor_reports):
+async def test_generate_subject_report_enrollment_without_grades(async_db_session: AsyncSession, test_data_profesor_reports):
     """Test generate_subject_report with enrollment that has no grades (covers lines 158-162)."""
     profesor = test_data_profesor_reports["profesor"]
     subject = test_data_profesor_reports["subject"]
     
     # Create new estudiante and enrollment without grades
-    codigo_est = await generar_codigo_institucional(db_session, "Estudiante")
+    codigo_est = await generar_codigo_institucional(async_db_session, "Estudiante")
     estudiante = User(
         email="est_no_grades@reports.com",
         password_hash=get_password_hash("est123"),
@@ -327,20 +327,20 @@ async def test_generate_subject_report_enrollment_without_grades(db_session: Asy
         codigo_institucional=codigo_est,
         fecha_nacimiento=date(2000, 1, 1),
     )
-    db_session.add(estudiante)
-    await db_session.commit()
-    await db_session.refresh(estudiante)
+    async_db_session.add(estudiante)
+    await async_db_session.commit()
+    await async_db_session.refresh(estudiante)
     
     # Create enrollment without grades
     enrollment = Enrollment(
         estudiante_id=estudiante.id,
         subject_id=subject.id,
     )
-    db_session.add(enrollment)
-    await db_session.commit()
-    await db_session.refresh(enrollment)
+    async_db_session.add(enrollment)
+    await async_db_session.commit()
+    await async_db_session.refresh(enrollment)
     
-    service = ProfesorService(db_session, profesor)
+    service = ProfesorService(async_db_session, profesor)
     
     report = await service.generate_subject_report(subject.id, "json")
     
@@ -362,7 +362,7 @@ async def test_generate_subject_report_enrollment_without_grades(db_session: Asy
 
 
 @pytest.mark.asyncio
-async def test_generate_subject_report_estudiante_not_found_skipped(db_session: AsyncSession, test_data_profesor_reports):
+async def test_generate_subject_report_estudiante_not_found_skipped(async_db_session: AsyncSession, test_data_profesor_reports):
     """Test generate_subject_report skips enrollment when estudiante not found (covers lines 154-156)."""
     profesor = test_data_profesor_reports["profesor"]
     subject = test_data_profesor_reports["subject"]
@@ -372,11 +372,11 @@ async def test_generate_subject_report_estudiante_not_found_skipped(db_session: 
         estudiante_id=99999,  # Non-existent estudiante
         subject_id=subject.id,
     )
-    db_session.add(enrollment)
-    await db_session.commit()
-    await db_session.refresh(enrollment)
+    async_db_session.add(enrollment)
+    await async_db_session.commit()
+    await async_db_session.refresh(enrollment)
     
-    service = ProfesorService(db_session, profesor)
+    service = ProfesorService(async_db_session, profesor)
     
     # Should not raise error, but skip the enrollment with non-existent estudiante
     report = await service.generate_subject_report(subject.id, "json")
@@ -394,12 +394,12 @@ async def test_generate_subject_report_estudiante_not_found_skipped(db_session: 
 
 
 @pytest.mark.asyncio
-async def test_generate_subject_report_grades_serialization(db_session: AsyncSession, test_data_profesor_reports):
+async def test_generate_subject_report_grades_serialization(async_db_session: AsyncSession, test_data_profesor_reports):
     """Test generate_subject_report correctly serializes grades (covers línea 171)."""
     profesor = test_data_profesor_reports["profesor"]
     subject = test_data_profesor_reports["subject"]
     
-    service = ProfesorService(db_session, profesor)
+    service = ProfesorService(async_db_session, profesor)
     
     report = await service.generate_subject_report(subject.id, "json")
     
@@ -426,14 +426,14 @@ async def test_generate_subject_report_grades_serialization(db_session: AsyncSes
 
 
 @pytest.mark.asyncio
-async def test_generate_subject_report_calculates_average_exception_handling(db_session: AsyncSession, test_data_profesor_reports):
+async def test_generate_subject_report_calculates_average_exception_handling(async_db_session: AsyncSession, test_data_profesor_reports):
     """Test generate_subject_report handles ValueError from calculate_average (covers lines 159-162)."""
     profesor = test_data_profesor_reports["profesor"]
     subject = test_data_profesor_reports["subject"]
     
     # Create new estudiante and enrollment without grades
     # calculate_average will raise ValueError
-    codigo_est = await generar_codigo_institucional(db_session, "Estudiante")
+    codigo_est = await generar_codigo_institucional(async_db_session, "Estudiante")
     estudiante = User(
         email="est_exception@reports.com",
         password_hash=get_password_hash("est123"),
@@ -443,19 +443,19 @@ async def test_generate_subject_report_calculates_average_exception_handling(db_
         codigo_institucional=codigo_est,
         fecha_nacimiento=date(2000, 1, 1),
     )
-    db_session.add(estudiante)
-    await db_session.commit()
-    await db_session.refresh(estudiante)
+    async_db_session.add(estudiante)
+    await async_db_session.commit()
+    await async_db_session.refresh(estudiante)
     
     enrollment = Enrollment(
         estudiante_id=estudiante.id,
         subject_id=subject.id,
     )
-    db_session.add(enrollment)
-    await db_session.commit()
-    await db_session.refresh(enrollment)
+    async_db_session.add(enrollment)
+    await async_db_session.commit()
+    await async_db_session.refresh(enrollment)
     
-    service = ProfesorService(db_session, profesor)
+    service = ProfesorService(async_db_session, profesor)
     
     # Should not raise error, but set average to None
     report = await service.generate_subject_report(subject.id, "json")
@@ -476,12 +476,12 @@ async def test_generate_subject_report_calculates_average_exception_handling(db_
 # ==================== get_subject_with_students Tests ====================
 
 @pytest.mark.asyncio
-async def test_get_subject_with_students_success(db_session: AsyncSession, test_data_profesor_reports):
+async def test_get_subject_with_students_success(async_db_session: AsyncSession, test_data_profesor_reports):
     """Test get_subject_with_students returns subject and students (covers lines 99-120)."""
     profesor = test_data_profesor_reports["profesor"]
     subject = test_data_profesor_reports["subject"]
     
-    service = ProfesorService(db_session, profesor)
+    service = ProfesorService(async_db_session, profesor)
     
     result = await service.get_subject_with_students(subject.id)
     
@@ -498,12 +498,12 @@ async def test_get_subject_with_students_success(db_session: AsyncSession, test_
 
 
 @pytest.mark.asyncio
-async def test_get_subject_with_students_unassigned_subject(db_session: AsyncSession, test_data_profesor_reports):
+async def test_get_subject_with_students_unassigned_subject(async_db_session: AsyncSession, test_data_profesor_reports):
     """Test get_subject_with_students raises ValueError for unassigned subject (covers lines 111-113)."""
     profesor = test_data_profesor_reports["profesor"]
     
     # Create another profesor and subject
-    codigo_prof2 = await generar_codigo_institucional(db_session, "Profesor")
+    codigo_prof2 = await generar_codigo_institucional(async_db_session, "Profesor")
     profesor2 = User(
         email="profesor2@reports.com",
         password_hash=get_password_hash("prof123"),
@@ -513,9 +513,9 @@ async def test_get_subject_with_students_unassigned_subject(db_session: AsyncSes
         codigo_institucional=codigo_prof2,
         fecha_nacimiento=date(1981, 1, 1),
     )
-    db_session.add(profesor2)
-    await db_session.commit()
-    await db_session.refresh(profesor2)
+    async_db_session.add(profesor2)
+    await async_db_session.commit()
+    await async_db_session.refresh(profesor2)
     
     subject2 = Subject(
         nombre="Física",
@@ -524,11 +524,11 @@ async def test_get_subject_with_students_unassigned_subject(db_session: AsyncSes
         horario="Jueves 8:00",
         profesor_id=profesor2.id,  # Assigned to profesor2, not profesor
     )
-    db_session.add(subject2)
-    await db_session.commit()
-    await db_session.refresh(subject2)
+    async_db_session.add(subject2)
+    await async_db_session.commit()
+    await async_db_session.refresh(subject2)
     
-    service = ProfesorService(db_session, profesor)
+    service = ProfesorService(async_db_session, profesor)
     
     # Should raise ValueError because subject is not assigned to profesor
     with pytest.raises(ValueError, match="Subject is not assigned to this profesor"):
@@ -536,11 +536,11 @@ async def test_get_subject_with_students_unassigned_subject(db_session: AsyncSes
 
 
 @pytest.mark.asyncio
-async def test_get_subject_with_students_subject_not_found(db_session: AsyncSession, test_data_profesor_reports):
+async def test_get_subject_with_students_subject_not_found(async_db_session: AsyncSession, test_data_profesor_reports):
     """Test get_subject_with_students raises ValueError for non-existent subject (covers lines 111-113)."""
     profesor = test_data_profesor_reports["profesor"]
     
-    service = ProfesorService(db_session, profesor)
+    service = ProfesorService(async_db_session, profesor)
     
     # Should raise ValueError because subject doesn't exist
     with pytest.raises(ValueError, match="Subject is not assigned to this profesor"):
@@ -548,7 +548,7 @@ async def test_get_subject_with_students_subject_not_found(db_session: AsyncSess
 
 
 @pytest.mark.asyncio
-async def test_get_subject_with_students_no_enrollments(db_session: AsyncSession, test_data_profesor_reports):
+async def test_get_subject_with_students_no_enrollments(async_db_session: AsyncSession, test_data_profesor_reports):
     """Test get_subject_with_students returns empty students list when no enrollments (covers lines 115-120)."""
     profesor = test_data_profesor_reports["profesor"]
     
@@ -560,11 +560,11 @@ async def test_get_subject_with_students_no_enrollments(db_session: AsyncSession
         horario="Viernes 8:00",
         profesor_id=profesor.id,
     )
-    db_session.add(subject)
-    await db_session.commit()
-    await db_session.refresh(subject)
+    async_db_session.add(subject)
+    await async_db_session.commit()
+    await async_db_session.refresh(subject)
     
-    service = ProfesorService(db_session, profesor)
+    service = ProfesorService(async_db_session, profesor)
     
     result = await service.get_subject_with_students(subject.id)
     
@@ -578,14 +578,14 @@ async def test_get_subject_with_students_no_enrollments(db_session: AsyncSession
 # ==================== create_grade Edge Cases ====================
 
 @pytest.mark.asyncio
-async def test_create_grade_invalid_enrollment_for_subject(db_session: AsyncSession, test_data_profesor_reports):
+async def test_create_grade_invalid_enrollment_for_subject(async_db_session: AsyncSession, test_data_profesor_reports):
     """Test create_grade raises ValueError when enrollment is not for the specified subject (covers lines 91-94)."""
     profesor = test_data_profesor_reports["profesor"]
     subject = test_data_profesor_reports["subject"]
     estudiante = test_data_profesor_reports["estudiantes"][0]
     
     # Create another subject
-    codigo_prof2 = await generar_codigo_institucional(db_session, "Profesor")
+    codigo_prof2 = await generar_codigo_institucional(async_db_session, "Profesor")
     profesor2 = User(
         email="profesor2@reports.com",
         password_hash=get_password_hash("prof123"),
@@ -595,9 +595,9 @@ async def test_create_grade_invalid_enrollment_for_subject(db_session: AsyncSess
         codigo_institucional=codigo_prof2,
         fecha_nacimiento=date(1981, 1, 1),
     )
-    db_session.add(profesor2)
-    await db_session.commit()
-    await db_session.refresh(profesor2)
+    async_db_session.add(profesor2)
+    await async_db_session.commit()
+    await async_db_session.refresh(profesor2)
     
     subject2 = Subject(
         nombre="Física",
@@ -606,20 +606,20 @@ async def test_create_grade_invalid_enrollment_for_subject(db_session: AsyncSess
         horario="Jueves 8:00",
         profesor_id=profesor2.id,
     )
-    db_session.add(subject2)
-    await db_session.commit()
-    await db_session.refresh(subject2)
+    async_db_session.add(subject2)
+    await async_db_session.commit()
+    await async_db_session.refresh(subject2)
     
     # Create enrollment for subject2 (not subject)
     enrollment = Enrollment(
         estudiante_id=estudiante.id,
         subject_id=subject2.id,
     )
-    db_session.add(enrollment)
-    await db_session.commit()
-    await db_session.refresh(enrollment)
+    async_db_session.add(enrollment)
+    await async_db_session.commit()
+    await async_db_session.refresh(enrollment)
     
-    service = ProfesorService(db_session, profesor)
+    service = ProfesorService(async_db_session, profesor)
     
     grade_data = GradeCreate(
         enrollment_id=enrollment.id,
@@ -648,12 +648,12 @@ async def test_create_grade_invalid_enrollment_for_subject(db_session: AsyncSess
 
 
 @pytest.mark.asyncio
-async def test_create_grade_enrollment_not_found(db_session: AsyncSession, test_data_profesor_reports):
+async def test_create_grade_enrollment_not_found(async_db_session: AsyncSession, test_data_profesor_reports):
     """Test create_grade raises ValueError when enrollment doesn't exist (covers lines 92-94)."""
     profesor = test_data_profesor_reports["profesor"]
     subject = test_data_profesor_reports["subject"]
     
-    service = ProfesorService(db_session, profesor)
+    service = ProfesorService(async_db_session, profesor)
     
     grade_data = GradeCreate(
         enrollment_id=99999,  # Non-existent enrollment
@@ -668,7 +668,7 @@ async def test_create_grade_enrollment_not_found(db_session: AsyncSession, test_
 
 
 @pytest.mark.asyncio
-async def test_create_grade_subject_not_found(db_session: AsyncSession, test_data_profesor_reports):
+async def test_create_grade_subject_not_found(async_db_session: AsyncSession, test_data_profesor_reports):
     """Test create_grade raises ValueError when subject doesn't exist (covers lines 87-89)."""
     profesor = test_data_profesor_reports["profesor"]
     estudiante = test_data_profesor_reports["estudiantes"][0]
@@ -678,11 +678,11 @@ async def test_create_grade_subject_not_found(db_session: AsyncSession, test_dat
         estudiante_id=estudiante.id,
         subject_id=99999,  # Non-existent subject
     )
-    db_session.add(enrollment)
-    await db_session.commit()
-    await db_session.refresh(enrollment)
+    async_db_session.add(enrollment)
+    await async_db_session.commit()
+    await async_db_session.refresh(enrollment)
     
-    service = ProfesorService(db_session, profesor)
+    service = ProfesorService(async_db_session, profesor)
     
     grade_data = GradeCreate(
         enrollment_id=enrollment.id,
@@ -699,7 +699,7 @@ async def test_create_grade_subject_not_found(db_session: AsyncSession, test_dat
 # ==================== Additional Edge Cases for get_students_by_subject ====================
 
 @pytest.mark.asyncio
-async def test_get_students_by_subject_enrollment_without_estudiante(db_session: AsyncSession, test_data_profesor_reports):
+async def test_get_students_by_subject_enrollment_without_estudiante(async_db_session: AsyncSession, test_data_profesor_reports):
     """Test get_students_by_subject skips enrollment when estudiante not found (covers lines 64-67)."""
     profesor = test_data_profesor_reports["profesor"]
     subject = test_data_profesor_reports["subject"]
@@ -709,11 +709,11 @@ async def test_get_students_by_subject_enrollment_without_estudiante(db_session:
         estudiante_id=99999,  # Non-existent estudiante
         subject_id=subject.id,
     )
-    db_session.add(enrollment)
-    await db_session.commit()
-    await db_session.refresh(enrollment)
+    async_db_session.add(enrollment)
+    await async_db_session.commit()
+    await async_db_session.refresh(enrollment)
     
-    service = ProfesorService(db_session, profesor)
+    service = ProfesorService(async_db_session, profesor)
     
     # Should not raise error, but skip the enrollment with non-existent estudiante
     students = await service.get_students_by_subject(subject.id)
@@ -724,12 +724,12 @@ async def test_get_students_by_subject_enrollment_without_estudiante(db_session:
 
 
 @pytest.mark.asyncio
-async def test_get_students_by_subject_unassigned_subject(db_session: AsyncSession, test_data_profesor_reports):
+async def test_get_students_by_subject_unassigned_subject(async_db_session: AsyncSession, test_data_profesor_reports):
     """Test get_students_by_subject raises ValueError for unassigned subject (covers línea 57)."""
     profesor = test_data_profesor_reports["profesor"]
     
     # Create another profesor and subject
-    codigo_prof2 = await generar_codigo_institucional(db_session, "Profesor")
+    codigo_prof2 = await generar_codigo_institucional(async_db_session, "Profesor")
     profesor2 = User(
         email="profesor2@reports.com",
         password_hash=get_password_hash("prof123"),
@@ -739,9 +739,9 @@ async def test_get_students_by_subject_unassigned_subject(db_session: AsyncSessi
         codigo_institucional=codigo_prof2,
         fecha_nacimiento=date(1981, 1, 1),
     )
-    db_session.add(profesor2)
-    await db_session.commit()
-    await db_session.refresh(profesor2)
+    async_db_session.add(profesor2)
+    await async_db_session.commit()
+    await async_db_session.refresh(profesor2)
     
     subject2 = Subject(
         nombre="Física",
@@ -750,11 +750,11 @@ async def test_get_students_by_subject_unassigned_subject(db_session: AsyncSessi
         horario="Jueves 8:00",
         profesor_id=profesor2.id,  # Assigned to profesor2, not profesor
     )
-    db_session.add(subject2)
-    await db_session.commit()
-    await db_session.refresh(subject2)
+    async_db_session.add(subject2)
+    await async_db_session.commit()
+    await async_db_session.refresh(subject2)
     
-    service = ProfesorService(db_session, profesor)
+    service = ProfesorService(async_db_session, profesor)
     
     # Should raise ValueError because subject is not assigned to profesor (covers línea 57)
     with pytest.raises(ValueError, match="Subject is not assigned to this profesor"):

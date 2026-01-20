@@ -55,6 +55,7 @@ class AttendanceCreate(BaseModel):
 class AttendanceUpdate(BaseModel):
     """Schema for updating attendance status."""
     
+    estudiante_id: int | None = Field(None, description="Student ID")
     estado: AttendanceStatus = Field(..., description="New attendance status")
     
     model_config = {"from_attributes": True}

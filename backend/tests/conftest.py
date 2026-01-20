@@ -154,3 +154,47 @@ def clase_session(db_session, subject, profesor_user):
     db_session.commit()
     return clase
 
+
+
+# ===== ASYNC SESSION (for integration tests) =====
+@pytest.fixture(scope="function")
+async def async_db_session():
+    """Create an async test database session for integration tests."""
+    TEST_DATABASE_URL_ASYNC = "sqlite+aiosqlite:///:memory:"
+    
+    engine = create_async_engine(
+        TEST_DATABASE_URL_ASYNC,
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
+    
+    # Create all tables
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    
+    AsyncSessionLocal = async_sessionmaker(
+        engine, 
+        class_=AsyncSessionType, 
+        expire_on_commit=False
+    )
+    
+    async with AsyncSessionLocal() as session:
+        yield session
+        await session.rollback()
+    
+    # Cleanup
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+    
+    await engine.dispose()
+
+
+# ===== HTTP CLIENT FIXTURE =====
+@pytest.fixture
+async def client():
+    """Create an async HTTP client for integration tests."""
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test"
+    ) as ac:
+        yield ac

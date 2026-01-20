@@ -15,7 +15,7 @@ from app.schemas.grade import GradeCreate
 
 
 @pytest.fixture
-async def setup_test_data(db_session: AsyncSession):
+async def setup_test_data(async_db_session: AsyncSession):
     """Create a complete data structure for testing eager loading."""
     from datetime import date
     
@@ -31,8 +31,8 @@ async def setup_test_data(db_session: AsyncSession):
         edad=43,
         area_ensenanza="Matemáticas"
     )
-    db_session.add(profesor)
-    await db_session.flush()
+    async_db_session.add(profesor)
+    await async_db_session.flush()
     
     # Create estudiante
     estudiante = User(
@@ -47,8 +47,8 @@ async def setup_test_data(db_session: AsyncSession):
         programa_academico="Ingeniería",
         ciudad_residencia="Bogotá"
     )
-    db_session.add(estudiante)
-    await db_session.flush()
+    async_db_session.add(estudiante)
+    await async_db_session.flush()
     
     # Create subject
     subject = Subject(
@@ -57,16 +57,16 @@ async def setup_test_data(db_session: AsyncSession):
         numero_creditos=3,
         profesor_id=profesor.id
     )
-    db_session.add(subject)
-    await db_session.flush()
+    async_db_session.add(subject)
+    await async_db_session.flush()
     
     # Create enrollment
     enrollment = Enrollment(
         estudiante_id=estudiante.id,
         subject_id=subject.id
     )
-    db_session.add(enrollment)
-    await db_session.flush()
+    async_db_session.add(enrollment)
+    await async_db_session.flush()
     
     # Create grades
     from datetime import date as dt_date
@@ -82,8 +82,8 @@ async def setup_test_data(db_session: AsyncSession):
         periodo="2024-1",
         fecha=dt_date(2024, 12, 10)
     )
-    db_session.add_all([grade1, grade2])
-    await db_session.commit()
+    async_db_session.add_all([grade1, grade2])
+    await async_db_session.commit()
     
     return {
         'profesor': profesor,
@@ -99,13 +99,13 @@ class TestGradeRepositoryAdvanced:
 
     @pytest.mark.asyncio
     async def test_get_with_relations_loads_enrollment(
-        self, db_session: AsyncSession, setup_test_data
+        self, async_db_session: AsyncSession, setup_test_data
     ):
         """Test that get_with_relations loads enrollment relationship."""
         data = setup_test_data
         grade_id = data['grades'][0].id
         
-        repo = GradeRepository(db_session)
+        repo = GradeRepository(async_db_session)
         
         # Load grade with enrollment
         grade = await repo.get_with_relations(grade_id, relations=['enrollment'])
@@ -117,10 +117,10 @@ class TestGradeRepositoryAdvanced:
 
     @pytest.mark.asyncio
     async def test_get_with_relations_returns_none_for_invalid_id(
-        self, db_session: AsyncSession
+        self, async_db_session: AsyncSession
     ):
         """Test that get_with_relations returns None for non-existent grade."""
-        repo = GradeRepository(db_session)
+        repo = GradeRepository(async_db_session)
         
         grade = await repo.get_with_relations(99999, relations=['enrollment'])
         
@@ -128,13 +128,13 @@ class TestGradeRepositoryAdvanced:
 
     @pytest.mark.asyncio
     async def test_get_many_with_relations_filters_by_enrollment(
-        self, db_session: AsyncSession, setup_test_data
+        self, async_db_session: AsyncSession, setup_test_data
     ):
         """Test filtering grades by enrollment ID."""
         data = setup_test_data
         enrollment_id = data['enrollment'].id
         
-        repo = GradeRepository(db_session)
+        repo = GradeRepository(async_db_session)
         
         # Get grades for enrollment
         grades = await repo.get_many_with_relations(
@@ -149,13 +149,13 @@ class TestGradeRepositoryAdvanced:
 
     @pytest.mark.asyncio
     async def test_get_many_with_relations_filters_by_grade_ids(
-        self, db_session: AsyncSession, setup_test_data
+        self, async_db_session: AsyncSession, setup_test_data
     ):
         """Test filtering grades by list of IDs."""
         data = setup_test_data
         grade_ids = [data['grades'][0].id]
         
-        repo = GradeRepository(db_session)
+        repo = GradeRepository(async_db_session)
         
         grades = await repo.get_many_with_relations(
             grade_ids=grade_ids,
@@ -167,12 +167,12 @@ class TestGradeRepositoryAdvanced:
 
     @pytest.mark.asyncio
     async def test_get_many_with_relations_respects_pagination(
-        self, db_session: AsyncSession, setup_test_data
+        self, async_db_session: AsyncSession, setup_test_data
     ):
         """Test that pagination parameters work correctly."""
         setup_test_data  # Fixture already returns data
         
-        repo = GradeRepository(db_session)
+        repo = GradeRepository(async_db_session)
         
         # Get first page
         grades_page1 = await repo.get_many_with_relations(
@@ -194,13 +194,13 @@ class TestGradeRepositoryAdvanced:
 
     @pytest.mark.asyncio
     async def test_get_by_subject_returns_all_grades(
-        self, db_session: AsyncSession, setup_test_data
+        self, async_db_session: AsyncSession, setup_test_data
     ):
         """Test getting all grades for a subject."""
         data = setup_test_data
         subject_id = data['subject'].id
         
-        repo = GradeRepository(db_session)
+        repo = GradeRepository(async_db_session)
         
         grades = await repo.get_by_subject(subject_id)
         
@@ -212,13 +212,13 @@ class TestGradeRepositoryAdvanced:
 
     @pytest.mark.asyncio
     async def test_get_by_subject_with_pagination(
-        self, db_session: AsyncSession, setup_test_data
+        self, async_db_session: AsyncSession, setup_test_data
     ):
         """Test getting grades by subject with pagination."""
         data = setup_test_data
         subject_id = data['subject'].id
         
-        repo = GradeRepository(db_session)
+        repo = GradeRepository(async_db_session)
         
         # Get first page
         grades_page1 = await repo.get_by_subject(subject_id, skip=0, limit=1)
@@ -231,10 +231,10 @@ class TestGradeRepositoryAdvanced:
 
     @pytest.mark.asyncio
     async def test_get_by_subject_returns_empty_for_nonexistent_subject(
-        self, db_session: AsyncSession
+        self, async_db_session: AsyncSession
     ):
         """Test getting grades for non-existent subject returns empty list."""
-        repo = GradeRepository(db_session)
+        repo = GradeRepository(async_db_session)
         
         grades = await repo.get_by_subject(99999)
         
@@ -242,13 +242,13 @@ class TestGradeRepositoryAdvanced:
 
     @pytest.mark.asyncio
     async def test_get_by_estudiante_returns_all_grades(
-        self, db_session: AsyncSession, setup_test_data
+        self, async_db_session: AsyncSession, setup_test_data
     ):
         """Test getting all grades for a student."""
         data = setup_test_data
         estudiante_id = data['estudiante'].id
         
-        repo = GradeRepository(db_session)
+        repo = GradeRepository(async_db_session)
         
         grades = await repo.get_by_estudiante(estudiante_id)
         
@@ -260,13 +260,13 @@ class TestGradeRepositoryAdvanced:
 
     @pytest.mark.asyncio
     async def test_get_by_estudiante_with_pagination(
-        self, db_session: AsyncSession, setup_test_data
+        self, async_db_session: AsyncSession, setup_test_data
     ):
         """Test getting grades by estudiante with pagination."""
         data = setup_test_data
         estudiante_id = data['estudiante'].id
         
-        repo = GradeRepository(db_session)
+        repo = GradeRepository(async_db_session)
         
         # Get first page
         grades_page1 = await repo.get_by_estudiante(estudiante_id, skip=0, limit=1)
@@ -279,10 +279,10 @@ class TestGradeRepositoryAdvanced:
 
     @pytest.mark.asyncio
     async def test_get_by_estudiante_returns_empty_for_nonexistent_student(
-        self, db_session: AsyncSession
+        self, async_db_session: AsyncSession
     ):
         """Test getting grades for non-existent student returns empty list."""
-        repo = GradeRepository(db_session)
+        repo = GradeRepository(async_db_session)
         
         grades = await repo.get_by_estudiante(99999)
         
@@ -290,13 +290,13 @@ class TestGradeRepositoryAdvanced:
 
     @pytest.mark.asyncio
     async def test_get_average_by_enrollment_calculates_correctly(
-        self, db_session: AsyncSession, setup_test_data
+        self, async_db_session: AsyncSession, setup_test_data
     ):
         """Test that get_average_by_enrollment calculates average correctly."""
         data = setup_test_data
         enrollment_id = data['enrollment'].id
         
-        repo = GradeRepository(db_session)
+        repo = GradeRepository(async_db_session)
         
         # Calculate expected average: (4.25 + 4.50) / 2 = 4.375
         average = await repo.get_average_by_enrollment(enrollment_id)
@@ -306,7 +306,7 @@ class TestGradeRepositoryAdvanced:
 
     @pytest.mark.asyncio
     async def test_get_average_by_enrollment_returns_none_when_no_grades(
-        self, db_session: AsyncSession, setup_test_data
+        self, async_db_session: AsyncSession, setup_test_data
     ):
         """Test that get_average_by_enrollment returns None when no grades exist."""
         # Create a new enrollment without grades (need new estudiante and subject to avoid unique constraint)
@@ -315,8 +315,8 @@ class TestGradeRepositoryAdvanced:
         from app.core.security import get_password_hash
         
         # Create a new estudiante and subject for a new enrollment
-        codigo_est = await generar_codigo_institucional(db_session, "Estudiante")
-        codigo_prof = await generar_codigo_institucional(db_session, "Profesor")
+        codigo_est = await generar_codigo_institucional(async_db_session, "Estudiante")
+        codigo_prof = await generar_codigo_institucional(async_db_session, "Profesor")
         
         new_estudiante = User(
             email="est2@test.com",
@@ -338,8 +338,8 @@ class TestGradeRepositoryAdvanced:
             fecha_nacimiento=date(1981, 1, 1),
             edad=42
         )
-        db_session.add_all([new_estudiante, new_profesor])
-        await db_session.flush()
+        async_db_session.add_all([new_estudiante, new_profesor])
+        await async_db_session.flush()
         
         new_subject = Subject(
             codigo_institucional="QUI101",
@@ -347,19 +347,19 @@ class TestGradeRepositoryAdvanced:
             numero_creditos=3,
             profesor_id=new_profesor.id
         )
-        db_session.add(new_subject)
-        await db_session.flush()
+        async_db_session.add(new_subject)
+        await async_db_session.flush()
         
         # Create a new enrollment without grades
         new_enrollment = Enrollment(
             estudiante_id=new_estudiante.id,
             subject_id=new_subject.id
         )
-        db_session.add(new_enrollment)
-        await db_session.commit()
-        await db_session.refresh(new_enrollment)
+        async_db_session.add(new_enrollment)
+        await async_db_session.commit()
+        await async_db_session.refresh(new_enrollment)
         
-        repo = GradeRepository(db_session)
+        repo = GradeRepository(async_db_session)
         
         average = await repo.get_average_by_enrollment(new_enrollment.id)
         
@@ -367,10 +367,10 @@ class TestGradeRepositoryAdvanced:
 
     @pytest.mark.asyncio
     async def test_get_average_by_enrollment_returns_none_for_invalid_enrollment(
-        self, db_session: AsyncSession
+        self, async_db_session: AsyncSession
     ):
         """Test that get_average_by_enrollment returns None for non-existent enrollment."""
-        repo = GradeRepository(db_session)
+        repo = GradeRepository(async_db_session)
         
         average = await repo.get_average_by_enrollment(99999)
         
@@ -378,13 +378,13 @@ class TestGradeRepositoryAdvanced:
 
     @pytest.mark.asyncio
     async def test_get_many_with_relations_filters_by_subject_id(
-        self, db_session: AsyncSession, setup_test_data
+        self, async_db_session: AsyncSession, setup_test_data
     ):
         """Test filtering grades by subject ID using get_many_with_relations."""
         data = setup_test_data
         subject_id = data['subject'].id
         
-        repo = GradeRepository(db_session)
+        repo = GradeRepository(async_db_session)
         
         grades = await repo.get_many_with_relations(
             subject_id=subject_id,
@@ -398,7 +398,7 @@ class TestGradeRepositoryAdvanced:
 
     @pytest.mark.asyncio
     async def test_get_many_with_relations_filters_by_estudiante_id_via_subject(
-        self, db_session: AsyncSession, setup_test_data
+        self, async_db_session: AsyncSession, setup_test_data
     ):
         """Test that get_many_with_relations with subject_id can be filtered by estudiante."""
         # This test verifies the subject_id filter works correctly
@@ -406,7 +406,7 @@ class TestGradeRepositoryAdvanced:
         subject_id = data['subject'].id
         estudiante_id = data['estudiante'].id
         
-        repo = GradeRepository(db_session)
+        repo = GradeRepository(async_db_session)
         
         # Get grades by subject
         grades = await repo.get_many_with_relations(
@@ -423,10 +423,10 @@ class TestGradeRepositoryAdvanced:
 
     @pytest.mark.asyncio
     async def test_get_many_with_relations_by_subject_returns_empty_for_nonexistent(
-        self, db_session: AsyncSession
+        self, async_db_session: AsyncSession
     ):
         """Test that get_many_with_relations returns empty list for non-existent subject."""
-        repo = GradeRepository(db_session)
+        repo = GradeRepository(async_db_session)
         
         grades = await repo.get_many_with_relations(
             subject_id=99999,
@@ -437,13 +437,13 @@ class TestGradeRepositoryAdvanced:
 
     @pytest.mark.asyncio
     async def test_get_with_relations_loads_nested_relationships(
-        self, db_session: AsyncSession, setup_test_data
+        self, async_db_session: AsyncSession, setup_test_data
     ):
         """Test that get_with_relations loads nested estudiante and subject."""
         data = setup_test_data
         grade_id = data['grades'][0].id
         
-        repo = GradeRepository(db_session)
+        repo = GradeRepository(async_db_session)
         
         # Load grade with enrollment (which should load nested estudiante and subject)
         grade = await repo.get_with_relations(grade_id, relations=['enrollment'])
@@ -456,13 +456,13 @@ class TestGradeRepositoryAdvanced:
 
     @pytest.mark.asyncio
     async def test_get_by_enrollment_returns_correct_grades(
-        self, db_session: AsyncSession, setup_test_data
+        self, async_db_session: AsyncSession, setup_test_data
     ):
         """Test that get_by_enrollment returns only grades for that enrollment."""
         data = setup_test_data
         enrollment_id = data['enrollment'].id
         
-        repo = GradeRepository(db_session)
+        repo = GradeRepository(async_db_session)
         
         grades = await repo.get_by_enrollment(enrollment_id)
         
@@ -472,13 +472,13 @@ class TestGradeRepositoryAdvanced:
 
     @pytest.mark.asyncio
     async def test_get_by_enrollment_with_pagination(
-        self, db_session: AsyncSession, setup_test_data
+        self, async_db_session: AsyncSession, setup_test_data
     ):
         """Test that get_by_enrollment respects pagination."""
         data = setup_test_data
         enrollment_id = data['enrollment'].id
         
-        repo = GradeRepository(db_session)
+        repo = GradeRepository(async_db_session)
         
         # Get first page
         grades_page1 = await repo.get_by_enrollment(enrollment_id, skip=0, limit=1)
@@ -491,10 +491,10 @@ class TestGradeRepositoryAdvanced:
 
     @pytest.mark.asyncio
     async def test_get_by_enrollment_returns_empty_for_nonexistent_enrollment(
-        self, db_session: AsyncSession
+        self, async_db_session: AsyncSession
     ):
         """Test that get_by_enrollment returns empty list for non-existent enrollment."""
-        repo = GradeRepository(db_session)
+        repo = GradeRepository(async_db_session)
         
         grades = await repo.get_by_enrollment(99999)
         
@@ -506,13 +506,13 @@ class TestEnrollmentRepositoryAdvanced:
 
     @pytest.mark.asyncio
     async def test_get_with_relations_loads_estudiante_and_subject(
-        self, db_session: AsyncSession, setup_test_data
+        self, async_db_session: AsyncSession, setup_test_data
     ):
         """Test that get_with_relations loads all relationships."""
         data = setup_test_data
         enrollment_id = data['enrollment'].id
         
-        repo = EnrollmentRepository(db_session)
+        repo = EnrollmentRepository(async_db_session)
         
         # Load enrollment with relations
         enrollment = await repo.get_with_relations(
@@ -529,10 +529,10 @@ class TestEnrollmentRepositoryAdvanced:
 
     @pytest.mark.asyncio
     async def test_get_with_relations_returns_none_for_invalid_id(
-        self, db_session: AsyncSession
+        self, async_db_session: AsyncSession
     ):
         """Test that get_with_relations returns None for non-existent enrollment."""
-        repo = EnrollmentRepository(db_session)
+        repo = EnrollmentRepository(async_db_session)
         
         enrollment = await repo.get_with_relations(99999)
         
@@ -540,13 +540,13 @@ class TestEnrollmentRepositoryAdvanced:
 
     @pytest.mark.asyncio
     async def test_get_many_with_relations_filters_by_estudiante(
-        self, db_session: AsyncSession, setup_test_data
+        self, async_db_session: AsyncSession, setup_test_data
     ):
         """Test filtering enrollments by student ID."""
         data = setup_test_data
         estudiante_id = data['estudiante'].id
         
-        repo = EnrollmentRepository(db_session)
+        repo = EnrollmentRepository(async_db_session)
         
         enrollments = await repo.get_many_with_relations(
             estudiante_id=estudiante_id,
@@ -559,13 +559,13 @@ class TestEnrollmentRepositoryAdvanced:
 
     @pytest.mark.asyncio
     async def test_get_many_with_relations_filters_by_subject(
-        self, db_session: AsyncSession, setup_test_data
+        self, async_db_session: AsyncSession, setup_test_data
     ):
         """Test filtering enrollments by subject ID."""
         data = setup_test_data
         subject_id = data['subject'].id
         
-        repo = EnrollmentRepository(db_session)
+        repo = EnrollmentRepository(async_db_session)
         
         enrollments = await repo.get_many_with_relations(
             subject_id=subject_id,
@@ -578,12 +578,12 @@ class TestEnrollmentRepositoryAdvanced:
 
     @pytest.mark.asyncio
     async def test_get_many_with_relations_respects_pagination(
-        self, db_session: AsyncSession, setup_test_data
+        self, async_db_session: AsyncSession, setup_test_data
     ):
         """Test that pagination works for enrollments."""
         setup_test_data  # Fixture already returns data
         
-        repo = EnrollmentRepository(db_session)
+        repo = EnrollmentRepository(async_db_session)
         
         # Get with limit
         enrollments = await repo.get_many_with_relations(
@@ -596,13 +596,13 @@ class TestEnrollmentRepositoryAdvanced:
 
     @pytest.mark.asyncio
     async def test_get_with_relations_loads_grades(
-        self, db_session: AsyncSession, setup_test_data
+        self, async_db_session: AsyncSession, setup_test_data
     ):
         """Test loading grades relationship."""
         data = setup_test_data
         enrollment_id = data['enrollment'].id
         
-        repo = EnrollmentRepository(db_session)
+        repo = EnrollmentRepository(async_db_session)
         
         enrollment = await repo.get_with_relations(
             enrollment_id,
@@ -615,13 +615,13 @@ class TestEnrollmentRepositoryAdvanced:
 
     @pytest.mark.asyncio
     async def test_get_with_relations_loads_all_relations(
-        self, db_session: AsyncSession, setup_test_data
+        self, async_db_session: AsyncSession, setup_test_data
     ):
         """Test loading all relationships together."""
         data = setup_test_data
         enrollment_id = data['enrollment'].id
         
-        repo = EnrollmentRepository(db_session)
+        repo = EnrollmentRepository(async_db_session)
         
         enrollment = await repo.get_with_relations(
             enrollment_id,
@@ -636,13 +636,13 @@ class TestEnrollmentRepositoryAdvanced:
 
     @pytest.mark.asyncio
     async def test_get_with_relations_loads_only_estudiante(
-        self, db_session: AsyncSession, setup_test_data
+        self, async_db_session: AsyncSession, setup_test_data
     ):
         """Test loading only estudiante relationship."""
         data = setup_test_data
         enrollment_id = data['enrollment'].id
         
-        repo = EnrollmentRepository(db_session)
+        repo = EnrollmentRepository(async_db_session)
         
         enrollment = await repo.get_with_relations(
             enrollment_id,
@@ -655,13 +655,13 @@ class TestEnrollmentRepositoryAdvanced:
 
     @pytest.mark.asyncio
     async def test_get_with_relations_loads_only_subject(
-        self, db_session: AsyncSession, setup_test_data
+        self, async_db_session: AsyncSession, setup_test_data
     ):
         """Test loading only subject relationship."""
         data = setup_test_data
         enrollment_id = data['enrollment'].id
         
-        repo = EnrollmentRepository(db_session)
+        repo = EnrollmentRepository(async_db_session)
         
         enrollment = await repo.get_with_relations(
             enrollment_id,
@@ -674,14 +674,14 @@ class TestEnrollmentRepositoryAdvanced:
 
     @pytest.mark.asyncio
     async def test_get_many_with_relations_filters_by_both_estudiante_and_subject(
-        self, db_session: AsyncSession, setup_test_data
+        self, async_db_session: AsyncSession, setup_test_data
     ):
         """Test filtering enrollments by both estudiante and subject."""
         data = setup_test_data
         estudiante_id = data['estudiante'].id
         subject_id = data['subject'].id
         
-        repo = EnrollmentRepository(db_session)
+        repo = EnrollmentRepository(async_db_session)
         
         enrollments = await repo.get_many_with_relations(
             estudiante_id=estudiante_id,
@@ -697,10 +697,10 @@ class TestEnrollmentRepositoryAdvanced:
 
     @pytest.mark.asyncio
     async def test_get_many_with_relations_returns_empty_when_no_match(
-        self, db_session: AsyncSession, setup_test_data
+        self, async_db_session: AsyncSession, setup_test_data
     ):
         """Test that get_many_with_relations returns empty list when no match."""
-        repo = EnrollmentRepository(db_session)
+        repo = EnrollmentRepository(async_db_session)
         
         enrollments = await repo.get_many_with_relations(
             estudiante_id=99999,
@@ -711,12 +711,12 @@ class TestEnrollmentRepositoryAdvanced:
 
     @pytest.mark.asyncio
     async def test_get_many_with_relations_with_pagination_details(
-        self, db_session: AsyncSession, setup_test_data
+        self, async_db_session: AsyncSession, setup_test_data
     ):
         """Test that pagination works correctly with skip and limit."""
         setup_test_data  # Fixture already returns data
         
-        repo = EnrollmentRepository(db_session)
+        repo = EnrollmentRepository(async_db_session)
         
         # Get first page
         enrollments_page1 = await repo.get_many_with_relations(
@@ -739,13 +739,13 @@ class TestEnrollmentRepositoryAdvanced:
 
     @pytest.mark.asyncio
     async def test_get_by_estudiante_returns_correct_enrollments(
-        self, db_session: AsyncSession, setup_test_data
+        self, async_db_session: AsyncSession, setup_test_data
     ):
         """Test that get_by_estudiante returns enrollments for that student."""
         data = setup_test_data
         estudiante_id = data['estudiante'].id
         
-        repo = EnrollmentRepository(db_session)
+        repo = EnrollmentRepository(async_db_session)
         
         enrollments = await repo.get_by_estudiante(estudiante_id)
         
@@ -754,7 +754,7 @@ class TestEnrollmentRepositoryAdvanced:
 
     @pytest.mark.asyncio
     async def test_get_by_estudiante_with_pagination(
-        self, db_session: AsyncSession, setup_test_data
+        self, async_db_session: AsyncSession, setup_test_data
     ):
         """Test that get_by_estudiante respects pagination."""
         # Create additional enrollments for pagination test
@@ -770,18 +770,18 @@ class TestEnrollmentRepositoryAdvanced:
             numero_creditos=3,
             profesor_id=profesor.id
         )
-        db_session.add(subject2)
-        await db_session.flush()
+        async_db_session.add(subject2)
+        await async_db_session.flush()
         
         # Create another enrollment
         enrollment2 = Enrollment(
             estudiante_id=estudiante.id,
             subject_id=subject2.id
         )
-        db_session.add(enrollment2)
-        await db_session.commit()
+        async_db_session.add(enrollment2)
+        await async_db_session.commit()
         
-        repo = EnrollmentRepository(db_session)
+        repo = EnrollmentRepository(async_db_session)
         
         # Get first page
         enrollments_page1 = await repo.get_by_estudiante(estudiante.id, skip=0, limit=1)
@@ -794,10 +794,10 @@ class TestEnrollmentRepositoryAdvanced:
 
     @pytest.mark.asyncio
     async def test_get_by_estudiante_returns_empty_for_nonexistent_student(
-        self, db_session: AsyncSession
+        self, async_db_session: AsyncSession
     ):
         """Test that get_by_estudiante returns empty list for non-existent student."""
-        repo = EnrollmentRepository(db_session)
+        repo = EnrollmentRepository(async_db_session)
         
         enrollments = await repo.get_by_estudiante(99999)
         
@@ -805,13 +805,13 @@ class TestEnrollmentRepositoryAdvanced:
 
     @pytest.mark.asyncio
     async def test_get_by_subject_returns_correct_enrollments(
-        self, db_session: AsyncSession, setup_test_data
+        self, async_db_session: AsyncSession, setup_test_data
     ):
         """Test that get_by_subject returns enrollments for that subject."""
         data = setup_test_data
         subject_id = data['subject'].id
         
-        repo = EnrollmentRepository(db_session)
+        repo = EnrollmentRepository(async_db_session)
         
         enrollments = await repo.get_by_subject(subject_id)
         
@@ -820,7 +820,7 @@ class TestEnrollmentRepositoryAdvanced:
 
     @pytest.mark.asyncio
     async def test_get_by_subject_with_pagination(
-        self, db_session: AsyncSession, setup_test_data
+        self, async_db_session: AsyncSession, setup_test_data
     ):
         """Test that get_by_subject respects pagination."""
         # Create additional enrollments for pagination test
@@ -832,7 +832,7 @@ class TestEnrollmentRepositoryAdvanced:
         from datetime import date
         from app.utils.codigo_generator import generar_codigo_institucional
         from app.core.security import get_password_hash
-        codigo_est2 = await generar_codigo_institucional(db_session, "Estudiante")
+        codigo_est2 = await generar_codigo_institucional(async_db_session, "Estudiante")
         
         estudiante2 = User(
             email="est2@test.com",
@@ -844,18 +844,18 @@ class TestEnrollmentRepositoryAdvanced:
             fecha_nacimiento=date(2001, 1, 1),
             edad=22
         )
-        db_session.add(estudiante2)
-        await db_session.flush()
+        async_db_session.add(estudiante2)
+        await async_db_session.flush()
         
         # Create another enrollment
         enrollment2 = Enrollment(
             estudiante_id=estudiante2.id,
             subject_id=subject.id
         )
-        db_session.add(enrollment2)
-        await db_session.commit()
+        async_db_session.add(enrollment2)
+        await async_db_session.commit()
         
-        repo = EnrollmentRepository(db_session)
+        repo = EnrollmentRepository(async_db_session)
         
         # Get first page
         enrollments_page1 = await repo.get_by_subject(subject.id, skip=0, limit=1)
@@ -868,10 +868,10 @@ class TestEnrollmentRepositoryAdvanced:
 
     @pytest.mark.asyncio
     async def test_get_by_subject_returns_empty_for_nonexistent_subject(
-        self, db_session: AsyncSession
+        self, async_db_session: AsyncSession
     ):
         """Test that get_by_subject returns empty list for non-existent subject."""
-        repo = EnrollmentRepository(db_session)
+        repo = EnrollmentRepository(async_db_session)
         
         enrollments = await repo.get_by_subject(99999)
         
@@ -879,14 +879,14 @@ class TestEnrollmentRepositoryAdvanced:
 
     @pytest.mark.asyncio
     async def test_get_by_estudiante_and_subject_returns_enrollment(
-        self, db_session: AsyncSession, setup_test_data
+        self, async_db_session: AsyncSession, setup_test_data
     ):
         """Test that get_by_estudiante_and_subject returns correct enrollment."""
         data = setup_test_data
         estudiante_id = data['estudiante'].id
         subject_id = data['subject'].id
         
-        repo = EnrollmentRepository(db_session)
+        repo = EnrollmentRepository(async_db_session)
         
         enrollment = await repo.get_by_estudiante_and_subject(estudiante_id, subject_id)
         
@@ -897,13 +897,13 @@ class TestEnrollmentRepositoryAdvanced:
 
     @pytest.mark.asyncio
     async def test_get_by_estudiante_and_subject_returns_none_when_not_exists(
-        self, db_session: AsyncSession, setup_test_data
+        self, async_db_session: AsyncSession, setup_test_data
     ):
         """Test that get_by_estudiante_and_subject returns None when enrollment doesn't exist."""
         data = setup_test_data
         estudiante_id = data['estudiante'].id
         
-        repo = EnrollmentRepository(db_session)
+        repo = EnrollmentRepository(async_db_session)
         
         # Use non-existent subject_id
         enrollment = await repo.get_by_estudiante_and_subject(estudiante_id, 99999)
@@ -912,13 +912,13 @@ class TestEnrollmentRepositoryAdvanced:
 
     @pytest.mark.asyncio
     async def test_get_by_estudiante_and_subject_returns_none_for_nonexistent_estudiante(
-        self, db_session: AsyncSession, setup_test_data
+        self, async_db_session: AsyncSession, setup_test_data
     ):
         """Test that get_by_estudiante_and_subject returns None for non-existent estudiante."""
         data = setup_test_data
         subject_id = data['subject'].id
         
-        repo = EnrollmentRepository(db_session)
+        repo = EnrollmentRepository(async_db_session)
         
         # Use non-existent estudiante_id
         enrollment = await repo.get_by_estudiante_and_subject(99999, subject_id)
@@ -931,20 +931,20 @@ class TestRepositoryErrorHandling:
 
     @pytest.mark.asyncio
     async def test_grade_repository_handles_invalid_pagination(
-        self, db_session: AsyncSession
+        self, async_db_session: AsyncSession
     ):
         """Test that invalid pagination raises ValueError."""
-        repo = GradeRepository(db_session)
+        repo = GradeRepository(async_db_session)
         
         with pytest.raises(ValueError):
             await repo.get_many_with_relations(skip=-1, limit=10)
 
     @pytest.mark.asyncio
     async def test_enrollment_repository_handles_invalid_pagination(
-        self, db_session: AsyncSession
+        self, async_db_session: AsyncSession
     ):
         """Test that invalid pagination raises ValueError."""
-        repo = EnrollmentRepository(db_session)
+        repo = EnrollmentRepository(async_db_session)
         
         with pytest.raises(ValueError):
             await repo.get_many_with_relations(skip=0, limit=-10)

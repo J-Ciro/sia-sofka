@@ -12,9 +12,9 @@ from app.core.security import get_password_hash
 
 
 @pytest.mark.asyncio
-async def test_admin_service_update_subject(db_session: AsyncSession):
+async def test_admin_service_update_subject(async_db_session: AsyncSession):
     """Test AdminService can update subject."""
-    codigo_admin = await generar_codigo_institucional(db_session, "Admin")
+    codigo_admin = await generar_codigo_institucional(async_db_session, "Admin")
     admin = User(
         email="admin@example.com",
         password_hash=get_password_hash("admin123"),
@@ -24,9 +24,9 @@ async def test_admin_service_update_subject(db_session: AsyncSession):
         codigo_institucional=codigo_admin,
         fecha_nacimiento=date(1975, 1, 1),
     )
-    db_session.add(admin)
+    async_db_session.add(admin)
     
-    codigo_prof = await generar_codigo_institucional(db_session, "Profesor")
+    codigo_prof = await generar_codigo_institucional(async_db_session, "Profesor")
     profesor = User(
         email="prof@example.com",
         password_hash=get_password_hash("pass"),
@@ -36,10 +36,10 @@ async def test_admin_service_update_subject(db_session: AsyncSession):
         codigo_institucional=codigo_prof,
         fecha_nacimiento=date(1980, 1, 1),
     )
-    db_session.add(profesor)
-    await db_session.commit()
-    await db_session.refresh(admin)
-    await db_session.refresh(profesor)
+    async_db_session.add(profesor)
+    await async_db_session.commit()
+    await async_db_session.refresh(admin)
+    await async_db_session.refresh(profesor)
     
     subject = Subject(
         nombre="Original",
@@ -48,11 +48,11 @@ async def test_admin_service_update_subject(db_session: AsyncSession):
         horario="Lunes 8:00",
         profesor_id=profesor.id,
     )
-    db_session.add(subject)
-    await db_session.commit()
-    await db_session.refresh(subject)
+    async_db_session.add(subject)
+    await async_db_session.commit()
+    await async_db_session.refresh(subject)
     
-    service = AdminService(db_session, admin)
+    service = AdminService(async_db_session, admin)
     update_data = SubjectUpdate(
         nombre="Updated",
         numero_creditos=4,
@@ -66,9 +66,9 @@ async def test_admin_service_update_subject(db_session: AsyncSession):
 
 
 @pytest.mark.asyncio
-async def test_admin_service_delete_subject(db_session: AsyncSession):
+async def test_admin_service_delete_subject(async_db_session: AsyncSession):
     """Test AdminService can delete subject."""
-    codigo_admin = await generar_codigo_institucional(db_session, "Admin")
+    codigo_admin = await generar_codigo_institucional(async_db_session, "Admin")
     admin = User(
         email="admin@example.com",
         password_hash=get_password_hash("admin123"),
@@ -78,9 +78,9 @@ async def test_admin_service_delete_subject(db_session: AsyncSession):
         codigo_institucional=codigo_admin,
         fecha_nacimiento=date(1975, 1, 1),
     )
-    db_session.add(admin)
+    async_db_session.add(admin)
     
-    codigo_prof = await generar_codigo_institucional(db_session, "Profesor")
+    codigo_prof = await generar_codigo_institucional(async_db_session, "Profesor")
     profesor = User(
         email="prof@example.com",
         password_hash=get_password_hash("pass"),
@@ -90,10 +90,10 @@ async def test_admin_service_delete_subject(db_session: AsyncSession):
         codigo_institucional=codigo_prof,
         fecha_nacimiento=date(1980, 1, 1),
     )
-    db_session.add(profesor)
-    await db_session.commit()
-    await db_session.refresh(admin)
-    await db_session.refresh(profesor)
+    async_db_session.add(profesor)
+    await async_db_session.commit()
+    await async_db_session.refresh(admin)
+    await async_db_session.refresh(profesor)
     
     subject = Subject(
         nombre="Matemáticas",
@@ -102,20 +102,20 @@ async def test_admin_service_delete_subject(db_session: AsyncSession):
         horario="Lunes 8:00",
         profesor_id=profesor.id,
     )
-    db_session.add(subject)
-    await db_session.commit()
-    await db_session.refresh(subject)
+    async_db_session.add(subject)
+    await async_db_session.commit()
+    await async_db_session.refresh(subject)
     
-    service = AdminService(db_session, admin)
+    service = AdminService(async_db_session, admin)
     result = await service.delete_subject(subject.id)
     
     assert result is True
 
 
 @pytest.mark.asyncio
-async def test_admin_service_generate_student_report_not_found(db_session: AsyncSession):
+async def test_admin_service_generate_student_report_not_found(async_db_session: AsyncSession):
     """Test AdminService raises error when estudiante not found."""
-    codigo_admin = await generar_codigo_institucional(db_session, "Admin")
+    codigo_admin = await generar_codigo_institucional(async_db_session, "Admin")
     admin = User(
         email="admin@example.com",
         password_hash=get_password_hash("admin123"),
@@ -125,11 +125,11 @@ async def test_admin_service_generate_student_report_not_found(db_session: Async
         codigo_institucional=codigo_admin,
         fecha_nacimiento=date(1975, 1, 1),
     )
-    db_session.add(admin)
-    await db_session.commit()
-    await db_session.refresh(admin)
+    async_db_session.add(admin)
+    await async_db_session.commit()
+    await async_db_session.refresh(admin)
     
-    service = AdminService(db_session, admin)
+    service = AdminService(async_db_session, admin)
     
     # Should raise error because estudiante doesn't exist
     with pytest.raises(ValueError):

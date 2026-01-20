@@ -2,7 +2,7 @@
 
 import asyncio
 import sys
-from app.core.database import AsyncSessionLocal, Base, engine
+from app.core.database import AsyncSessionLocal, Base, get_engine
 from app.models.user import User, UserRole
 from app.utils.codigo_generator import generar_codigo_institucional
 from app.core.security import get_password_hash
@@ -11,6 +11,9 @@ from datetime import date
 
 async def create_admin():
     """Crear usuario administrador inicial."""
+    # Obtener engine
+    engine = get_engine()
+    
     # Crear tablas si no existen
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

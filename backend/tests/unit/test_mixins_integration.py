@@ -21,11 +21,11 @@ class TestRepository(EagerLoadMixin, PaginationMixin, TimestampMixin):
 
 
 @pytest.mark.asyncio
-async def test_get_one_with_relations_selectinload(db_session: AsyncSession):
+async def test_get_one_with_relations_selectinload(async_db_session: AsyncSession):
     """Test _get_one_with_relations using selectinload."""
     # Create test data
-    codigo_estudiante = await generar_codigo_institucional(db_session, "Estudiante")
-    codigo_profesor = await generar_codigo_institucional(db_session, "Profesor")
+    codigo_estudiante = await generar_codigo_institucional(async_db_session, "Estudiante")
+    codigo_profesor = await generar_codigo_institucional(async_db_session, "Profesor")
     
     estudiante = User(
         email="estudiante@test.com",
@@ -36,8 +36,8 @@ async def test_get_one_with_relations_selectinload(db_session: AsyncSession):
         codigo_institucional=codigo_estudiante,
         fecha_nacimiento=date(2000, 1, 1),
     )
-    db_session.add(estudiante)
-    await db_session.flush()
+    async_db_session.add(estudiante)
+    await async_db_session.flush()
     
     profesor = User(
         email="profesor@test.com",
@@ -48,8 +48,8 @@ async def test_get_one_with_relations_selectinload(db_session: AsyncSession):
         codigo_institucional=codigo_profesor,
         fecha_nacimiento=date(1980, 1, 1),
     )
-    db_session.add(profesor)
-    await db_session.flush()
+    async_db_session.add(profesor)
+    await async_db_session.flush()
     
     subject = Subject(
         nombre="Matemáticas",
@@ -57,20 +57,20 @@ async def test_get_one_with_relations_selectinload(db_session: AsyncSession):
         numero_creditos=3,
         profesor_id=profesor.id,
     )
-    db_session.add(subject)
-    await db_session.flush()
+    async_db_session.add(subject)
+    await async_db_session.flush()
     
     enrollment = Enrollment(
         estudiante_id=estudiante.id,
         subject_id=subject.id,
     )
-    db_session.add(enrollment)
-    await db_session.flush()
+    async_db_session.add(enrollment)
+    await async_db_session.flush()
     
-    await db_session.commit()
+    await async_db_session.commit()
     
     # Test repository using mixin
-    repo = TestRepository(db_session, Enrollment)
+    repo = TestRepository(async_db_session, Enrollment)
     
     # Get enrollment with relations using selectinload
     result = await repo._get_one_with_relations(
@@ -90,10 +90,10 @@ async def test_get_one_with_relations_selectinload(db_session: AsyncSession):
 
 
 @pytest.mark.asyncio
-async def test_get_one_with_relations_joinedload(db_session: AsyncSession):
+async def test_get_one_with_relations_joinedload(async_db_session: AsyncSession):
     """Test _get_one_with_relations using joinedload."""
-    codigo_estudiante = await generar_codigo_institucional(db_session, "Estudiante")
-    codigo_profesor = await generar_codigo_institucional(db_session, "Profesor")
+    codigo_estudiante = await generar_codigo_institucional(async_db_session, "Estudiante")
+    codigo_profesor = await generar_codigo_institucional(async_db_session, "Profesor")
     
     estudiante = User(
         email="estudiante2@test.com",
@@ -104,8 +104,8 @@ async def test_get_one_with_relations_joinedload(db_session: AsyncSession):
         codigo_institucional=codigo_estudiante,
         fecha_nacimiento=date(2000, 1, 1),
     )
-    db_session.add(estudiante)
-    await db_session.flush()
+    async_db_session.add(estudiante)
+    await async_db_session.flush()
     
     profesor = User(
         email="profesor2@test.com",
@@ -116,8 +116,8 @@ async def test_get_one_with_relations_joinedload(db_session: AsyncSession):
         codigo_institucional=codigo_profesor,
         fecha_nacimiento=date(1980, 1, 1),
     )
-    db_session.add(profesor)
-    await db_session.flush()
+    async_db_session.add(profesor)
+    await async_db_session.flush()
     
     subject = Subject(
         nombre="Física",
@@ -125,19 +125,19 @@ async def test_get_one_with_relations_joinedload(db_session: AsyncSession):
         numero_creditos=4,
         profesor_id=profesor.id,
     )
-    db_session.add(subject)
-    await db_session.flush()
+    async_db_session.add(subject)
+    await async_db_session.flush()
     
     enrollment = Enrollment(
         estudiante_id=estudiante.id,
         subject_id=subject.id,
     )
-    db_session.add(enrollment)
-    await db_session.flush()
+    async_db_session.add(enrollment)
+    await async_db_session.flush()
     
-    await db_session.commit()
+    await async_db_session.commit()
     
-    repo = TestRepository(db_session, Enrollment)
+    repo = TestRepository(async_db_session, Enrollment)
     
     # Get enrollment with relations using joinedload
     result = await repo._get_one_with_relations(
@@ -154,10 +154,10 @@ async def test_get_one_with_relations_joinedload(db_session: AsyncSession):
 
 
 @pytest.mark.asyncio
-async def test_get_many_with_relations(db_session: AsyncSession):
+async def test_get_many_with_relations(async_db_session: AsyncSession):
     """Test _get_many_with_relations for multiple entities."""
-    codigo_estudiante = await generar_codigo_institucional(db_session, "Estudiante")
-    codigo_profesor = await generar_codigo_institucional(db_session, "Profesor")
+    codigo_estudiante = await generar_codigo_institucional(async_db_session, "Estudiante")
+    codigo_profesor = await generar_codigo_institucional(async_db_session, "Profesor")
     
     estudiante = User(
         email="estudiante3@test.com",
@@ -168,8 +168,8 @@ async def test_get_many_with_relations(db_session: AsyncSession):
         codigo_institucional=codigo_estudiante,
         fecha_nacimiento=date(2000, 1, 1),
     )
-    db_session.add(estudiante)
-    await db_session.flush()
+    async_db_session.add(estudiante)
+    await async_db_session.flush()
     
     profesor = User(
         email="profesor3@test.com",
@@ -180,8 +180,8 @@ async def test_get_many_with_relations(db_session: AsyncSession):
         codigo_institucional=codigo_profesor,
         fecha_nacimiento=date(1980, 1, 1),
     )
-    db_session.add(profesor)
-    await db_session.flush()
+    async_db_session.add(profesor)
+    await async_db_session.flush()
     
     subject1 = Subject(
         nombre="Química",
@@ -195,19 +195,19 @@ async def test_get_many_with_relations(db_session: AsyncSession):
         numero_creditos=3,
         profesor_id=profesor.id,
     )
-    db_session.add(subject1)
-    db_session.add(subject2)
-    await db_session.flush()
+    async_db_session.add(subject1)
+    async_db_session.add(subject2)
+    await async_db_session.flush()
     
     enrollment1 = Enrollment(estudiante_id=estudiante.id, subject_id=subject1.id)
     enrollment2 = Enrollment(estudiante_id=estudiante.id, subject_id=subject2.id)
-    db_session.add(enrollment1)
-    db_session.add(enrollment2)
-    await db_session.flush()
+    async_db_session.add(enrollment1)
+    async_db_session.add(enrollment2)
+    await async_db_session.flush()
     
-    await db_session.commit()
+    await async_db_session.commit()
     
-    repo = TestRepository(db_session, Enrollment)
+    repo = TestRepository(async_db_session, Enrollment)
     
     # Get multiple enrollments with relations
     results = await repo._get_many_with_relations(
@@ -228,9 +228,9 @@ async def test_get_many_with_relations(db_session: AsyncSession):
 
 
 @pytest.mark.asyncio
-async def test_get_many_with_relations_pagination(db_session: AsyncSession):
+async def test_get_many_with_relations_pagination(async_db_session: AsyncSession):
     """Test _get_many_with_relations with pagination."""
-    codigo_estudiante = await generar_codigo_institucional(db_session, "Estudiante")
+    codigo_estudiante = await generar_codigo_institucional(async_db_session, "Estudiante")
     
     estudiante = User(
         email="estudiante4@test.com",
@@ -241,12 +241,12 @@ async def test_get_many_with_relations_pagination(db_session: AsyncSession):
         codigo_institucional=codigo_estudiante,
         fecha_nacimiento=date(2000, 1, 1),
     )
-    db_session.add(estudiante)
-    await db_session.flush()
+    async_db_session.add(estudiante)
+    await async_db_session.flush()
     
     # Create multiple subjects and enrollments
     for i in range(5):
-        codigo_profesor = await generar_codigo_institucional(db_session, "Profesor")
+        codigo_profesor = await generar_codigo_institucional(async_db_session, "Profesor")
         profesor = User(
             email=f"profesor{i}@test.com",
             password_hash="hashed",
@@ -256,8 +256,8 @@ async def test_get_many_with_relations_pagination(db_session: AsyncSession):
             codigo_institucional=codigo_profesor,
             fecha_nacimiento=date(1980, 1, 1),
         )
-        db_session.add(profesor)
-        await db_session.flush()
+        async_db_session.add(profesor)
+        await async_db_session.flush()
         
         subject = Subject(
             nombre=f"Materia {i}",
@@ -265,18 +265,18 @@ async def test_get_many_with_relations_pagination(db_session: AsyncSession):
             numero_creditos=3,
             profesor_id=profesor.id,
         )
-        db_session.add(subject)
-        await db_session.flush()
+        async_db_session.add(subject)
+        await async_db_session.flush()
         
         enrollment = Enrollment(
             estudiante_id=estudiante.id,
             subject_id=subject.id,
         )
-        db_session.add(enrollment)
+        async_db_session.add(enrollment)
     
-    await db_session.commit()
+    await async_db_session.commit()
     
-    repo = TestRepository(db_session, Enrollment)
+    repo = TestRepository(async_db_session, Enrollment)
     
     # Test pagination - first page
     results_page1 = await repo._get_many_with_relations(
@@ -316,9 +316,9 @@ async def test_get_many_with_relations_pagination(db_session: AsyncSession):
 
 
 @pytest.mark.asyncio
-async def test_get_recent_timestamp_mixin(db_session: AsyncSession):
+async def test_get_recent_timestamp_mixin(async_db_session: AsyncSession):
     """Test _get_recent from TimestampMixin."""
-    codigo_estudiante = await generar_codigo_institucional(db_session, "Estudiante")
+    codigo_estudiante = await generar_codigo_institucional(async_db_session, "Estudiante")
     
     estudiante = User(
         email="estudiante5@test.com",
@@ -329,12 +329,12 @@ async def test_get_recent_timestamp_mixin(db_session: AsyncSession):
         codigo_institucional=codigo_estudiante,
         fecha_nacimiento=date(2000, 1, 1),
     )
-    db_session.add(estudiante)
-    await db_session.flush()
+    async_db_session.add(estudiante)
+    await async_db_session.flush()
     
     # Create enrollments with different timestamps
     # Note: We'll create them normally and SQLAlchemy will set created_at
-    codigo_profesor = await generar_codigo_institucional(db_session, "Profesor")
+    codigo_profesor = await generar_codigo_institucional(async_db_session, "Profesor")
     profesor = User(
         email="profesor_recent@test.com",
         password_hash="hashed",
@@ -344,8 +344,8 @@ async def test_get_recent_timestamp_mixin(db_session: AsyncSession):
         codigo_institucional=codigo_profesor,
         fecha_nacimiento=date(1980, 1, 1),
     )
-    db_session.add(profesor)
-    await db_session.flush()
+    async_db_session.add(profesor)
+    await async_db_session.flush()
     
     subject = Subject(
         nombre="Test Subject",
@@ -353,22 +353,22 @@ async def test_get_recent_timestamp_mixin(db_session: AsyncSession):
         numero_creditos=3,
         profesor_id=profesor.id,
     )
-    db_session.add(subject)
-    await db_session.flush()
+    async_db_session.add(subject)
+    await async_db_session.flush()
     
     # Create recent enrollment (should be found)
     enrollment_recent = Enrollment(
         estudiante_id=estudiante.id,
         subject_id=subject.id,
     )
-    db_session.add(enrollment_recent)
-    await db_session.flush()
+    async_db_session.add(enrollment_recent)
+    await async_db_session.flush()
     
     # Set created_at manually for old enrollment
     # SQLite doesn't support update with datetime easily, so we'll test with recent ones
-    await db_session.commit()
+    await async_db_session.commit()
     
-    repo = TestRepository(db_session, Enrollment)
+    repo = TestRepository(async_db_session, Enrollment)
     
     # Get recent enrollments (last 7 days by default)
     recent_enrollments = await repo._get_recent(Enrollment, days=30, limit=10)
@@ -384,9 +384,9 @@ async def test_get_recent_timestamp_mixin(db_session: AsyncSession):
 
 
 @pytest.mark.asyncio
-async def test_get_one_with_relations_not_found(db_session: AsyncSession):
+async def test_get_one_with_relations_not_found(async_db_session: AsyncSession):
     """Test _get_one_with_relations returns None when not found."""
-    repo = TestRepository(db_session, Enrollment)
+    repo = TestRepository(async_db_session, Enrollment)
     
     # Try to get non-existent enrollment
     result = await repo._get_one_with_relations(
@@ -399,9 +399,9 @@ async def test_get_one_with_relations_not_found(db_session: AsyncSession):
 
 
 @pytest.mark.asyncio
-async def test_get_many_with_relations_empty_result(db_session: AsyncSession):
+async def test_get_many_with_relations_empty_result(async_db_session: AsyncSession):
     """Test _get_many_with_relations returns empty list when no matches."""
-    repo = TestRepository(db_session, Enrollment)
+    repo = TestRepository(async_db_session, Enrollment)
     
     # Try to get enrollments that don't exist
     results = await repo._get_many_with_relations(
@@ -417,14 +417,14 @@ async def test_get_many_with_relations_empty_result(db_session: AsyncSession):
 
 
 @pytest.mark.asyncio
-async def test_get_one_with_relations_nested_selectinload(db_session: AsyncSession):
+async def test_get_one_with_relations_nested_selectinload(async_db_session: AsyncSession):
     """Test _get_one_with_relations with nested selectinload relations."""
     from app.models.grade import Grade
     from datetime import date as dt_date
     
     # Setup: Create estudiante, profesor, subject, enrollment, and grade
-    codigo_est = await generar_codigo_institucional(db_session, "Estudiante")
-    codigo_prof = await generar_codigo_institucional(db_session, "Profesor")
+    codigo_est = await generar_codigo_institucional(async_db_session, "Estudiante")
+    codigo_prof = await generar_codigo_institucional(async_db_session, "Profesor")
     
     estudiante = User(
         email="nest_est@test.com",
@@ -444,8 +444,8 @@ async def test_get_one_with_relations_nested_selectinload(db_session: AsyncSessi
         codigo_institucional=codigo_prof,
         fecha_nacimiento=date(1980, 1, 1),
     )
-    db_session.add_all([estudiante, profesor])
-    await db_session.flush()
+    async_db_session.add_all([estudiante, profesor])
+    await async_db_session.flush()
     
     subject = Subject(
         nombre="Nested Subject",
@@ -453,15 +453,15 @@ async def test_get_one_with_relations_nested_selectinload(db_session: AsyncSessi
         numero_creditos=3,
         profesor_id=profesor.id,
     )
-    db_session.add(subject)
-    await db_session.flush()
+    async_db_session.add(subject)
+    await async_db_session.flush()
     
     enrollment = Enrollment(
         estudiante_id=estudiante.id,
         subject_id=subject.id,
     )
-    db_session.add(enrollment)
-    await db_session.flush()
+    async_db_session.add(enrollment)
+    await async_db_session.flush()
     
     grade = Grade(
         enrollment_id=enrollment.id,
@@ -469,10 +469,10 @@ async def test_get_one_with_relations_nested_selectinload(db_session: AsyncSessi
         periodo="2024-1",
         fecha=dt_date(2024, 6, 15),
     )
-    db_session.add(grade)
-    await db_session.commit()
+    async_db_session.add(grade)
+    await async_db_session.commit()
     
-    repo = TestRepository(db_session, Grade)
+    repo = TestRepository(async_db_session, Grade)
     
     # Test nested selectinload: Grade -> Enrollment -> Estudiante
     # Note: This tests the nested selectinload path (lines 66-71 in mixins.py)
@@ -488,13 +488,13 @@ async def test_get_one_with_relations_nested_selectinload(db_session: AsyncSessi
 
 
 @pytest.mark.asyncio
-async def test_get_one_with_relations_nested_joinedload_pattern(db_session: AsyncSession):
+async def test_get_one_with_relations_nested_joinedload_pattern(async_db_session: AsyncSession):
     """Test _get_one_with_relations with nested joinedload using the selectinload+joinedload pattern."""
     from app.models.grade import Grade
     from datetime import date as dt_date
     
-    codigo_est = await generar_codigo_institucional(db_session, "Estudiante")
-    codigo_prof = await generar_codigo_institucional(db_session, "Profesor")
+    codigo_est = await generar_codigo_institucional(async_db_session, "Estudiante")
+    codigo_prof = await generar_codigo_institucional(async_db_session, "Profesor")
     
     estudiante = User(
         email="nested2_est@test.com",
@@ -514,8 +514,8 @@ async def test_get_one_with_relations_nested_joinedload_pattern(db_session: Asyn
         codigo_institucional=codigo_prof,
         fecha_nacimiento=date(1980, 1, 1),
     )
-    db_session.add_all([estudiante, profesor])
-    await db_session.flush()
+    async_db_session.add_all([estudiante, profesor])
+    await async_db_session.flush()
     
     subject = Subject(
         nombre="Nested2 Subject",
@@ -523,15 +523,15 @@ async def test_get_one_with_relations_nested_joinedload_pattern(db_session: Asyn
         numero_creditos=3,
         profesor_id=profesor.id,
     )
-    db_session.add(subject)
-    await db_session.flush()
+    async_db_session.add(subject)
+    await async_db_session.flush()
     
     enrollment = Enrollment(
         estudiante_id=estudiante.id,
         subject_id=subject.id,
     )
-    db_session.add(enrollment)
-    await db_session.flush()
+    async_db_session.add(enrollment)
+    await async_db_session.flush()
     
     grade = Grade(
         enrollment_id=enrollment.id,
@@ -539,10 +539,10 @@ async def test_get_one_with_relations_nested_joinedload_pattern(db_session: Asyn
         periodo="2024-1",
         fecha=dt_date(2024, 6, 15),
     )
-    db_session.add(grade)
-    await db_session.commit()
+    async_db_session.add(grade)
+    await async_db_session.commit()
     
-    repo = TestRepository(db_session, Grade)
+    repo = TestRepository(async_db_session, Grade)
     
     # Test the nested joinedload pattern (lines 80-85 in mixins.py)
     # This uses selectinload for first relation + joinedload for nested
@@ -559,13 +559,13 @@ async def test_get_one_with_relations_nested_joinedload_pattern(db_session: Asyn
 
 
 @pytest.mark.asyncio
-async def test_get_many_with_relations_nested_selectinload(db_session: AsyncSession):
+async def test_get_many_with_relations_nested_selectinload(async_db_session: AsyncSession):
     """Test _get_many_with_relations with nested selectinload (lines 133-138)."""
     from app.models.grade import Grade
     from datetime import date as dt_date
     
-    codigo_est = await generar_codigo_institucional(db_session, "Estudiante")
-    codigo_prof = await generar_codigo_institucional(db_session, "Profesor")
+    codigo_est = await generar_codigo_institucional(async_db_session, "Estudiante")
+    codigo_prof = await generar_codigo_institucional(async_db_session, "Profesor")
     
     estudiante = User(
         email="nest_many_est@test.com",
@@ -585,8 +585,8 @@ async def test_get_many_with_relations_nested_selectinload(db_session: AsyncSess
         codigo_institucional=codigo_prof,
         fecha_nacimiento=date(1980, 1, 1),
     )
-    db_session.add_all([estudiante, profesor])
-    await db_session.flush()
+    async_db_session.add_all([estudiante, profesor])
+    await async_db_session.flush()
     
     subject = Subject(
         nombre="NestedMany Subject",
@@ -594,23 +594,23 @@ async def test_get_many_with_relations_nested_selectinload(db_session: AsyncSess
         numero_creditos=3,
         profesor_id=profesor.id,
     )
-    db_session.add(subject)
-    await db_session.flush()
+    async_db_session.add(subject)
+    await async_db_session.flush()
     
     enrollment = Enrollment(
         estudiante_id=estudiante.id,
         subject_id=subject.id,
     )
-    db_session.add(enrollment)
-    await db_session.flush()
+    async_db_session.add(enrollment)
+    await async_db_session.flush()
     
     # Create multiple grades
     grade1 = Grade(enrollment_id=enrollment.id, nota=4.0, periodo="2024-1", fecha=dt_date(2024, 6, 15))
     grade2 = Grade(enrollment_id=enrollment.id, nota=4.5, periodo="2024-1", fecha=dt_date(2024, 7, 1))
-    db_session.add_all([grade1, grade2])
-    await db_session.commit()
+    async_db_session.add_all([grade1, grade2])
+    await async_db_session.commit()
     
-    repo = TestRepository(db_session, Grade)
+    repo = TestRepository(async_db_session, Grade)
     
     # Test nested selectinload in _get_many_with_relations (lines 133-138)
     results = await repo._get_many_with_relations(
@@ -625,13 +625,13 @@ async def test_get_many_with_relations_nested_selectinload(db_session: AsyncSess
 
 
 @pytest.mark.asyncio
-async def test_get_many_with_relations_nested_joinedload_grouping(db_session: AsyncSession):
+async def test_get_many_with_relations_nested_joinedload_grouping(async_db_session: AsyncSession):
     """Test _get_many_with_relations with nested joinedload grouping (lines 153-157, 166-173)."""
     from app.models.grade import Grade
     from datetime import date as dt_date
     
-    codigo_est = await generar_codigo_institucional(db_session, "Estudiante")
-    codigo_prof = await generar_codigo_institucional(db_session, "Profesor")
+    codigo_est = await generar_codigo_institucional(async_db_session, "Estudiante")
+    codigo_prof = await generar_codigo_institucional(async_db_session, "Profesor")
     
     estudiante = User(
         email="group_est@test.com",
@@ -651,26 +651,26 @@ async def test_get_many_with_relations_nested_joinedload_grouping(db_session: As
         codigo_institucional=codigo_prof,
         fecha_nacimiento=date(1980, 1, 1),
     )
-    db_session.add_all([estudiante, profesor])
-    await db_session.flush()
+    async_db_session.add_all([estudiante, profesor])
+    await async_db_session.flush()
     
     subject1 = Subject(nombre="Group Subj1", codigo_institucional="GRP1-001", numero_creditos=3, profesor_id=profesor.id)
     subject2 = Subject(nombre="Group Subj2", codigo_institucional="GRP2-001", numero_creditos=3, profesor_id=profesor.id)
-    db_session.add_all([subject1, subject2])
-    await db_session.flush()
+    async_db_session.add_all([subject1, subject2])
+    await async_db_session.flush()
     
     enrollment1 = Enrollment(estudiante_id=estudiante.id, subject_id=subject1.id)
     enrollment2 = Enrollment(estudiante_id=estudiante.id, subject_id=subject2.id)
-    db_session.add_all([enrollment1, enrollment2])
-    await db_session.flush()
+    async_db_session.add_all([enrollment1, enrollment2])
+    await async_db_session.flush()
     
     # Create grades for testing nested relations
     grade1 = Grade(enrollment_id=enrollment1.id, nota=4.0, periodo="2024-1", fecha=dt_date(2024, 6, 15))
     grade2 = Grade(enrollment_id=enrollment2.id, nota=4.5, periodo="2024-1", fecha=dt_date(2024, 7, 1))
-    db_session.add_all([grade1, grade2])
-    await db_session.commit()
+    async_db_session.add_all([grade1, grade2])
+    await async_db_session.commit()
     
-    repo_grade = TestRepository(db_session, Grade)
+    repo_grade = TestRepository(async_db_session, Grade)
     
     # This should test the grouping logic (lines 153-157) and nested joinedload (166-173)
     # Multiple nested relations from same parent 'enrollment'
@@ -687,13 +687,13 @@ async def test_get_many_with_relations_nested_joinedload_grouping(db_session: As
 
 
 @pytest.mark.asyncio
-async def test_get_many_with_relations_simple_joined_not_in_nested(db_session: AsyncSession):
+async def test_get_many_with_relations_simple_joined_not_in_nested(async_db_session: AsyncSession):
     """Test _get_many_with_relations with simple joined that's not in nested_by_first (line 161)."""
     from app.models.grade import Grade
     from datetime import date as dt_date
     
-    codigo_est = await generar_codigo_institucional(db_session, "Estudiante")
-    codigo_prof = await generar_codigo_institucional(db_session, "Profesor")
+    codigo_est = await generar_codigo_institucional(async_db_session, "Estudiante")
+    codigo_prof = await generar_codigo_institucional(async_db_session, "Profesor")
     
     estudiante = User(
         email="simple_est@test.com",
@@ -713,22 +713,22 @@ async def test_get_many_with_relations_simple_joined_not_in_nested(db_session: A
         codigo_institucional=codigo_prof,
         fecha_nacimiento=date(1980, 1, 1),
     )
-    db_session.add_all([estudiante, profesor])
-    await db_session.flush()
+    async_db_session.add_all([estudiante, profesor])
+    await async_db_session.flush()
     
     subject = Subject(nombre="Simple Subject", codigo_institucional="SIMP-001", numero_creditos=3, profesor_id=profesor.id)
-    db_session.add(subject)
-    await db_session.flush()
+    async_db_session.add(subject)
+    await async_db_session.flush()
     
     enrollment = Enrollment(estudiante_id=estudiante.id, subject_id=subject.id)
-    db_session.add(enrollment)
-    await db_session.flush()
+    async_db_session.add(enrollment)
+    await async_db_session.flush()
     
     grade = Grade(enrollment_id=enrollment.id, nota=4.5, periodo="2024-1", fecha=dt_date(2024, 6, 15))
-    db_session.add(grade)
-    await db_session.commit()
+    async_db_session.add(grade)
+    await async_db_session.commit()
     
-    repo = TestRepository(db_session, Grade)
+    repo = TestRepository(async_db_session, Grade)
     
     # Test simple joined + nested (tests line 161 logic: simple joined not in nested_by_first)
     # For Grade model: 'enrollment' is simple, 'enrollment.estudiante' is nested
@@ -736,7 +736,7 @@ async def test_get_many_with_relations_simple_joined_not_in_nested(db_session: A
     # 'enrollment' should be in nested_by_first, so line 161 should skip it
     # To test line 161, we need a simple relation that's NOT in nested_by_first
     # Let's test with Enrollment model which has 'estudiante' as simple relation
-    repo_enroll = TestRepository(db_session, Enrollment)
+    repo_enroll = TestRepository(async_db_session, Enrollment)
     results = await repo_enroll._get_many_with_relations(
         Enrollment,
         None,
@@ -748,7 +748,7 @@ async def test_get_many_with_relations_simple_joined_not_in_nested(db_session: A
 
 
 @pytest.mark.asyncio
-async def test_pagination_mixin_uses_settings_max_page_size(db_session: AsyncSession):
+async def test_pagination_mixin_uses_settings_max_page_size(async_db_session: AsyncSession):
     """Test that PaginationMixin can dynamically use settings max_page_size."""
     from app.repositories.mixins import PaginationMixin
     
@@ -772,10 +772,10 @@ async def test_pagination_mixin_uses_settings_max_page_size(db_session: AsyncSes
 
 
 @pytest.mark.asyncio
-async def test_timestamp_mixin_with_different_days(db_session: AsyncSession):
+async def test_timestamp_mixin_with_different_days(async_db_session: AsyncSession):
     """Test _get_recent with different day values."""
-    codigo_est = await generar_codigo_institucional(db_session, "Estudiante")
-    codigo_prof = await generar_codigo_institucional(db_session, "Profesor")
+    codigo_est = await generar_codigo_institucional(async_db_session, "Estudiante")
+    codigo_prof = await generar_codigo_institucional(async_db_session, "Profesor")
     
     estudiante = User(
         email="timestamp_est@test.com",
@@ -795,18 +795,18 @@ async def test_timestamp_mixin_with_different_days(db_session: AsyncSession):
         codigo_institucional=codigo_prof,
         fecha_nacimiento=date(1980, 1, 1),
     )
-    db_session.add_all([estudiante, profesor])
-    await db_session.flush()
+    async_db_session.add_all([estudiante, profesor])
+    await async_db_session.flush()
     
     subject = Subject(nombre="Timestamp Subject", codigo_institucional="TIME-001", numero_creditos=3, profesor_id=profesor.id)
-    db_session.add(subject)
-    await db_session.flush()
+    async_db_session.add(subject)
+    await async_db_session.flush()
     
     enrollment = Enrollment(estudiante_id=estudiante.id, subject_id=subject.id)
-    db_session.add(enrollment)
-    await db_session.commit()
+    async_db_session.add(enrollment)
+    await async_db_session.commit()
     
-    repo = TestRepository(db_session, Enrollment)
+    repo = TestRepository(async_db_session, Enrollment)
     
     # Test with different day values
     recent_7_days = await repo._get_recent(Enrollment, days=7, limit=10)
@@ -823,10 +823,10 @@ async def test_timestamp_mixin_with_different_days(db_session: AsyncSession):
 
 
 @pytest.mark.asyncio
-async def test_timestamp_mixin_respects_limit(db_session: AsyncSession):
+async def test_timestamp_mixin_respects_limit(async_db_session: AsyncSession):
     """Test that _get_recent respects the limit parameter."""
-    codigo_est = await generar_codigo_institucional(db_session, "Estudiante")
-    codigo_prof = await generar_codigo_institucional(db_session, "Profesor")
+    codigo_est = await generar_codigo_institucional(async_db_session, "Estudiante")
+    codigo_prof = await generar_codigo_institucional(async_db_session, "Profesor")
     
     estudiante = User(
         email="limit_est@test.com",
@@ -846,13 +846,13 @@ async def test_timestamp_mixin_respects_limit(db_session: AsyncSession):
         codigo_institucional=codigo_prof,
         fecha_nacimiento=date(1980, 1, 1),
     )
-    db_session.add_all([estudiante, profesor])
-    await db_session.flush()
+    async_db_session.add_all([estudiante, profesor])
+    await async_db_session.flush()
     
     # Create multiple subjects for multiple enrollments (avoid unique constraint)
     subjects = []
     for i in range(5):
-        codigo_prof_i = await generar_codigo_institucional(db_session, "Profesor")
+        codigo_prof_i = await generar_codigo_institucional(async_db_session, "Profesor")
         profesor_i = User(
             email=f"limit_prof{i}@test.com",
             password_hash="hashed",
@@ -862,8 +862,8 @@ async def test_timestamp_mixin_respects_limit(db_session: AsyncSession):
             codigo_institucional=codigo_prof_i,
             fecha_nacimiento=date(1980, 1, 1),
         )
-        db_session.add(profesor_i)
-        await db_session.flush()
+        async_db_session.add(profesor_i)
+        await async_db_session.flush()
         
         subject_i = Subject(
             nombre=f"Limit Subject {i}",
@@ -871,19 +871,19 @@ async def test_timestamp_mixin_respects_limit(db_session: AsyncSession):
             numero_creditos=3,
             profesor_id=profesor_i.id
         )
-        db_session.add(subject_i)
+        async_db_session.add(subject_i)
         subjects.append(subject_i)
     
-    await db_session.flush()
+    await async_db_session.flush()
     
     # Create multiple enrollments with different subjects (avoid unique constraint)
     for subject_i in subjects:
         enrollment = Enrollment(estudiante_id=estudiante.id, subject_id=subject_i.id)
-        db_session.add(enrollment)
+        async_db_session.add(enrollment)
     
-    await db_session.commit()
+    await async_db_session.commit()
     
-    repo = TestRepository(db_session, Enrollment)
+    repo = TestRepository(async_db_session, Enrollment)
     
     # Test with different limits
     results_limit_2 = await repo._get_recent(Enrollment, days=30, limit=2)

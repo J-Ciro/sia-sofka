@@ -14,10 +14,10 @@ from app.core.security import get_password_hash
 
 
 @pytest.fixture
-async def test_data_grade_serializer(db_session: AsyncSession):
+async def test_data_grade_serializer(async_db_session: AsyncSession):
     """Create test data for grade serializer tests."""
     # Estudiante
-    codigo_est = await generar_codigo_institucional(db_session, "Estudiante")
+    codigo_est = await generar_codigo_institucional(async_db_session, "Estudiante")
     estudiante = User(
         email="estudiante@serializer.com",
         password_hash=get_password_hash("est123"),
@@ -27,10 +27,10 @@ async def test_data_grade_serializer(db_session: AsyncSession):
         codigo_institucional=codigo_est,
         fecha_nacimiento=date(2000, 1, 1),
     )
-    db_session.add(estudiante)
+    async_db_session.add(estudiante)
     
     # Profesor
-    codigo_prof = await generar_codigo_institucional(db_session, "Profesor")
+    codigo_prof = await generar_codigo_institucional(async_db_session, "Profesor")
     profesor = User(
         email="profesor@serializer.com",
         password_hash=get_password_hash("prof123"),
@@ -40,11 +40,11 @@ async def test_data_grade_serializer(db_session: AsyncSession):
         codigo_institucional=codigo_prof,
         fecha_nacimiento=date(1980, 1, 1),
     )
-    db_session.add(profesor)
+    async_db_session.add(profesor)
     
-    await db_session.commit()
-    await db_session.refresh(estudiante)
-    await db_session.refresh(profesor)
+    await async_db_session.commit()
+    await async_db_session.refresh(estudiante)
+    await async_db_session.refresh(profesor)
     
     # Subject
     subject = Subject(
@@ -55,18 +55,18 @@ async def test_data_grade_serializer(db_session: AsyncSession):
         descripcion="Curso de matemáticas",
         profesor_id=profesor.id,
     )
-    db_session.add(subject)
-    await db_session.commit()
-    await db_session.refresh(subject)
+    async_db_session.add(subject)
+    await async_db_session.commit()
+    await async_db_session.refresh(subject)
     
     # Enrollment
     enrollment = Enrollment(
         estudiante_id=estudiante.id,
         subject_id=subject.id,
     )
-    db_session.add(enrollment)
-    await db_session.commit()
-    await db_session.refresh(enrollment)
+    async_db_session.add(enrollment)
+    await async_db_session.commit()
+    await async_db_session.refresh(enrollment)
     
     # Grades
     grade1 = Grade(
@@ -83,11 +83,11 @@ async def test_data_grade_serializer(db_session: AsyncSession):
         fecha=date.today(),
         observaciones="Mejora necesaria",
     )
-    db_session.add(grade1)
-    db_session.add(grade2)
-    await db_session.commit()
-    await db_session.refresh(grade1)
-    await db_session.refresh(grade2)
+    async_db_session.add(grade1)
+    async_db_session.add(grade2)
+    await async_db_session.commit()
+    await async_db_session.refresh(grade1)
+    await async_db_session.refresh(grade2)
     
     # Manually set relationships for testing
     grade1.enrollment = enrollment
@@ -105,20 +105,20 @@ async def test_data_grade_serializer(db_session: AsyncSession):
 
 
 @pytest.mark.asyncio
-async def test_serialize_batch_empty_list(db_session: AsyncSession):
+async def test_serialize_batch_empty_list(async_db_session: AsyncSession):
     """Test serializing empty list."""
-    result = await GradeSerializer.serialize_batch([], db_session)
+    result = await GradeSerializer.serialize_batch([], async_db_session)
     assert result == []
 
 
 @pytest.mark.asyncio
 async def test_serialize_batch_with_enrollment_relationships(
-    db_session: AsyncSession, test_data_grade_serializer
+    async_db_session: AsyncSession, test_data_grade_serializer
 ):
     """Test serializing grades with enrollment relationships."""
     grades = test_data_grade_serializer["grades"]
     
-    result = await GradeSerializer.serialize_batch(grades, db_session)
+    result = await GradeSerializer.serialize_batch(grades, async_db_session)
     
     assert len(result) == 2
     assert result[0].id == grades[0].id
@@ -135,7 +135,7 @@ async def test_serialize_batch_with_enrollment_relationships(
 
 @pytest.mark.asyncio
 async def test_serialize_batch_without_enrollment(
-    db_session: AsyncSession, test_data_grade_serializer
+    async_db_session: AsyncSession, test_data_grade_serializer
 ):
     """Test serializing grades without enrollment relationship."""
     # Create grade without enrollment relationship
@@ -146,14 +146,14 @@ async def test_serialize_batch_without_enrollment(
         periodo="2024-1",
         fecha=date.today(),
     )
-    db_session.add(grade)
-    await db_session.commit()
-    await db_session.refresh(grade)
+    async_db_session.add(grade)
+    await async_db_session.commit()
+    await async_db_session.refresh(grade)
     
     # Manually set enrollment to None for testing
     grade.enrollment = None
     
-    result = await GradeSerializer.serialize_batch([grade], db_session)
+    result = await GradeSerializer.serialize_batch([grade], async_db_session)
     
     assert len(result) == 1
     assert result[0].id == grade.id
@@ -163,7 +163,7 @@ async def test_serialize_batch_without_enrollment(
 
 @pytest.mark.asyncio
 async def test_serialize_batch_batch_loading_efficiency(
-    db_session: AsyncSession, test_data_grade_serializer
+    async_db_session: AsyncSession, test_data_grade_serializer
 ):
     """Test that batch loading is efficient (no N+1 queries)."""
     grades = test_data_grade_serializer["grades"]
@@ -176,13 +176,13 @@ async def test_serialize_batch_batch_loading_efficiency(
         periodo="2024-3",
         fecha=date.today(),
     )
-    db_session.add(grade3)
-    await db_session.commit()
-    await db_session.refresh(grade3)
+    async_db_session.add(grade3)
+    await async_db_session.commit()
+    await async_db_session.refresh(grade3)
     grade3.enrollment = enrollment
     grades.append(grade3)
     
-    result = await GradeSerializer.serialize_batch(grades, db_session)
+    result = await GradeSerializer.serialize_batch(grades, async_db_session)
     
     assert len(result) == 3
     # All should have same estudiante and subject (batch loaded)
@@ -192,7 +192,7 @@ async def test_serialize_batch_batch_loading_efficiency(
 
 @pytest.mark.asyncio
 async def test_serialize_batch_missing_estudiante_in_map(
-    db_session: AsyncSession, test_data_grade_serializer
+    async_db_session: AsyncSession, test_data_grade_serializer
 ):
     """Test serializing when estudiante is not in batch-loaded map."""
     grades = test_data_grade_serializer["grades"]
@@ -201,7 +201,7 @@ async def test_serialize_batch_missing_estudiante_in_map(
     # Manually set enrollment with estudiante_id that won't be in map
     enrollment.estudiante_id = 99999
     
-    result = await GradeSerializer.serialize_batch(grades, db_session)
+    result = await GradeSerializer.serialize_batch(grades, async_db_session)
     
     assert len(result) == 2
     # Enrollment should exist but estudiante should be None
@@ -211,7 +211,7 @@ async def test_serialize_batch_missing_estudiante_in_map(
 
 @pytest.mark.asyncio
 async def test_serialize_batch_missing_subject_in_map(
-    db_session: AsyncSession, test_data_grade_serializer
+    async_db_session: AsyncSession, test_data_grade_serializer
 ):
     """Test serializing when subject is not in batch-loaded map."""
     grades = test_data_grade_serializer["grades"]
@@ -220,7 +220,7 @@ async def test_serialize_batch_missing_subject_in_map(
     # Manually set enrollment with subject_id that won't be in map
     enrollment.subject_id = 99999
     
-    result = await GradeSerializer.serialize_batch(grades, db_session)
+    result = await GradeSerializer.serialize_batch(grades, async_db_session)
     
     assert len(result) == 2
     # Enrollment should exist but subject should be None
