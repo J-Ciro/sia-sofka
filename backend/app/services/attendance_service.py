@@ -106,7 +106,7 @@ class AttendanceService:
         
         return clase_session
     
-    def mark_all_present(self, clase_session_id: int) -> int:
+    async def mark_all_present(self, clase_session_id: int) -> int:
         """Mark all enrolled students in a session as present.
         
         Args:
@@ -153,7 +153,7 @@ class AttendanceService:
         
         return count
     
-    def mark_all_absent(self, clase_session_id: int) -> int:
+    async def mark_all_absent(self, clase_session_id: int) -> int:
         """Mark all enrolled students in a session as absent.
         
         Args:
@@ -197,7 +197,7 @@ class AttendanceService:
         
         return count
     
-    def update_attendance(
+    async def update_attendance(
         self,
         attendance_id: int,
         estado: AttendanceStatus,

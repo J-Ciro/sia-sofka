@@ -60,12 +60,7 @@ class AttendanceRepository:
         Returns:
             Attendance instance or None
         """
-        # Works with both sync and async sessions
-        try:
-            return self.db.query(Attendance).filter(Attendance.id == attendance_id).first()
-        except (AttributeError, TypeError):
-            # Fallback for async sessions (will not work with sync API)
-            return None
+        return self.db.query(Attendance).filter(Attendance.id == attendance_id).first()
     
     def get_by_session_and_student(
         self,
@@ -212,23 +207,6 @@ class AttendanceRepository:
     
     # Async methods for FastAPI endpoints
     
-    async def get_by_id(self, model_class, entity_id: int):
-        """Get entity by ID (async version for endpoints).
-        
-        Args:
-            model_class: Model class (ClaseSession or Attendance)
-            entity_id: Entity ID
-        
-        Returns:
-            Entity instance or None
-        """
-        if isinstance(self.db, AsyncSession):
-            result = await self.db.execute(
-                select(model_class).where(model_class.id == entity_id)
-            )
-            return result.scalar_one_or_none()
-        else:
-            return self.db.query(model_class).filter(model_class.id == entity_id).first()
     
     async def get_sessions_by_profesor(
         self,
