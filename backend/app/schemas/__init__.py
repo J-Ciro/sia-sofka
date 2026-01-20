@@ -15,6 +15,13 @@ from app.schemas.attendance import (
     SessionStatisticsResponse,
     AttendanceStatsResponse,
 )
+from app.schemas.schedule import (
+    ScheduleCreate,
+    ScheduleUpdate,
+    ScheduleResponse,
+    ClassroomCreate,
+    ClassroomResponse,
+)
 
 __all__ = [
     "UserBase",
@@ -43,4 +50,9 @@ __all__ = [
     "AttendanceResponse",
     "SessionStatisticsResponse",
     "AttendanceStatsResponse",
+    "ScheduleCreate",
+    "ScheduleUpdate",
+    "ScheduleResponse",
+    "ClassroomCreate",
+    "ClassroomResponse",
 ]

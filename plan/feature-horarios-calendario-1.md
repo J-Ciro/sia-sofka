@@ -80,10 +80,10 @@ Sistema de gestión de horarios de clases con validación de conflictos (aulas y
 
 | Task      | Description                                                                 | Completed | Date |
 |-----------|-----------------------------------------------------------------------------|-----------|------|
-| TASK-010  | Crear ScheduleService con validate_schedule_conflicts()                    |           |      |
-| TASK-011  | Implementar lógica de detección de solapamiento con intervalos             |           |      |
-| TASK-012  | Implementar get_professor_schedule() para vista de profesor                |           |      |
-| TASK-013  | Implementar get_student_schedule() basado en enrollments                   |           |      |
+| TASK-010  | Crear ScheduleService con validate_schedule_conflicts()                    | x         | 2026-01-19 |
+| TASK-011  | Implementar lógica de detección de solapamiento con intervalos             | x         | 2026-01-19 |
+| TASK-012  | Implementar get_professor_schedule() para vista de profesor                | x         | 2026-01-19 |
+| TASK-013  | Implementar get_student_schedule() basado en enrollments                   | x         | 2026-01-19 |
 
 ### Fase 4: API Endpoints
 
