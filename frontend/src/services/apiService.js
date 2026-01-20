@@ -63,6 +63,10 @@ export const userService = {
     fd.append('file', file)
     const res = await api.post('/users/bulk-import', fd, {
       validateStatus: (s) => s === 200 || s === 400,
+      transformRequest: [(data, headers) => {
+        if (data instanceof FormData) delete headers['Content-Type']
+        return data
+      }],
     })
     return res.data
   },

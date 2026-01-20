@@ -43,7 +43,7 @@ const BulkImportModal = ({ isOpen, onClose, onSuccess }) => {
         onSuccess?.()
       }
     } catch (err) {
-      setError(err.message || 'Error al importar')
+      setError(formatErr(err, 'Error al importar'))
     } finally {
       setLoading(false)
     }
@@ -54,7 +54,7 @@ const BulkImportModal = ({ isOpen, onClose, onSuccess }) => {
     try {
       await userService.exportToExcel('Estudiante')
     } catch (err) {
-      setError(err.message || 'Error al exportar')
+      setError(formatErr(err, 'Error al exportar'))
     }
   }
 
@@ -63,8 +63,17 @@ const BulkImportModal = ({ isOpen, onClose, onSuccess }) => {
     try {
       await userService.downloadImportTemplate()
     } catch (err) {
-      setError(err.message || 'Error al descargar plantilla')
+      setError(formatErr(err, 'Error al descargar plantilla'))
     }
+  }
+
+  function formatErr(err, fallback) {
+    if (!err) return fallback
+    if (typeof err.message === 'string') return err.message
+    const d = err.response?.data?.detail
+    if (d) return Array.isArray(d) ? d.map((x) => x.msg || (x.loc && x.loc.join('.'))).filter(Boolean).join('; ') : String(d)
+    if (Array.isArray(err.message)) return err.message.map((x) => x?.msg || (x?.loc && x.loc.join('.'))).filter(Boolean).join('; ') || fallback
+    return fallback
   }
 
   if (!isOpen) return null

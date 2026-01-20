@@ -156,6 +156,7 @@ class BulkImportService:
                     )
                     user.edad = user.calcular_edad()
                     self.db.add(user)
+                    await self.db.flush()  # hace visible el nuevo usuario para el siguiente generar_codigo
                     created += 1
             await self.db.commit()
             return BulkImportResult(created=created, updated=updated, errors=[])

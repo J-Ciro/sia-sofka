@@ -78,7 +78,7 @@ const Users = () => {
     }
   }
 
-  if (loading) {
+  if (loading && !isBulkModalOpen) {
     return <Loading />
   }
 
