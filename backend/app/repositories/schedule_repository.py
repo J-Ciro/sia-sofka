@@ -102,6 +102,19 @@ class ScheduleRepository:
         result = await self.db.execute(stmt)
         return list(result.scalars().all())
 
+    async def get_all_schedules(self) -> List[Schedule]:
+        """Todos los horarios (para Admin en calendario)."""
+        stmt = (
+            select(Schedule)
+            .options(
+                joinedload(Schedule.subject).joinedload(Subject.profesor),
+                joinedload(Schedule.classroom),
+            )
+            .order_by(Schedule.dia_semana, Schedule.hora_inicio)
+        )
+        result = await self.db.execute(stmt)
+        return list(result.scalars().all())
+
     async def get_weekly_schedule(
         self,
         user_id: int,
@@ -109,7 +122,7 @@ class ScheduleRepository:
     ) -> List[Schedule]:
         """TASK-009: Horario semanal según rol (Profesor: sus materias; Estudiante: inscripciones)."""
         stmt = select(Schedule).options(
-            joinedload(Schedule.subject),
+            joinedload(Schedule.subject).joinedload(Subject.profesor),
             joinedload(Schedule.classroom),
         ).order_by(Schedule.dia_semana, Schedule.hora_inicio)
 
@@ -137,7 +150,7 @@ class ScheduleRepository:
             select(Schedule)
             .where(Schedule.id == schedule_id)
             .options(
-                joinedload(Schedule.subject),
+                joinedload(Schedule.subject).joinedload(Subject.profesor),
                 joinedload(Schedule.classroom),
             )
         )
@@ -152,7 +165,7 @@ class ScheduleRepository:
             select(Schedule)
             .where(Schedule.classroom_id == classroom_id)
             .options(
-                joinedload(Schedule.subject),
+                joinedload(Schedule.subject).joinedload(Subject.profesor),
                 joinedload(Schedule.classroom),
             )
             .order_by(Schedule.dia_semana, Schedule.hora_inicio)

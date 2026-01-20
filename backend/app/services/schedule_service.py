@@ -80,6 +80,10 @@ class ScheduleService:
 
         return conflicts
 
+    async def get_all_schedules(self) -> List[Schedule]:
+        """Todos los horarios (Admin en calendario)."""
+        return await self.repo.get_all_schedules()
+
     async def get_professor_schedule(self, profesor_id: int) -> List[Schedule]:
         """TASK-012: Horario semanal del profesor."""
         return await self.repo.get_weekly_schedule(profesor_id, UserRole.PROFESOR)

@@ -5,12 +5,15 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from sqlalchemy import select
+
 from app.core.database import get_db
-from app.core.exceptions import NotFoundError, ValidationError
+from app.core.exceptions import NotFoundError, ValidationError, ForbiddenError
 from app.models.user import User, UserRole
+from app.models.subject import Subject
 from app.schemas.schedule import ScheduleCreate, ScheduleUpdate, ScheduleResponse
 from app.services.schedule_service import ScheduleService
-from app.api.v1.dependencies import get_current_active_user, require_admin
+from app.api.v1.dependencies import get_current_active_user, require_admin, require_admin_or_profesor
 
 router = APIRouter()
 
@@ -24,9 +27,14 @@ def _to_response(s) -> ScheduleResponse:
 async def create_schedule(
     data: ScheduleCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_admin),
+    current_user: User = Depends(require_admin_or_profesor),
 ):
-    """Crear horario (Admin). Valida conflictos de aula y profesor."""
+    """Crear horario (Admin o Profesor). Profesor solo para sus materias; elige aula del banco. Valida conflictos."""
+    if current_user.role == UserRole.PROFESOR:
+        r = await db.execute(select(Subject).where(Subject.id == data.subject_id))
+        sub = r.scalar_one_or_none()
+        if not sub or sub.profesor_id != current_user.id:
+            raise ForbiddenError("Solo puedes asignar horarios a tus propias materias")
     service = ScheduleService(db)
     try:
         schedule = await service.create_schedule(data)
@@ -45,7 +53,7 @@ async def get_weekly_schedules(
     user_id: Optional[int] = Query(None, description="Admin: ver otro usuario"),
     role: Optional[UserRole] = Query(None, description="Admin: rol al ver otro usuario"),
 ):
-    """Horario semanal. Profesor/Estudiante: el propio. Admin: puede usar user_id y role."""
+    """Horario semanal. Profesor/Estudiante: el propio. Admin: todos; o user_id+role para filtrar."""
     service = ScheduleService(db)
     uid = current_user.id
     r = current_user.role
@@ -65,6 +73,8 @@ async def get_weekly_schedules(
             rows = await service.get_student_schedule(uid)
         else:
             rows = []
+    elif current_user.role == UserRole.ADMIN and user_id is None:
+        rows = await service.get_all_schedules()
     else:
         rows = []
 

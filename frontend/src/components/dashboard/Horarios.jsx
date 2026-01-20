@@ -9,13 +9,13 @@ export default function Horarios() {
   const [formOpen, setFormOpen] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
 
-  const isAdmin = user?.role === 'Admin'
+  const canCreateSchedule = user?.role === 'Admin' || user?.role === 'Profesor'
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-2xl font-bold text-gray-900">Horarios</h1>
-        {isAdmin && (
+        {canCreateSchedule && (
           <button
             onClick={() => setFormOpen(true)}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-purple-600 text-white hover:bg-purple-700 shadow-sm"

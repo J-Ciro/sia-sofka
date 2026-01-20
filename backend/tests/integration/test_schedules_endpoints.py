@@ -53,19 +53,42 @@ async def test_data_schedules(db_session):
         numero_creditos=3,
         profesor_id=profesor.id,
     )
-    db_session.add_all([subject, subject2])
+    codigo_prof2 = await generar_codigo_institucional(db_session, "Profesor")
+    profesor2 = User(
+        email="profesor2@schedules.com",
+        password_hash=get_password_hash("prof123"),
+        role=UserRole.PROFESOR,
+        nombre="Profesor",
+        apellido="Otro",
+        codigo_institucional=codigo_prof2,
+        fecha_nacimiento=date(1982, 1, 1),
+    )
+    db_session.add(profesor2)
+    await db_session.commit()
+    await db_session.refresh(profesor2)
+
+    subject_otro = Subject(
+        nombre="Química",
+        codigo_institucional="QUI-101",
+        numero_creditos=3,
+        profesor_id=profesor2.id,
+    )
+    db_session.add_all([subject, subject2, subject_otro])
     classroom = Classroom(codigo="AULA-101", nombre="Aula 101", capacidad=40)
     db_session.add(classroom)
     await db_session.commit()
     await db_session.refresh(subject)
     await db_session.refresh(subject2)
+    await db_session.refresh(subject_otro)
     await db_session.refresh(classroom)
 
     return {
         "admin": admin,
         "profesor": profesor,
+        "profesor2": profesor2,
         "subject": subject,
         "subject2": subject2,
+        "subject_otro": subject_otro,
         "classroom": classroom,
     }
 
@@ -179,16 +202,16 @@ async def test_get_weekly_as_profesor(client, test_data_schedules):
 
 @pytest.mark.asyncio
 async def test_create_schedule_as_profesor_forbidden(client, test_data_schedules):
-    """Profesor no puede crear horario -> 403."""
+    """Profesor no puede crear horario para una materia de otro profesor -> 403."""
     profesor = test_data_schedules["profesor"]
-    subject = test_data_schedules["subject"]
+    subject_otro = test_data_schedules["subject_otro"]
     classroom = test_data_schedules["classroom"]
     token = create_access_token({"sub": profesor.email, "role": profesor.role.value})
 
     response = await client.post(
         "/api/v1/schedules",
         json={
-            "subject_id": subject.id,
+            "subject_id": subject_otro.id,
             "classroom_id": classroom.id,
             "dia_semana": 1,
             "hora_inicio": "08:00:00",

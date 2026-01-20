@@ -33,12 +33,21 @@ const MESSAGES = {
   noEventsInRange: 'No hay horarios en este rango.',
 }
 
+function profesorLabel(s) {
+  const p = s.subject?.profesor
+  if (!p) return ''
+  return [p.nombre, p.apellido].filter(Boolean).join(' ').trim() || ''
+}
+
 function scheduleToEvent(s, referenceMonday) {
   const d = addDays(referenceMonday, (s.dia_semana || 1) - 1)
   const [sh, sm] = String(s.hora_inicio || '08:00').split(':').map(Number)
   const [eh, em] = String(s.hora_fin || '10:00').split(':').map(Number)
+  const materia = s.subject?.nombre || `Materia ${s.subject_id}`
+  const prof = profesorLabel(s)
+  const title = prof ? `${materia} — Prof. ${prof}` : materia
   return {
-    title: s.subject?.nombre || `Materia ${s.subject_id}`,
+    title,
     start: setMinutes(setHours(d, sh || 8), sm || 0),
     end: setMinutes(setHours(d, eh || 10), em || 0),
     resource: { schedule: s },
@@ -174,12 +183,20 @@ function ScheduleDetailModal({ event, onClose }) {
             <dd className="font-medium">{s.subject?.nombre || `Materia ${s.subject_id}`}</dd>
           </div>
           <div>
-            <dt className="text-gray-500">Aula</dt>
+            <dt className="text-gray-500">Aula ocupada</dt>
             <dd className="font-medium">{s.classroom?.nombre || s.classroom?.codigo || `Aula ${s.classroom_id}`}</dd>
           </div>
           <div>
-            <dt className="text-gray-500">Hora</dt>
+            <dt className="text-gray-500">Horario (aula ocupada)</dt>
             <dd className="font-medium">{hi} – {hf}</dd>
+          </div>
+          <div>
+            <dt className="text-gray-500">Profesor</dt>
+            <dd className="font-medium">
+              {s.subject?.profesor
+                ? [s.subject.profesor.nombre, s.subject.profesor.apellido].filter(Boolean).join(' ')
+                : '–'}
+            </dd>
           </div>
           <div>
             <dt className="text-gray-500">Duración</dt>
