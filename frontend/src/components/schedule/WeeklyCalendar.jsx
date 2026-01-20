@@ -45,7 +45,7 @@ function scheduleToEvent(s, referenceMonday) {
   const [eh, em] = String(s.hora_fin || '10:00').split(':').map(Number)
   const materia = s.subject?.nombre || `Materia ${s.subject_id}`
   const prof = profesorLabel(s)
-  const title = prof ? `${materia} — Prof. ${prof}` : materia
+  const title = prof ? `${materia} — ${prof}` : materia
   return {
     title,
     start: setMinutes(setHours(d, sh || 8), sm || 0),
