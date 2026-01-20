@@ -10,6 +10,7 @@ from app.api.v1.endpoints import (
     reports,
     profile,
     attendance,
+    schedules,
 )
 
 api_router = APIRouter()
@@ -21,3 +22,4 @@ api_router.include_router(grades.router, prefix="/grades", tags=["grades"])
 api_router.include_router(reports.router, prefix="/reports", tags=["reports"])
 api_router.include_router(profile.router, prefix="/profile", tags=["profile"])
 api_router.include_router(attendance.router, prefix="/attendance", tags=["attendance"])
+api_router.include_router(schedules.router, prefix="/schedules", tags=["schedules"])

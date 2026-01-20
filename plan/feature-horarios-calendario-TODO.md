@@ -2,7 +2,7 @@
 
 Guía para continuar la implementación. Hacer **commit con conventional-commits** al final de cada fase de TDD.
 
-**Siguiente paso:** Fase 4 (API Endpoints).
+**Siguiente paso:** Fase 5 (Frontend – Calendario).
 
 ---
 
@@ -10,6 +10,8 @@ Guía para continuar la implementación. Hacer **commit con conventional-commits
 
 - **Fase 1**: `Classroom`, `Schedule`, migración Alembic, tests `test_schedule_models.py`
 - **Fase 2**: `ScheduleRepository` (overlaps + `get_weekly_schedule`), tests `test_schedule_repository.py`
+- **Fase 3**: `ScheduleService`, schemas, tests `test_schedule_service.py`
+- **Fase 4**: REST `schedules` (POST, GET /weekly, PUT, DELETE, GET /classroom/{id}), `ScheduleConflictError`, tests async en repo/servicio, `test_schedules_endpoints.py`
 
 ---
 

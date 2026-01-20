@@ -91,11 +91,11 @@ Sistema de gestión de horarios de clases con validación de conflictos (aulas y
 
 | Task      | Description                                                                 | Completed | Date |
 |-----------|-----------------------------------------------------------------------------|-----------|------|
-| TASK-014  | POST /api/v1/schedules - Crear horario con validaciones                    |           |      |
-| TASK-015  | GET /api/v1/schedules/weekly - Obtener horarios semanales                  |           |      |
-| TASK-016  | PUT /api/v1/schedules/{id} - Actualizar horario                            |           |      |
-| TASK-017  | DELETE /api/v1/schedules/{id} - Eliminar horario                           |           |      |
-| TASK-018  | GET /api/v1/schedules/classroom/{id} - Ver horarios de aula                |           |      |
+| TASK-014  | POST /api/v1/schedules - Crear horario con validaciones                    | x         | 2026-01-19 |
+| TASK-015  | GET /api/v1/schedules/weekly - Obtener horarios semanales                  | x         | 2026-01-19 |
+| TASK-016  | PUT /api/v1/schedules/{id} - Actualizar horario                            | x         | 2026-01-19 |
+| TASK-017  | DELETE /api/v1/schedules/{id} - Eliminar horario                           | x         | 2026-01-19 |
+| TASK-018  | GET /api/v1/schedules/classroom/{id} - Ver horarios de aula                | x         | 2026-01-19 |
 
 ### Fase 5: Frontend - Calendario Visual
 

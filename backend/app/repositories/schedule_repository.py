@@ -1,14 +1,15 @@
 """Schedule Repository - capa de acceso a datos para horarios.
 
 TASK-006 a TASK-009. Validación de solapamientos (aula, profesor, estudiante)
-y consulta de horario semanal por rol.
+y consulta de horario semanal por rol. Async para uso en API.
 """
 
 from datetime import time
 from typing import List, Optional
 
 from sqlalchemy import select, and_
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload
 
 from app.models.schedule import Schedule
 from app.models.subject import Subject
@@ -25,12 +26,12 @@ def _overlap_condition(hora_inicio: time, hora_fin: time):
 
 
 class ScheduleRepository:
-    """Repositorio para Schedule y consultas de solapamiento."""
+    """Repositorio para Schedule y consultas de solapamiento (async)."""
 
-    def __init__(self, db: Session):
+    def __init__(self, db: AsyncSession):
         self.db = db
 
-    def find_classroom_overlaps(
+    async def find_classroom_overlaps(
         self,
         classroom_id: int,
         dia_semana: int,
@@ -49,10 +50,10 @@ class ScheduleRepository:
         )
         if exclude_schedule_id is not None:
             stmt = stmt.where(Schedule.id != exclude_schedule_id)
-        result = self.db.execute(stmt)
+        result = await self.db.execute(stmt)
         return list(result.scalars().all())
 
-    def find_professor_overlaps(
+    async def find_professor_overlaps(
         self,
         profesor_id: int,
         dia_semana: int,
@@ -72,10 +73,10 @@ class ScheduleRepository:
         )
         if exclude_schedule_id is not None:
             stmt = stmt.where(Schedule.id != exclude_schedule_id)
-        result = self.db.execute(stmt)
+        result = await self.db.execute(stmt)
         return list(result.scalars().all())
 
-    def find_student_overlaps(
+    async def find_student_overlaps(
         self,
         estudiante_id: int,
         dia_semana: int,
@@ -98,10 +99,10 @@ class ScheduleRepository:
         )
         if exclude_schedule_id is not None:
             stmt = stmt.where(Schedule.id != exclude_schedule_id)
-        result = self.db.execute(stmt)
+        result = await self.db.execute(stmt)
         return list(result.scalars().all())
 
-    def get_weekly_schedule(
+    async def get_weekly_schedule(
         self,
         user_id: int,
         role: UserRole,
@@ -127,5 +128,34 @@ class ScheduleRepository:
         else:
             return []
 
-        result = self.db.execute(stmt)
+        result = await self.db.execute(stmt)
+        return list(result.scalars().all())
+
+    async def get_by_id(self, schedule_id: int) -> Optional[Schedule]:
+        """Obtener horario por ID con subject y classroom."""
+        stmt = (
+            select(Schedule)
+            .where(Schedule.id == schedule_id)
+            .options(
+                joinedload(Schedule.subject),
+                joinedload(Schedule.classroom),
+            )
+        )
+        result = await self.db.execute(stmt)
+        return result.scalar_one_or_none()
+
+    async def get_by_classroom(
+        self, classroom_id: int
+    ) -> List[Schedule]:
+        """TASK-018: Horarios de un aula."""
+        stmt = (
+            select(Schedule)
+            .where(Schedule.classroom_id == classroom_id)
+            .options(
+                joinedload(Schedule.subject),
+                joinedload(Schedule.classroom),
+            )
+            .order_by(Schedule.dia_semana, Schedule.hora_inicio)
+        )
+        result = await self.db.execute(stmt)
         return list(result.scalars().all())

@@ -47,3 +47,13 @@ class ConflictError(BaseAppException):
     def __init__(self, detail: str):
         super().__init__(detail=detail, status_code=status.HTTP_409_CONFLICT)
 
+
+class ScheduleConflictError(HTTPException):
+    """Conflictos de horario (aula o profesor). status 422 con listado de conflictos."""
+
+    def __init__(self, conflicts: list):
+        super().__init__(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail={"message": "Conflictos de horario", "conflicts": conflicts},
+        )
+
