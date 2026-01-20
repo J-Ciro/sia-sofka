@@ -40,7 +40,7 @@ const StudentAttendanceHistory = () => {
     try {
       setLoading(true)
       setError('')
-      const data = await estudianteService.getEnrolledSubjects(user?.id)
+      const data = await estudianteService.getEnrolledSubjects()
       setSubjects(data || [])
       if (data && data.length > 0) {
         setSelectedSubject(data[0])
@@ -58,60 +58,15 @@ const StudentAttendanceHistory = () => {
     try {
       setLoading(true)
       setError('')
-      
-      // Simulación de datos de asistencia (en producción vendría del backend)
-      // En un escenario real: await attendanceService.getStudentHistory(user.id, subjectId)
-      
-      const mockHistory = [
-        {
-          id: 1,
-          fecha: '2026-01-15',
-          hora_inicio: '08:00',
-          hora_fin: '10:00',
-          descripcion: 'Clase sobre funciones',
-          estado: 'PRESENTE'
-        },
-        {
-          id: 2,
-          fecha: '2026-01-16',
-          hora_inicio: '08:00',
-          hora_fin: '10:00',
-          descripcion: 'Clase sobre derivadas',
-          estado: 'PRESENTE'
-        },
-        {
-          id: 3,
-          fecha: '2026-01-17',
-          hora_inicio: '08:00',
-          hora_fin: '10:00',
-          descripcion: 'Clase sobre integrales',
-          estado: 'TARDANZA'
-        },
-        {
-          id: 4,
-          fecha: '2026-01-18',
-          hora_inicio: '08:00',
-          hora_fin: '10:00',
-          descripcion: 'Clase sobre series',
-          estado: 'AUSENTE'
-        },
-        {
-          id: 5,
-          fecha: '2026-01-19',
-          hora_inicio: '08:00',
-          hora_fin: '10:00',
-          descripcion: 'Clase sobre límites',
-          estado: 'PRESENTE'
-        }
-      ]
-
-      setAttendanceHistory(mockHistory)
-      calculateStats(mockHistory)
-      
+      const data = await attendanceService.getStudentHistory(subjectId)
+      const history = Array.isArray(data) ? data : []
+      setAttendanceHistory(history)
+      calculateStats(history)
     } catch (err) {
       console.error('Error fetching attendance history:', err)
-      setError('Error al cargar historial de asistencia')
+      setError(err?.message || 'Error al cargar historial de asistencia')
       setAttendanceHistory([])
+      calculateStats([])
     } finally {
       setLoading(false)
     }

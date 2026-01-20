@@ -64,11 +64,15 @@ class AttendanceService:
         SessionValidator.validate_date(fecha)
         SessionValidator.validate_time_range(hora_inicio, hora_fin)
         
-        # Check for duplicate session (HU-01, Escenario 4)
-        existing_session = await self.attendance_repo.get_session_by_subject_and_date(
-            subject_id, fecha
+        # Evitar sesiones que se solapen en hora para la misma materia y fecha.
+        # El profesor SÍ puede crear varias sesiones al día (varias materias o misma materia
+        # en horarios no solapados); si quiere cambiar una existente, debe editarla.
+        overlapping = await self.attendance_repo.find_overlapping_sessions(
+            subject_id, fecha, hora_inicio, hora_fin
         )
-        SessionValidator.validate_duplicate_session(existing_session, subject_id, fecha)
+        SessionValidator.validate_no_overlapping_session(
+            overlapping, subject_id, fecha, hora_inicio, hora_fin
+        )
         
         # Create session
         clase_session = ClaseSession(
