@@ -57,11 +57,11 @@ Sistema de gestión de horarios de clases con validación de conflictos (aulas y
 
 | Task      | Description                                                                 | Completed | Date |
 |-----------|-----------------------------------------------------------------------------|-----------|------|
-| TASK-001  | Crear modelo Classroom (aula) con capacidad y ubicación                    |           |      |
-| TASK-002  | Crear modelo Schedule con asignatura, aula, día, hora_inicio, hora_fin     |           |      |
-| TASK-003  | Agregar constraint unique para (asignatura_id, dia_semana, hora_inicio)    |           |      |
-| TASK-004  | Crear índices en (aula_id, dia_semana, hora_inicio)                        |           |      |
-| TASK-005  | Generar migración Alembic y ejecutar upgrade                               |           |      |
+| TASK-001  | Crear modelo Classroom (aula) con capacidad y ubicación                    | x         | 2026-01-19 |
+| TASK-002  | Crear modelo Schedule con asignatura, aula, día, hora_inicio, hora_fin     | x         | 2026-01-19 |
+| TASK-003  | Agregar constraint unique para (asignatura_id, dia_semana, hora_inicio)    | x         | 2026-01-19 |
+| TASK-004  | Crear índices en (aula_id, dia_semana, hora_inicio)                        | x         | 2026-01-19 |
+| TASK-005  | Generar migración Alembic y ejecutar upgrade                               | x         | 2026-01-19 |
 
 ### Fase 2: Repository con Validaciones
 
@@ -69,10 +69,10 @@ Sistema de gestión de horarios de clases con validación de conflictos (aulas y
 
 | Task      | Description                                                                 | Completed | Date |
 |-----------|-----------------------------------------------------------------------------|-----------|------|
-| TASK-006  | Crear ScheduleRepository con query de solapamiento de aulas                |           |      |
-| TASK-007  | Implementar query de solapamiento de profesor                              |           |      |
-| TASK-008  | Implementar query de solapamiento de estudiante                            |           |      |
-| TASK-009  | Crear método get_weekly_schedule(user_id, role)                            |           |      |
+| TASK-006  | Crear ScheduleRepository con query de solapamiento de aulas                | x         | 2026-01-19 |
+| TASK-007  | Implementar query de solapamiento de profesor                              | x         | 2026-01-19 |
+| TASK-008  | Implementar query de solapamiento de estudiante                            | x         | 2026-01-19 |
+| TASK-009  | Crear método get_weekly_schedule(user_id, role)                            | x         | 2026-01-19 |
 
 ### Fase 3: Service con Lógica de Negocio
 
