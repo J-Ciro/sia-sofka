@@ -57,26 +57,28 @@ class TestSessionValidator:
         
         assert "La hora de fin debe ser posterior a la hora de inicio" in str(exc_info.value.detail)
     
-    def test_validate_duplicate_session_none_is_valid(self):
-        """Test that no existing session is valid."""
-        # Should not raise
-        SessionValidator.validate_duplicate_session(None, 1, date.today())
-    
-    def test_validate_duplicate_session_existing_raises_error(self):
-        """Test that existing session raises ValidationError."""
-        
+    def test_validate_no_overlapping_session_empty_ok(self):
+        """Test that no overlapping sessions is valid."""
+        SessionValidator.validate_no_overlapping_session(
+            [], 1, date.today(),
+            datetime(2026, 1, 20, 8, 0), datetime(2026, 1, 20, 10, 0),
+        )
+
+    def test_validate_no_overlapping_session_overlapping_raises(self):
+        """Test that overlapping sessions raise ValidationError."""
+
         class MockSession:
             id = 123
-        
-        existing = MockSession()
-        subject_id = 1
-        fecha = date.today()
-        
+
+        overlapping = [MockSession()]
         with pytest.raises(ValidationError) as exc_info:
-            SessionValidator.validate_duplicate_session(existing, subject_id, fecha)
-        
+            SessionValidator.validate_no_overlapping_session(
+                overlapping, 1, date.today(),
+                datetime(2026, 1, 20, 8, 0), datetime(2026, 1, 20, 10, 0),
+            )
         assert "Ya existe una sesión" in str(exc_info.value.detail)
-        assert str(existing.id) in str(exc_info.value.detail)
+        assert "solapa" in str(exc_info.value.detail)
+        assert "123" in str(exc_info.value.detail)
 
 
 class TestAttendanceCalculator:

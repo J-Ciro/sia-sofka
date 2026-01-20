@@ -17,6 +17,7 @@ from app.schemas.attendance import (
     AttendanceUpdate,
     AttendanceResponse,
     SessionStatisticsResponse,
+    StudentAttendanceRecordResponse,
 )
 from app.models.user import User, UserRole
 from app.models.attendance import ClaseSession, Attendance
@@ -24,6 +25,38 @@ from app.services.attendance_service import AttendanceService
 from app.core.exceptions import NotFoundError, UnauthorizedError, ValidationError
 
 router = APIRouter(tags=["attendance"])
+
+
+@router.get("/student/me", response_model=list[StudentAttendanceRecordResponse])
+async def get_my_attendance_history(
+    subject_id: int = Query(..., description="ID de la materia"),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Historial de asistencia del estudiante actual en una materia (solo Estudiante).
+    Requiere: Authorization: Bearer <token> y rol Estudiante."""
+    if current_user.role != UserRole.ESTUDIANTE:
+        raise HTTPException(status_code=403, detail="Solo los estudiantes pueden consultar su historial de asistencia")
+    from app.repositories.attendance_repository import AttendanceRepository
+
+    repo = AttendanceRepository(db)
+    records = await repo.get_student_history_by_subject(current_user.id, subject_id)
+    out = []
+    for a in records:
+        s = a.clase_session
+        if not s:
+            continue
+        hi = s.hora_inicio.strftime("%H:%M") if hasattr(s.hora_inicio, "strftime") else (str(s.hora_inicio)[:5] if s.hora_inicio else "")
+        hf = s.hora_fin.strftime("%H:%M") if hasattr(s.hora_fin, "strftime") else (str(s.hora_fin)[:5] if s.hora_fin else "")
+        out.append(StudentAttendanceRecordResponse(
+            id=a.id,
+            fecha=s.fecha.isoformat() if hasattr(s.fecha, "isoformat") else str(s.fecha),
+            hora_inicio=hi,
+            hora_fin=hf,
+            descripcion=s.descripcion,
+            estado=a.estado,
+        ))
+    return out
 
 
 @router.post("/sessions", response_model=ClaseSessionResponse, status_code=status.HTTP_201_CREATED)

@@ -1,7 +1,7 @@
 """Attendance validation utilities following SOLID principles."""
 
 from datetime import date, datetime
-from typing import Optional
+from typing import List
 
 from app.core.exceptions import ValidationError
 
@@ -37,26 +37,35 @@ class SessionValidator:
             raise ValidationError("La hora de fin debe ser posterior a la hora de inicio")
     
     @staticmethod
-    def validate_duplicate_session(
-        existing_session: Optional[object],
+    def validate_no_overlapping_session(
+        overlapping: List[object],
         subject_id: int,
-        fecha: date
+        fecha: date,
+        hora_inicio: datetime,
+        hora_fin: datetime,
     ) -> None:
-        """Validate no duplicate session exists.
-        
+        """Comprueba que no exista una sesión de la misma materia en la misma fecha
+        con horario solapado. El profesor puede crear varias sesiones al día en materias
+        distintas o en la misma materia en horarios que no se solapan; debe editar la existente
+        si quiere modificar una ya creada.
+
         Args:
-            existing_session: Existing session object if found
-            subject_id: Subject ID
-            fecha: Session date
-            
+            overlapping: Lista de ClaseSession que solapan
+            subject_id: ID de la materia
+            fecha: Fecha
+            hora_inicio: Hora inicio de la nueva
+            hora_fin: Hora fin de la nueva
+
         Raises:
-            ValidationError: If duplicate session exists
+            ValidationError: Si hay sesiones solapadas
         """
-        if existing_session:
-            raise ValidationError(
-                f"Ya existe una sesión para esta materia en la fecha {fecha}. "
-                f"ID de sesión existente: {existing_session.id}"
-            )
+        if not overlapping:
+            return
+        ids = [s.id for s in overlapping]
+        raise ValidationError(
+            "Ya existe una sesión de esta materia en la misma fecha con horario que se solapa. "
+            "Use editar la sesión existente en lugar de crear otra. IDs de sesiones: " + str(ids)
+        )
 
 
 class AttendanceCalculator:

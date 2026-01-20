@@ -57,11 +57,11 @@ Sistema de gestión de horarios de clases con validación de conflictos (aulas y
 
 | Task      | Description                                                                 | Completed | Date |
 |-----------|-----------------------------------------------------------------------------|-----------|------|
-| TASK-001  | Crear modelo Classroom (aula) con capacidad y ubicación                    |           |      |
-| TASK-002  | Crear modelo Schedule con asignatura, aula, día, hora_inicio, hora_fin     |           |      |
-| TASK-003  | Agregar constraint unique para (asignatura_id, dia_semana, hora_inicio)    |           |      |
-| TASK-004  | Crear índices en (aula_id, dia_semana, hora_inicio)                        |           |      |
-| TASK-005  | Generar migración Alembic y ejecutar upgrade                               |           |      |
+| TASK-001  | Crear modelo Classroom (aula) con capacidad y ubicación                    | x         | 2026-01-19 |
+| TASK-002  | Crear modelo Schedule con asignatura, aula, día, hora_inicio, hora_fin     | x         | 2026-01-19 |
+| TASK-003  | Agregar constraint unique para (asignatura_id, dia_semana, hora_inicio)    | x         | 2026-01-19 |
+| TASK-004  | Crear índices en (aula_id, dia_semana, hora_inicio)                        | x         | 2026-01-19 |
+| TASK-005  | Generar migración Alembic y ejecutar upgrade                               | x         | 2026-01-19 |
 
 ### Fase 2: Repository con Validaciones
 
@@ -69,10 +69,10 @@ Sistema de gestión de horarios de clases con validación de conflictos (aulas y
 
 | Task      | Description                                                                 | Completed | Date |
 |-----------|-----------------------------------------------------------------------------|-----------|------|
-| TASK-006  | Crear ScheduleRepository con query de solapamiento de aulas                |           |      |
-| TASK-007  | Implementar query de solapamiento de profesor                              |           |      |
-| TASK-008  | Implementar query de solapamiento de estudiante                            |           |      |
-| TASK-009  | Crear método get_weekly_schedule(user_id, role)                            |           |      |
+| TASK-006  | Crear ScheduleRepository con query de solapamiento de aulas                | x         | 2026-01-19 |
+| TASK-007  | Implementar query de solapamiento de profesor                              | x         | 2026-01-19 |
+| TASK-008  | Implementar query de solapamiento de estudiante                            | x         | 2026-01-19 |
+| TASK-009  | Crear método get_weekly_schedule(user_id, role)                            | x         | 2026-01-19 |
 
 ### Fase 3: Service con Lógica de Negocio
 
@@ -80,10 +80,10 @@ Sistema de gestión de horarios de clases con validación de conflictos (aulas y
 
 | Task      | Description                                                                 | Completed | Date |
 |-----------|-----------------------------------------------------------------------------|-----------|------|
-| TASK-010  | Crear ScheduleService con validate_schedule_conflicts()                    |           |      |
-| TASK-011  | Implementar lógica de detección de solapamiento con intervalos             |           |      |
-| TASK-012  | Implementar get_professor_schedule() para vista de profesor                |           |      |
-| TASK-013  | Implementar get_student_schedule() basado en enrollments                   |           |      |
+| TASK-010  | Crear ScheduleService con validate_schedule_conflicts()                    | x         | 2026-01-19 |
+| TASK-011  | Implementar lógica de detección de solapamiento con intervalos             | x         | 2026-01-19 |
+| TASK-012  | Implementar get_professor_schedule() para vista de profesor                | x         | 2026-01-19 |
+| TASK-013  | Implementar get_student_schedule() basado en enrollments                   | x         | 2026-01-19 |
 
 ### Fase 4: API Endpoints
 
@@ -91,11 +91,11 @@ Sistema de gestión de horarios de clases con validación de conflictos (aulas y
 
 | Task      | Description                                                                 | Completed | Date |
 |-----------|-----------------------------------------------------------------------------|-----------|------|
-| TASK-014  | POST /api/v1/schedules - Crear horario con validaciones                    |           |      |
-| TASK-015  | GET /api/v1/schedules/weekly - Obtener horarios semanales                  |           |      |
-| TASK-016  | PUT /api/v1/schedules/{id} - Actualizar horario                            |           |      |
-| TASK-017  | DELETE /api/v1/schedules/{id} - Eliminar horario                           |           |      |
-| TASK-018  | GET /api/v1/schedules/classroom/{id} - Ver horarios de aula                |           |      |
+| TASK-014  | POST /api/v1/schedules - Crear horario con validaciones                    | x         | 2026-01-19 |
+| TASK-015  | GET /api/v1/schedules/weekly - Obtener horarios semanales                  | x         | 2026-01-19 |
+| TASK-016  | PUT /api/v1/schedules/{id} - Actualizar horario                            | x         | 2026-01-19 |
+| TASK-017  | DELETE /api/v1/schedules/{id} - Eliminar horario                           | x         | 2026-01-19 |
+| TASK-018  | GET /api/v1/schedules/classroom/{id} - Ver horarios de aula                | x         | 2026-01-19 |
 
 ### Fase 5: Frontend - Calendario Visual
 
@@ -103,12 +103,12 @@ Sistema de gestión de horarios de clases con validación de conflictos (aulas y
 
 | Task      | Description                                                                 | Completed | Date |
 |-----------|-----------------------------------------------------------------------------|-----------|------|
-| TASK-019  | Instalar react-big-calendar: npm install react-big-calendar date-fns       |           |      |
-| TASK-020  | Crear componente WeeklyCalendar.jsx con vista semanal                      |           |      |
-| TASK-021  | Implementar transformación de datos Schedule → eventos de calendario       |           |      |
-| TASK-022  | Agregar colores por asignatura usando hash de ID                           |           |      |
-| TASK-023  | Implementar modal para ver detalles de horario al hacer click              |           |      |
-| TASK-024  | Crear componente ScheduleForm.jsx para crear/editar horarios               |           |      |
+| TASK-019  | Instalar react-big-calendar: npm install react-big-calendar date-fns       | x         | 2026-01-19 |
+| TASK-020  | Crear componente WeeklyCalendar.jsx con vista semanal                      | x         | 2026-01-19 |
+| TASK-021  | Implementar transformación de datos Schedule → eventos de calendario       | x         | 2026-01-19 |
+| TASK-022  | Agregar colores por asignatura usando hash de ID                           | x         | 2026-01-19 |
+| TASK-023  | Implementar modal para ver detalles de horario al hacer click              | x         | 2026-01-19 |
+| TASK-024  | Crear componente ScheduleForm.jsx para crear/editar horarios               | x         | 2026-01-19 |
 
 ### Fase 6: Testing - Validaciones Críticas
 

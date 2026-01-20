@@ -23,6 +23,7 @@ from app.models.user import User, UserRole
 from app.models.subject import Subject
 from app.models.enrollment import Enrollment
 from app.models.attendance import ClaseSession
+from app.models.schedule import Classroom, Schedule
 
 # Import app and Base
 from app.main import app
@@ -138,6 +139,21 @@ def enrollment(db_session, estudiante_user, subject):
     return enrollment_obj
 
 
+# ===== CLASSROOM FIXTURES (horarios-calendario) =====
+@pytest.fixture
+def classroom(db_session):
+    """Create a test classroom (aula) for schedules."""
+    c = Classroom(
+        codigo="AULA-301",
+        nombre="Aula 301",
+        capacidad=40,
+        ubicacion="Edificio A, Tercer piso",
+    )
+    db_session.add(c)
+    db_session.commit()
+    return c
+
+
 # ===== CLASE SESSION FIXTURES =====
 @pytest.fixture
 def clase_session(db_session, subject, profesor_user):
@@ -156,7 +172,7 @@ def clase_session(db_session, subject, profesor_user):
 
 
 
-# ===== ASYNC SESSION (for integration tests) =====
+# ===== ASYNC SESSION (for integration tests and schedule async unit tests) =====
 @pytest.fixture(scope="function")
 async def async_db_session():
     """Create an async test database session for integration tests."""
@@ -187,6 +203,125 @@ async def async_db_session():
         await conn.run_sync(Base.metadata.drop_all)
     
     await engine.dispose()
+
+
+# ===== ASYNC FIXTURES (schedule repo/service unit tests - async) =====
+@pytest.fixture
+async def async_profesor_user(async_db_session):
+    """Profesor para tests async de schedules."""
+    u = User(
+        email="profesor@test.com",
+        password_hash=hashpw(b"password123", gensalt()).decode(),
+        role=UserRole.PROFESOR,
+        nombre="Profesor",
+        apellido="Test",
+        codigo_institucional="PRF001",
+        fecha_nacimiento=date(1985, 5, 15),
+        area_ensenanza="Matemáticas",
+    )
+    async_db_session.add(u)
+    await async_db_session.commit()
+    await async_db_session.refresh(u)
+    return u
+
+
+@pytest.fixture
+async def async_classroom(async_db_session):
+    """Aula para tests async de schedules."""
+    c = Classroom(
+        codigo="AULA-301",
+        nombre="Aula 301",
+        capacidad=40,
+        ubicacion="Edificio A",
+    )
+    async_db_session.add(c)
+    await async_db_session.commit()
+    await async_db_session.refresh(c)
+    return c
+
+
+@pytest.fixture
+async def async_subject(async_db_session, async_profesor_user):
+    """Materia para tests async de schedules."""
+    s = Subject(
+        nombre="Matemáticas Avanzadas",
+        codigo_institucional="MAT301",
+        numero_creditos=3,
+        profesor_id=async_profesor_user.id,
+    )
+    async_db_session.add(s)
+    await async_db_session.commit()
+    await async_db_session.refresh(s)
+    return s
+
+
+@pytest.fixture
+async def async_estudiante_user(async_db_session):
+    """Estudiante para tests async de schedules."""
+    u = User(
+        email="estudiante@test.com",
+        password_hash=hashpw(b"password123", gensalt()).decode(),
+        role=UserRole.ESTUDIANTE,
+        nombre="Estudiante",
+        apellido="Test",
+        codigo_institucional="EST001",
+        fecha_nacimiento=date(2005, 3, 20),
+    )
+    async_db_session.add(u)
+    await async_db_session.commit()
+    await async_db_session.refresh(u)
+    return u
+
+
+@pytest.fixture
+async def async_enrollment(async_db_session, async_estudiante_user, async_subject):
+    """Inscripción para tests async de schedules."""
+    e = Enrollment(
+        estudiante_id=async_estudiante_user.id,
+        subject_id=async_subject.id,
+    )
+    async_db_session.add(e)
+    await async_db_session.commit()
+    await async_db_session.refresh(e)
+    return e
+
+
+@pytest.fixture
+async def async_classroom2(async_db_session):
+    """Segunda aula para tests async de solapamiento."""
+    c = Classroom(codigo="AULA-302", nombre="Aula 302", capacidad=30)
+    async_db_session.add(c)
+    await async_db_session.commit()
+    await async_db_session.refresh(c)
+    return c
+
+
+@pytest.fixture
+async def async_subject2(async_db_session, async_profesor_user):
+    """Segunda materia (mismo profesor) para tests async."""
+    s = Subject(
+        nombre="Física",
+        codigo_institucional="FIS301",
+        numero_creditos=3,
+        profesor_id=async_profesor_user.id,
+    )
+    async_db_session.add(s)
+    await async_db_session.commit()
+    await async_db_session.refresh(s)
+    return s
+
+
+@pytest.fixture
+async def async_enrollment2(async_db_session, async_estudiante_user, async_subject2):
+    """Inscripción en segunda materia para tests async."""
+    e = Enrollment(
+        estudiante_id=async_estudiante_user.id,
+        subject_id=async_subject2.id,
+    )
+    async_db_session.add(e)
+    await async_db_session.commit()
+    await async_db_session.refresh(e)
+    return e
 
 
 # ===== HTTP CLIENT FIXTURE =====

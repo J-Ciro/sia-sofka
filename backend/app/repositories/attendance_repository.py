@@ -1,6 +1,6 @@
 """Attendance Repository - Data access layer for attendance operations."""
 
-from datetime import date
+from datetime import date, datetime
 from typing import Optional, Dict, Any, Union
 from sqlalchemy.orm import Session
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -331,6 +331,28 @@ class AttendanceRepository:
         
         return (present_or_late / len(attendances)) * 100
     
+    async def get_student_history_by_subject(
+        self,
+        estudiante_id: int,
+        subject_id: int,
+    ) -> list[Attendance]:
+        """Asistencia del estudiante en una materia, con ClaseSession. Orden: sesión más reciente primero."""
+        from sqlalchemy.orm import joinedload
+        from sqlalchemy import desc
+
+        stmt = (
+            select(Attendance)
+            .join(ClaseSession, Attendance.clase_session_id == ClaseSession.id)
+            .where(
+                Attendance.estudiante_id == estudiante_id,
+                ClaseSession.subject_id == subject_id,
+            )
+            .options(joinedload(Attendance.clase_session))
+            .order_by(desc(ClaseSession.fecha), desc(ClaseSession.hora_inicio))
+        )
+        result = await self.db.execute(stmt)
+        return list(result.scalars().all())
+
     async def get_session_by_subject_and_date(
         self,
         subject_id: int,
@@ -352,3 +374,22 @@ class AttendanceRepository:
         
         result = await self.db.execute(query)
         return result.scalar_one_or_none()
+
+    async def find_overlapping_sessions(
+        self,
+        subject_id: int,
+        fecha: date,
+        hora_inicio: datetime,
+        hora_fin: datetime,
+    ) -> list[ClaseSession]:
+        """Sesiones de la misma materia en la misma fecha cuyo horario solapa con [hora_inicio, hora_fin].
+        [a,b) y [c,d) solapan si a < d y c < b.
+        """
+        stmt = select(ClaseSession).where(
+            ClaseSession.subject_id == subject_id,
+            ClaseSession.fecha == fecha,
+            ClaseSession.hora_inicio < hora_fin,
+            ClaseSession.hora_fin > hora_inicio,
+        )
+        result = await self.db.execute(stmt)
+        return list(result.scalars().all())

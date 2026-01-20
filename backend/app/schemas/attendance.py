@@ -11,6 +11,16 @@ from pydantic import BaseModel, Field, field_validator
 from app.models.attendance import AttendanceStatus
 
 
+class StudentAttendanceRecordResponse(BaseModel):
+    """Registro de historial de asistencia para el estudiante (sesión + estado)."""
+    id: int
+    fecha: str = Field(..., description="Fecha de la sesión (YYYY-MM-DD)")
+    hora_inicio: str = Field(..., description="Hora inicio (HH:mm)")
+    hora_fin: str = Field(..., description="Hora fin (HH:mm)")
+    descripcion: Optional[str] = None
+    estado: AttendanceStatus
+
+
 class ClaseSessionCreate(BaseModel):
     """Schema for creating a new class session."""
     

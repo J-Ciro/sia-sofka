@@ -4,14 +4,15 @@ from typing import List
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
-from app.core.exceptions import NotFoundError, ValidationError, ConflictError
+from app.core.exceptions import NotFoundError, ValidationError, ConflictError, ForbiddenError
 from app.core.logging import logger
 from app.models.user import User
 from app.schemas.enrollment import EnrollmentCreate, EnrollmentResponse
 from app.services.enrollment_service import EnrollmentService
 from app.repositories.enrollment_repository import EnrollmentRepository
-from app.api.v1.dependencies import require_admin
+from app.api.v1.dependencies import require_admin, get_current_active_user
 from app.api.v1.serializers.enrollment_serializer import EnrollmentSerializer
+from app.models.user import UserRole
 
 router = APIRouter()
 
@@ -52,6 +53,23 @@ async def create_enrollment(
         await db.rollback()
         logger.error(f"Error creating enrollment: {str(e)}", exc_info=True)
         raise ValidationError(f"Error creating enrollment: {str(e)}")
+
+
+@router.get("/me", response_model=List[EnrollmentResponse])
+async def get_my_enrollments(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    """Obtener las inscripciones del estudiante actual (solo Estudiante). Devuelve enrollments con subject."""
+    if current_user.role != UserRole.ESTUDIANTE:
+        raise ForbiddenError("Solo los estudiantes pueden consultar sus inscripciones")
+    enrollment_repo = EnrollmentRepository(db)
+    enrollments = await enrollment_repo.get_many_with_relations(
+        estudiante_id=current_user.id,
+        relations=['estudiante', 'subject'],
+        limit=500,
+    )
+    return await EnrollmentSerializer.serialize_batch(enrollments, db)
 
 
 @router.get("", response_model=List[EnrollmentResponse])
