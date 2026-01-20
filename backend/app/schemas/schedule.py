@@ -68,11 +68,19 @@ class ScheduleUpdate(BaseModel):
 
 
 # --- Anidados para respuesta ---
+class ProfesorNested(BaseModel):
+    id: int
+    nombre: str
+    apellido: str
+    model_config = ConfigDict(from_attributes=True)
+
+
 class SubjectNested(BaseModel):
     id: int
     nombre: str
     codigo_institucional: str
     profesor_id: int
+    profesor: Optional[ProfesorNested] = None
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -101,9 +109,16 @@ class ScheduleResponse(BaseModel):
 
 # --- Classroom (para listados y formularios) ---
 class ClassroomCreate(BaseModel):
-    codigo: str = Field(..., min_length=1, max_length=50)
+    """Sin codigo: se genera automáticamente (ej. AULA-A1B2C3D4)."""
     nombre: str = Field(..., min_length=1, max_length=200)
     capacidad: int = Field(..., gt=0, le=500)
+    ubicacion: Optional[str] = None
+
+
+class ClassroomUpdate(BaseModel):
+    """codigo no se puede editar (generado automáticamente)."""
+    nombre: Optional[str] = Field(None, min_length=1, max_length=200)
+    capacidad: Optional[int] = Field(None, gt=0, le=500)
     ubicacion: Optional[str] = None
 
 

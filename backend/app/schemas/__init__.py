@@ -20,6 +20,7 @@ from app.schemas.schedule import (
     ScheduleUpdate,
     ScheduleResponse,
     ClassroomCreate,
+    ClassroomUpdate,
     ClassroomResponse,
 )
 
@@ -54,5 +55,6 @@ __all__ = [
     "ScheduleUpdate",
     "ScheduleResponse",
     "ClassroomCreate",
+    "ClassroomUpdate",
     "ClassroomResponse",
 ]

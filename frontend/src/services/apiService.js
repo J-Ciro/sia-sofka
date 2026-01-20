@@ -269,6 +269,16 @@ export const profesorService = {
 // ==================== ESTUDIANTE ====================
 export const estudianteService = {
   /**
+   * Obtiene las materias en las que el estudiante está inscrito.
+   * Usa GET /enrollments/me (requiere rol Estudiante). Devuelve subjects para selectores.
+   */
+  getEnrolledSubjects: async () => {
+    const response = await api.get('/enrollments/me')
+    const enrollments = response.data || []
+    return enrollments.map((e) => e.subject).filter(Boolean)
+  },
+
+  /**
    * Obtiene las materias inscritas del estudiante
    * Intenta acceder a /enrollments y filtra por estudiante_id
    * Si falla (403), intenta inferir desde las notas
@@ -385,6 +395,25 @@ export const classroomService = {
     const response = await api.get('/classrooms')
     return response.data
   },
+
+  getById: async (id) => {
+    const response = await api.get(`/classrooms/${id}`)
+    return response.data
+  },
+
+  create: async (data) => {
+    const response = await api.post('/classrooms', data)
+    return response.data
+  },
+
+  update: async (id, data) => {
+    const response = await api.put(`/classrooms/${id}`, data)
+    return response.data
+  },
+
+  delete: async (id) => {
+    await api.delete(`/classrooms/${id}`)
+  },
 }
 
 // ==================== SCHEDULES (horarios) ====================
@@ -453,9 +482,9 @@ export const attendanceService = {
     return response.data
   },
 
-  // Obtener historial de asistencia de un estudiante
-  getStudentHistory: async (studentId, subjectId) => {
-    const response = await api.get(`/attendance/student/${studentId}`, {
+  // Historial de asistencia del estudiante actual en una materia (usa token, solo Estudiante)
+  getStudentHistory: async (subjectId) => {
+    const response = await api.get('/attendance/student/me', {
       params: { subject_id: subjectId },
     })
     return response.data

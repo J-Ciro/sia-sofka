@@ -14,6 +14,7 @@ import TakeAttendance from './components/attendance/TakeAttendance'
 import StudentAttendanceHistory from './components/attendance/StudentAttendanceHistory'
 import SessionHistory from './components/attendance/SessionHistory'
 import Horarios from './components/dashboard/Horarios'
+import Aulas from './components/dashboard/Aulas'
 
 // Componente para renderizar Subjects según el rol
 const SubjectsRoute = () => {
@@ -50,6 +51,7 @@ function App() {
           <Route path="/" element={<DashboardLayout />}>
             <Route index element={<DashboardHome />} />
             <Route path="users" element={<Users />} />
+            <Route path="aulas" element={<Aulas />} />
             <Route path="subjects" element={<SubjectsRoute />} />
             <Route path="enrollments" element={<Enrollments />} />
             <Route path="grades" element={<Grades />} />

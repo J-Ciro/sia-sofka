@@ -9,7 +9,8 @@ import {
   FileText,
   LogOut,
   ClipboardCheck,
-  Calendar
+  Calendar,
+  Building2
 } from 'lucide-react'
 
 const Sidebar = () => {
@@ -19,6 +20,7 @@ const Sidebar = () => {
   const menuItems = [
     { path: '/', label: 'Dashboard', icon: LayoutDashboard },
     { path: '/users', label: 'Usuarios', icon: Users, roles: ['Admin'] },
+    { path: '/aulas', label: 'Aulas', icon: Building2, roles: ['Admin'] },
     { path: '/subjects', label: 'Materias', icon: BookOpen, roles: ['Admin', 'Profesor', 'Estudiante'] },
     { path: '/horarios', label: 'Horarios', icon: Calendar, roles: ['Admin', 'Profesor', 'Estudiante'] },
     { path: '/enrollments', label: 'Inscripciones', icon: UserCheck, roles: ['Admin'] },
