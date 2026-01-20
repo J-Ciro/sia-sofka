@@ -45,4 +45,19 @@ class Subject(Base):
         back_populates="subject",
         cascade="all, delete-orphan"
     )
+    clase_sessions = relationship(
+        "ClaseSession",
+        back_populates="subject",
+        cascade="all, delete-orphan"
+    )
+    attendance_stats = relationship(
+        "AttendanceStats",
+        back_populates="subject",
+        cascade="all, delete-orphan"
+    )
+    attendance_alerts = relationship(
+        "AttendanceAlert",
+        back_populates="subject",
+        cascade="all, delete-orphan"
+    )
 

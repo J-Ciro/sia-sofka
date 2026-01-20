@@ -9,6 +9,7 @@ from app.api.v1.endpoints import (
     grades,
     reports,
     profile,
+    attendance,
 )
 
 api_router = APIRouter()
@@ -19,3 +20,4 @@ api_router.include_router(enrollments.router, prefix="/enrollments", tags=["enro
 api_router.include_router(grades.router, prefix="/grades", tags=["grades"])
 api_router.include_router(reports.router, prefix="/reports", tags=["reports"])
 api_router.include_router(profile.router, prefix="/profile", tags=["profile"])
+api_router.include_router(attendance.router, prefix="/attendance", tags=["attendance"])

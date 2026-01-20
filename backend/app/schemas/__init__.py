@@ -6,6 +6,15 @@ from app.schemas.enrollment import EnrollmentBase, EnrollmentCreate, EnrollmentR
 from app.schemas.grade import GradeBase, GradeCreate, GradeUpdate, GradeResponse
 from app.schemas.token import Token, TokenData
 from app.schemas.report import ReportRequest, ReportResponse
+from app.schemas.attendance import (
+    ClaseSessionCreate,
+    ClaseSessionResponse,
+    AttendanceCreate,
+    AttendanceUpdate,
+    AttendanceResponse,
+    SessionStatisticsResponse,
+    AttendanceStatsResponse,
+)
 
 __all__ = [
     "UserBase",
@@ -27,4 +36,11 @@ __all__ = [
     "TokenData",
     "ReportRequest",
     "ReportResponse",
+    "ClaseSessionCreate",
+    "ClaseSessionResponse",
+    "AttendanceCreate",
+    "AttendanceUpdate",
+    "AttendanceResponse",
+    "SessionStatisticsResponse",
+    "AttendanceStatsResponse",
 ]

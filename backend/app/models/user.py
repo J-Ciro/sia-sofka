@@ -64,6 +64,26 @@ class User(Base):
         back_populates="estudiante",
         foreign_keys="Enrollment.estudiante_id"
     )
+    clase_sessions_creadas = relationship(
+        "ClaseSession",
+        back_populates="creado_por_user",
+        foreign_keys="ClaseSession.creado_por"
+    )
+    attendances = relationship(
+        "Attendance",
+        back_populates="estudiante",
+        foreign_keys="Attendance.estudiante_id"
+    )
+    attendance_stats = relationship(
+        "AttendanceStats",
+        back_populates="estudiante",
+        foreign_keys="AttendanceStats.estudiante_id"
+    )
+    attendance_alerts = relationship(
+        "AttendanceAlert",
+        back_populates="estudiante",
+        foreign_keys="AttendanceAlert.estudiante_id"
+    )
     
     def calcular_edad(self) -> int:
         """Calculate age from fecha_nacimiento."""
