@@ -379,6 +379,41 @@ export const estudianteService = {
   },
 }
 
+// ==================== CLASSROOMS ====================
+export const classroomService = {
+  getAll: async () => {
+    const response = await api.get('/classrooms')
+    return response.data
+  },
+}
+
+// ==================== SCHEDULES (horarios) ====================
+export const scheduleService = {
+  getWeekly: async (params = {}) => {
+    const response = await api.get('/schedules/weekly', { params })
+    return response.data
+  },
+
+  create: async (data) => {
+    const response = await api.post('/schedules', data)
+    return response.data
+  },
+
+  update: async (id, data) => {
+    const response = await api.put(`/schedules/${id}`, data)
+    return response.data
+  },
+
+  delete: async (id) => {
+    await api.delete(`/schedules/${id}`)
+  },
+
+  getByClassroom: async (classroomId) => {
+    const response = await api.get(`/schedules/classroom/${classroomId}`)
+    return response.data
+  },
+}
+
 // ==================== ATTENDANCE ====================
 export const attendanceService = {
   // Crear sesión de clase

@@ -2,7 +2,7 @@
 
 Guía para continuar la implementación. Hacer **commit con conventional-commits** al final de cada fase de TDD.
 
-**Siguiente paso:** Fase 5 (Frontend – Calendario).
+**Siguiente paso:** Fase 6 (Testing – Validaciones críticas).
 
 ---
 
@@ -12,6 +12,7 @@ Guía para continuar la implementación. Hacer **commit con conventional-commits
 - **Fase 2**: `ScheduleRepository` (overlaps + `get_weekly_schedule`), tests `test_schedule_repository.py`
 - **Fase 3**: `ScheduleService`, schemas, tests `test_schedule_service.py`
 - **Fase 4**: REST `schedules` (POST, GET /weekly, PUT, DELETE, GET /classroom/{id}), `ScheduleConflictError`, tests async en repo/servicio, `test_schedules_endpoints.py`
+- **Fase 5**: `GET /classrooms`, `WeeklyCalendar.jsx`, `ScheduleForm.jsx`, ruta `/horarios`, menú; `react-big-calendar`, `date-fns`
 
 ---
 

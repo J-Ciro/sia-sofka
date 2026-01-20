@@ -103,12 +103,12 @@ Sistema de gestión de horarios de clases con validación de conflictos (aulas y
 
 | Task      | Description                                                                 | Completed | Date |
 |-----------|-----------------------------------------------------------------------------|-----------|------|
-| TASK-019  | Instalar react-big-calendar: npm install react-big-calendar date-fns       |           |      |
-| TASK-020  | Crear componente WeeklyCalendar.jsx con vista semanal                      |           |      |
-| TASK-021  | Implementar transformación de datos Schedule → eventos de calendario       |           |      |
-| TASK-022  | Agregar colores por asignatura usando hash de ID                           |           |      |
-| TASK-023  | Implementar modal para ver detalles de horario al hacer click              |           |      |
-| TASK-024  | Crear componente ScheduleForm.jsx para crear/editar horarios               |           |      |
+| TASK-019  | Instalar react-big-calendar: npm install react-big-calendar date-fns       | x         | 2026-01-19 |
+| TASK-020  | Crear componente WeeklyCalendar.jsx con vista semanal                      | x         | 2026-01-19 |
+| TASK-021  | Implementar transformación de datos Schedule → eventos de calendario       | x         | 2026-01-19 |
+| TASK-022  | Agregar colores por asignatura usando hash de ID                           | x         | 2026-01-19 |
+| TASK-023  | Implementar modal para ver detalles de horario al hacer click              | x         | 2026-01-19 |
+| TASK-024  | Crear componente ScheduleForm.jsx para crear/editar horarios               | x         | 2026-01-19 |
 
 ### Fase 6: Testing - Validaciones Críticas
 

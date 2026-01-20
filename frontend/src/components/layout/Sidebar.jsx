@@ -8,7 +8,8 @@ import {
   GraduationCap,
   FileText,
   LogOut,
-  ClipboardCheck
+  ClipboardCheck,
+  Calendar
 } from 'lucide-react'
 
 const Sidebar = () => {
@@ -19,6 +20,7 @@ const Sidebar = () => {
     { path: '/', label: 'Dashboard', icon: LayoutDashboard },
     { path: '/users', label: 'Usuarios', icon: Users, roles: ['Admin'] },
     { path: '/subjects', label: 'Materias', icon: BookOpen, roles: ['Admin', 'Profesor', 'Estudiante'] },
+    { path: '/horarios', label: 'Horarios', icon: Calendar, roles: ['Admin', 'Profesor', 'Estudiante'] },
     { path: '/enrollments', label: 'Inscripciones', icon: UserCheck, roles: ['Admin'] },
     { path: '/grades', label: 'Notas', icon: GraduationCap },
     { path: '/attendance', label: 'Asistencia', icon: ClipboardCheck, roles: ['Profesor', 'Estudiante'] },
