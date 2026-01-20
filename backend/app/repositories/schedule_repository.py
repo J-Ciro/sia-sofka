@@ -5,10 +5,10 @@ y consulta de horario semanal por rol.
 """
 
 from datetime import time
-from typing import List, Optional, Union
+from typing import List, Optional
 
 from sqlalchemy import select, and_
-from sqlalchemy.orm import Session, selectinload
+from sqlalchemy.orm import Session, joinedload
 
 from app.models.schedule import Schedule
 from app.models.subject import Subject
