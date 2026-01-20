@@ -1,6 +1,7 @@
 """Bulk import/export service for students via Excel."""
 
 from collections import Counter
+from datetime import date
 from io import BytesIO
 from typing import BinaryIO
 
@@ -54,8 +55,12 @@ class BulkImportService:
             for k in list(d):
                 if pd.isna(d[k]):
                     d[k] = None
-                elif k == "fecha_nacimiento" and hasattr(d[k], "date"):
-                    d[k] = d[k].date()
+                elif k == "fecha_nacimiento" and d[k] is not None:
+                    d[k] = pd.Timestamp(d[k]).date()
+                elif k == "numero_contacto" and d[k] is not None and isinstance(d[k], (int, float)):
+                    d[k] = str(int(d[k])) if d[k] == int(d[k]) else str(d[k])
+                elif d[k] is not None and not isinstance(d[k], str) and not isinstance(d[k], date):
+                    d[k] = str(d[k])
             out.append(d)
         return out
 
@@ -191,6 +196,38 @@ class BulkImportService:
             }
             rows.append(r)
         df = pd.DataFrame(rows)
+        buf = BytesIO()
+        df.to_excel(buf, index=False, engine="openpyxl")
+        buf.seek(0)
+        return buf
+
+    def generate_import_template(self) -> BytesIO:
+        """Generate empty Excel template with required headers and 2 example rows."""
+        examples = [
+            {
+                "email": "ejemplo1@sofka.edu",
+                "password": "Password123!",
+                "nombre": "Juan",
+                "apellido": "Pérez",
+                "rol": "Estudiante",
+                "fecha_nacimiento": date(2000, 5, 15),
+                "numero_contacto": "3001234567",
+                "programa_academico": "Ingeniería de Sistemas",
+                "ciudad_residencia": "Cali",
+            },
+            {
+                "email": "ejemplo2@sofka.edu",
+                "password": "Password123!",
+                "nombre": "María",
+                "apellido": "García",
+                "rol": "Estudiante",
+                "fecha_nacimiento": date(2001, 3, 10),
+                "numero_contacto": "3009876543",
+                "programa_academico": "Medicina",
+                "ciudad_residencia": "Bogotá",
+            },
+        ]
+        df = pd.DataFrame(examples, columns=REQUIRED_EXCEL_COLUMNS)
         buf = BytesIO()
         df.to_excel(buf, index=False, engine="openpyxl")
         buf.seek(0)
