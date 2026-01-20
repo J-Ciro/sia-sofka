@@ -39,7 +39,7 @@ jobs:
       with:
         node-version: '18'
         cache: 'npm'
-        cache-dependency-path: frontend/package-lock.json
+        cache-dependency-path: e2e/package-lock.json
 
     - name: Setup Python
       uses: actions/setup-python@v4
@@ -73,9 +73,10 @@ jobs:
         cd frontend
         npm ci
 
-    - name: Install Playwright Browsers
+    - name: Install E2E dependencies and Playwright browsers
       run: |
-        cd frontend
+        cd e2e
+        npm ci
         npx playwright install --with-deps chromium
 
     - name: Start frontend dev server
@@ -89,7 +90,7 @@ jobs:
         BASE_URL: http://localhost:5173
         API_URL: http://localhost:8000
       run: |
-        cd frontend
+        cd e2e
         npm run test:e2e -- --project=chromium
 
     - name: Upload test results
@@ -97,7 +98,7 @@ jobs:
       if: always()
       with:
         name: playwright-report
-        path: frontend/playwright-report/
+        path: e2e/playwright-report/
         retention-days: 30
 
     - name: Upload test videos
@@ -105,5 +106,5 @@ jobs:
       if: failure()
       with:
         name: playwright-videos
-        path: frontend/test-results/
+        path: e2e/test-results/
         retention-days: 7

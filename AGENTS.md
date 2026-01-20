@@ -59,13 +59,17 @@ alembic revision --autogenerate -m "Description"  # Create new migration
 ```bash
 # Development
 cd frontend
-npm run dev                     # Start development server (localhost:3000)
+npm run dev                     # Start development server (localhost:5173)
 
 # Building
 npm run build                   # Production build
 npm run preview                 # Preview production build
+```
 
-# Testing (Playwright E2E)
+### E2E (Playwright, carpeta `e2e/`)
+```bash
+# Desde la raíz: .\e2e\install-playwright.ps1  (primera vez)
+cd e2e
 npm run test:e2e                # Run E2E tests
 npm run test:e2e:ui             # Run tests with UI mode
 npm run test:e2e:headed         # Run tests in headed browser
