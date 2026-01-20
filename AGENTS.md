@@ -2,6 +2,20 @@
 
 This document provides comprehensive guidelines for AI coding agents working on the SIA SOFKA project - a full-stack academic management system with FastAPI backend and React frontend.
 
+## Critical Evolution Rules
+
+**El nuevo código no debe afectar al código existente; debe complementarlo.**
+
+- **Extender, no reemplazar**: Añadir funcionalidad, endpoints, componentes o tests sin alterar el comportamiento actual de lo ya implementado.
+- **Contratos estables**: No cambiar firmas de funciones, esquemas de API o contratos ya usados por otros módulos o tests; extender con parámetros opcionales o nuevos endpoints si hace falta.
+- **Código legado intacto**: Si se refactoriza, asegurar que las rutas, servicios y componentes existentes sigan funcionando como antes.
+
+**Los tests que se creen jamás deben afectar a los demás.**
+
+- **Tests aislados**: Cada test debe ser independiente; no depender del orden de ejecución ni del estado dejado por otro test.
+- **Sin efectos colaterales entre tests**: Usar fixtures, `setUp`/`tearDown` o bases de datos en memoria/transacciones que se reinician por test; evitar estado global compartido que un test modifique y otro espere.
+- **Nuevos tests sin romper existentes**: Al añadir tests, los ya existentes deben seguir pasando; si un test nuevo obliga a cambiar o desactivar otros, replantear el diseño del test (datos, mocks, alcance).
+
 ## Project Structure
 
 ```
@@ -322,6 +336,7 @@ If adding a pattern or abstraction does not make future changes or reading easie
 - **Integration Tests**: Test API endpoints with database
 - **E2E Tests**: Playwright tests for user workflows
 - **Coverage**: Monitor and maintain test coverage
+- **Aislamiento entre tests** (ver *Critical Evolution Rules*): Los tests nuevos no deben afectar a los existentes; cada test ha de ser independiente, sin estado compartido ni dependencia del orden de ejecución. Si un test nuevo hace fallar otros, corregir el nuevo test (fixtures, mocks, alcance), no desactivar ni modificar los que ya pasaban.
 
 ### Security Guidelines
 - **Authentication**: JWT tokens with proper expiration
@@ -335,7 +350,7 @@ If adding a pattern or abstraction does not make future changes or reading easie
 - **JavaScript Files**: PascalCase for components (`UserDashboard.jsx`)
 - **Test Files**: `test_*.py` for Python, `*.test.js` for JavaScript
 - **Configuration**: Keep in root or dedicated config directories
-- **Documentation**: Markdown files in `/documentation` folder
+
 
 ## Common Patterns to Follow
 
