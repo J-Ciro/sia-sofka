@@ -68,7 +68,12 @@ alembic revision --autogenerate -m "description"
 ### Frontend Development
 ```bash
 cd frontend
-npm run dev                      # Dev server on localhost:3000
+npm run dev                      # Dev server on localhost:5173
+```
+
+### E2E Tests (Playwright, carpeta `e2e/`)
+```bash
+cd e2e
 npm run test:e2e                 # Playwright E2E tests
 npm run test:e2e:ui              # Interactive test mode
 ```

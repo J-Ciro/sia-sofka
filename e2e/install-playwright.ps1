@@ -1,21 +1,22 @@
 # 🎭 Implementación de Playwright - Comando de Instalación
+# Ejecutar desde la raíz del proyecto: .\e2e\install-playwright.ps1
 
-# Ejecuta estos comandos en orden:
+$E2ERoot = if ($PSScriptRoot) { $PSScriptRoot } else { "e2e" }
+Set-Location $E2ERoot
 
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "🎭 INSTALACIÓN DE PLAYWRIGHT" -ForegroundColor Cyan
+Write-Host "🎭 INSTALACIÓN DE PLAYWRIGHT (E2E)" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
-# 1. Instalar Playwright
-Write-Host "📦 Paso 1: Instalando @playwright/test..." -ForegroundColor Yellow
-cd frontend
-npm install -D @playwright/test
+# 1. Instalar dependencias (incluye @playwright/test)
+Write-Host "📦 Paso 1: Instalando dependencias (npm install)..." -ForegroundColor Yellow
+npm install
 
 if ($LASTEXITCODE -eq 0) {
-    Write-Host "✅ Playwright instalado correctamente" -ForegroundColor Green
+    Write-Host "✅ Dependencias instaladas correctamente" -ForegroundColor Green
 } else {
-    Write-Host "❌ Error instalando Playwright" -ForegroundColor Red
+    Write-Host "❌ Error instalando dependencias" -ForegroundColor Red
     exit 1
 }
 
@@ -38,7 +39,7 @@ Write-Host "✅ INSTALACIÓN COMPLETADA" -ForegroundColor Green
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
-Write-Host "📊 Archivos creados:" -ForegroundColor Cyan
+Write-Host "📊 Estructura E2E (e2e/):" -ForegroundColor Cyan
 Write-Host "  ✓ playwright.config.js" -ForegroundColor Green
 Write-Host "  ✓ tests/e2e/auth.spec.js" -ForegroundColor Green
 Write-Host "  ✓ tests/e2e/users.spec.js" -ForegroundColor Green
@@ -50,7 +51,7 @@ Write-Host "  ✓ tests/fixtures/auth.js" -ForegroundColor Green
 Write-Host "  ✓ PLAYWRIGHT_GUIDE.md" -ForegroundColor Green
 Write-Host ""
 
-Write-Host "🚀 Comandos disponibles:" -ForegroundColor Cyan
+Write-Host "🚀 Comandos (desde la carpeta e2e/):" -ForegroundColor Cyan
 Write-Host "  npm run test:e2e          # Ejecutar todos los tests" -ForegroundColor White
 Write-Host "  npm run test:e2e:ui       # Modo UI (recomendado)" -ForegroundColor White
 Write-Host "  npm run test:e2e:headed   # Ver navegador" -ForegroundColor White
@@ -62,8 +63,8 @@ Write-Host ""
 Write-Host "📝 Próximos pasos:" -ForegroundColor Cyan
 Write-Host "  1. Asegúrate que el backend esté corriendo (puerto 8000)" -ForegroundColor Yellow
 Write-Host "  2. Asegúrate que el frontend esté corriendo (puerto 5173)" -ForegroundColor Yellow
-Write-Host "  3. Ejecuta: npm run test:e2e:ui" -ForegroundColor Yellow
+Write-Host "  3. Desde e2e/: npm run test:e2e:ui" -ForegroundColor Yellow
 Write-Host ""
 
-Write-Host "📖 Documentación completa en: PLAYWRIGHT_GUIDE.md" -ForegroundColor Cyan
+Write-Host "📖 Documentación completa en: e2e/PLAYWRIGHT_GUIDE.md" -ForegroundColor Cyan
 Write-Host ""

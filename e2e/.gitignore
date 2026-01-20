@@ -11,3 +11,6 @@ traces/
 
 # Auth state files
 auth/*.json
+
+# Dependencies
+node_modules/

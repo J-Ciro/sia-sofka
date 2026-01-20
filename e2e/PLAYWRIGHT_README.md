@@ -1,16 +1,24 @@
 # 🚀 Quick Start - Playwright Tests
 
+Los tests E2E viven en la carpeta **`e2e/`** en la raíz del proyecto (fuera de `frontend/` y `backend/`).
+
 ## Instalación Rápida
 
 ```powershell
-cd frontend
-npm install -D @playwright/test
+# Desde la raíz del proyecto
+.\e2e\install-playwright.ps1
+
+# O manualmente:
+cd e2e
+npm install
 npx playwright install
 ```
 
 ## Ejecutar Tests
 
 ```powershell
+cd e2e
+
 # Modo UI (recomendado para desarrollo)
 npm run test:e2e:ui
 
@@ -57,8 +65,9 @@ npm run dev
 ## Estructura
 
 ```
-frontend/
+e2e/
 ├── playwright.config.js          # Configuración
+├── package.json
 ├── tests/
 │   ├── e2e/                      # Tests
 │   │   ├── auth.spec.js
@@ -69,6 +78,7 @@ frontend/
 │   │   └── navigation.spec.js
 │   └── fixtures/
 │       └── auth.js               # Helpers
+├── install-playwright.ps1
 └── PLAYWRIGHT_GUIDE.md           # Documentación completa
 ```
 
@@ -77,21 +87,21 @@ frontend/
 ### No encuentra selectores?
 
 ```powershell
-# Genera código automáticamente
+cd e2e
 npm run test:e2e:codegen
 ```
 
 ### Tests fallan?
 
 ```powershell
-# Modo debug paso a paso
+cd e2e
 npm run test:e2e:debug
 ```
 
 ### Ver qué pasó?
 
 ```powershell
-# Ver reporte con screenshots y videos
+cd e2e
 npm run test:e2e:report
 ```
 

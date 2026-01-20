@@ -130,8 +130,20 @@ frontend/
 │   └── config/                 # Configuración
 │       └── constants.js
 │
-└── tests/                      # Tests E2E (Playwright)
-    └── e2e/
+```
+
+### E2E (Playwright)
+
+```
+e2e/                            # Tests E2E (fuera de frontend/ y backend/)
+├── playwright.config.js
+├── package.json
+├── tests/
+│   ├── e2e/                    # Specs: auth, users, subjects, grades, enrollments, navigation
+│   └── fixtures/
+│       └── auth.js
+├── install-playwright.ps1
+└── PLAYWRIGHT_GUIDE.md
 ```
 
 ### Flujo de Datos
@@ -605,28 +617,30 @@ make test-unit         # Solo unitarios
 make test-integration  # Solo integración
 ```
 
-### Frontend (E2E con Playwright)
+### E2E con Playwright (carpeta `e2e/`)
 
-```bash
-cd frontend
+Los tests E2E están en **`e2e/`** en la raíz del proyecto (fuera de `frontend/` y `backend/`).
 
-# Instalar Playwright (primera vez)
-npm run test:e2e:install
-# O en Windows:
-.\install-playwright.ps1
+```powershell
+# Instalación (primera vez) - desde la raíz
+.\e2e\install-playwright.ps1
+# O: cd e2e && npm install && npx playwright install
 
-# Ejecutar tests E2E
+# Ejecutar tests (desde e2e/)
+cd e2e
 npm run test:e2e
 
-# Ejecutar con UI
+# Modo UI
 npm run test:e2e:ui
 
-# Ejecutar en modo headed (ver navegador)
+# Modo headed (ver navegador)
 npm run test:e2e:headed
 
 # Ver reporte
 npm run test:e2e:report
 ```
+
+Requisitos: backend en `http://localhost:8000`, frontend en `http://localhost:5173`.
 
 ---
 

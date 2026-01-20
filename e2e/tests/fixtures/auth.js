@@ -74,7 +74,7 @@ export const testData = {
  * Helper function to wait for API response
  */
 export async function waitForApiResponse(page, urlPattern) {
-  return page.waitForResponse(response => 
+  return page.waitForResponse(response =>
     response.url().includes(urlPattern) && response.status() === 200
   );
 }
