@@ -157,3 +157,41 @@ class BulkImportService:
         except Exception:
             await self.db.rollback()
             raise
+
+    async def export_users_to_excel(self, role: str | None = None) -> BytesIO:
+        """Export users to Excel. Excludes password_hash. Max 1000 rows.
+
+        Args:
+            role: Filter by role (e.g. 'Estudiante'). If None, exports all.
+
+        Returns:
+            BytesIO with .xlsx content.
+        """
+        if self.db is None or self.repository is None:
+            raise RuntimeError("BulkImportService requires database for export_users_to_excel")
+        if role:
+            users = await self.repository.get_by_role(role, 0, 1000)
+        else:
+            users = await self.repository.get_all(0, 1000)
+        rows = []
+        for u in users:
+            r = {
+                "id": u.id,
+                "email": u.email,
+                "role": u.role.value if hasattr(u.role, "value") else str(u.role),
+                "nombre": u.nombre,
+                "apellido": u.apellido,
+                "codigo_institucional": u.codigo_institucional,
+                "fecha_nacimiento": u.fecha_nacimiento,
+                "numero_contacto": u.numero_contacto,
+                "programa_academico": u.programa_academico,
+                "ciudad_residencia": u.ciudad_residencia,
+                "created_at": u.created_at,
+                "updated_at": u.updated_at,
+            }
+            rows.append(r)
+        df = pd.DataFrame(rows)
+        buf = BytesIO()
+        df.to_excel(buf, index=False, engine="openpyxl")
+        buf.seek(0)
+        return buf

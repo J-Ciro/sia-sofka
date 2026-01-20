@@ -152,6 +152,66 @@ class TestValidateRows:
         assert len(dup) >= 1
 
 
+class TestExportUsersToExcel:
+    """Tests for export_users_to_excel (Fase 3)."""
+
+    @pytest.mark.asyncio
+    async def test_export_generates_valid_excel(self, async_db_session):
+        """export_users_to_excel returns BytesIO with valid .xlsx content."""
+        from app.models.user import User, UserRole
+        from app.core.security import get_password_hash
+
+        u = User(
+            email="exp@sofka.edu",
+            password_hash=get_password_hash("Secret1!"),
+            role=UserRole.ESTUDIANTE,
+            nombre="Export",
+            apellido="User",
+            codigo_institucional="EST-2026-0099",
+            fecha_nacimiento=date(2001, 3, 10),
+            numero_contacto="3001234567",
+            programa_academico="Sistemas",
+            ciudad_residencia="Cali",
+        )
+        async_db_session.add(u)
+        await async_db_session.commit()
+
+        svc = BulkImportService(async_db_session)
+        buf = await svc.export_users_to_excel(role="Estudiante")
+        assert buf is not None
+        content = buf.getvalue()
+        assert len(content) > 0
+        assert b"PK" in content[:10] or b"xl/" in content  # xlsx is zip
+
+    @pytest.mark.asyncio
+    async def test_export_excludes_passwords(self, async_db_session):
+        """Exported Excel must NOT contain password or password_hash column."""
+        from app.models.user import User, UserRole
+        from app.core.security import get_password_hash
+
+        u = User(
+            email="no-pass@sofka.edu",
+            password_hash=get_password_hash("Secret1!"),
+            role=UserRole.ESTUDIANTE,
+            nombre="No",
+            apellido="Pass",
+            codigo_institucional="EST-2026-0098",
+            fecha_nacimiento=date(2001, 1, 1),
+            numero_contacto="3001111111",
+            programa_academico="Ing",
+            ciudad_residencia="Bogotá",
+        )
+        async_db_session.add(u)
+        await async_db_session.commit()
+
+        svc = BulkImportService(async_db_session)
+        buf = await svc.export_users_to_excel(role="Estudiante")
+        df = pd.read_excel(buf, engine="openpyxl")
+        cols = [c.lower() for c in df.columns]
+        assert "password" not in cols
+        assert "password_hash" not in cols
+
+
 @pytest.mark.asyncio
 class TestBulkImportStudents:
     """Tests for bulk_import_students (require async DB)."""
