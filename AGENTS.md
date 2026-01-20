@@ -272,6 +272,31 @@ frontend/src/
 └── config/             # App configuration
 ```
 
+## SOLID and Design Patterns (When to Apply)
+
+Apply SOLID and design patterns **only when necessary or viable**. Omit them in trivial cases to avoid over-engineering. Prefer simple, direct implementations when an abstraction does not improve future changes or readability.
+
+### SOLID Principles
+
+| Principle | Apply when… | Omit or simplify when… |
+|-----------|-------------|-------------------------|
+| **S** (Single Responsibility) | Services, repositories, components with clear logic: one responsibility per class/module. | Simple helpers or DTOs; avoid excessive fragmentation. |
+| **O** (Open/Closed) | Variants that will grow: `ReportFactory` (new formats), export strategies, interchangeable validators. | Only 1–2 stable implementations; do not create hierarchies "just in case". |
+| **L** (Liskov Substitution) | Real inheritance: base repos → concrete repos, `BaseAppException` → specific exceptions. | No subtype substitution; avoid inheritance only to reuse code. |
+| **I** (Interface Segregation) | Protocols/abstracts for repos, strategies, or plugins with focused contracts. | Single implementation; avoid large "just in case" interfaces. |
+| **D** (Dependency Inversion) | Services receiving repos, FastAPI `Depends`, tests with mocks. | One implementation with no alternatives; do not abstract "by default". |
+
+### Design Patterns: When to Use
+
+- **Repository**: Always for data access (already in use).
+- **Factory/Registry**: Multiple variants (e.g. PDF/HTML/JSON). Not for creating a single object type.
+- **Strategy**: Interchangeable behavior (validation, export, formats). Not for a single strategy.
+- **Mixin**: Reusable logic (eager load, pagination). Not for a one-off use.
+- **Decorator**: Cross-cutting (logging, cache, retry). Not for a single use site.
+- **Observer/Events**: Multiple decoupled consumers (e.g. notifications after user creation). Not for simple synchronous flows.
+
+If adding a pattern or abstraction does not make future changes or reading easier, prefer a direct implementation. See also [.github/copilot-instructions.md](.github/copilot-instructions.md) for a compact reference.
+
 ## Development Guidelines
 
 ### Code Quality Requirements
@@ -315,10 +340,10 @@ frontend/src/
 ## Common Patterns to Follow
 
 1. **Repository Pattern** for data access
-2. **Factory Pattern** for object creation (reports, users)
+2. **Factory Pattern** for object creation when multiple variants exist (e.g. reports); see SOLID and Design Patterns above when in doubt
 3. **Context API** for global state management
 4. **Async/Await** for all asynchronous operations
 5. **Error Boundaries** for React error handling
 6. **Dependency Injection** via FastAPI's DI system
 
-Follow these guidelines to maintain consistency and quality across the SIA SOFKA codebase.
+Apply SOLID and extra patterns only when they add value; avoid over-engineering. Follow these guidelines to maintain consistency and quality across the SIA SOFKA codebase.

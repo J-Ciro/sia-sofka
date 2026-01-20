@@ -1,5 +1,7 @@
 # SIA SOFKA - AI Coding Agent Instructions
 
+> **Cursor / agentes de IA**: Este archivo puede referenciarse con `@.github/copilot-instructions.md` para que Cursor y otros agentes lo carguen como contexto. Mantener formato Markdown y rutas relativas al repo.
+
 ## Project Overview
 Full-stack academic management system with FastAPI backend (Python 3.11+) and React 18 frontend. Follows Clean Architecture with strict layered separation: API → Services → Repositories → Models.
 
@@ -16,6 +18,29 @@ Full-stack academic management system with FastAPI backend (Python 3.11+) and Re
 2. **Repository Pattern** (`app/repositories/base.py`): Abstract CRUD operations with Protocol-based DIP
 3. **Mixin Pattern** (`app/repositories/mixins.py`): Reusable eager loading, pagination, filtering logic
 4. **Custom Exception Hierarchy** (`app/core/exceptions.py`): BaseAppException → NotFoundError, ValidationError, UnauthorizedError
+
+### SOLID y patrones: cuándo aplicar (evitar sobre‑ingeniería)
+
+Aplicar SOLID y patrones **solo cuando sea necesario o viable**. Omitir en casos triviales para no generar complejidad innecesaria.
+
+| Principio | Aplicar cuando… | Omitir / simplificar cuando… |
+|-----------|------------------|------------------------------|
+| **S** (Single Responsibility) | Servicios, repositorios, componentes con lógica clara: una responsabilidad por clase/módulo. | Funciones helpers o DTOs simples; no fragmentar en exceso. |
+| **O** (Open/Closed) | Variantes que crecerán: `ReportFactory` (nuevos formatos), estrategias de exportación, validadores intercambiables. | Solo 1–2 implementaciones previstas y estables; no crear jerarquías “por si acaso”. |
+| **L** (Liskov) | Herencia real: repos base → repos concretos, `BaseAppException` → excepciones específicas. | No hay sustitución de subtipos; evitar herencia solo por reutilizar código. |
+| **I** (Interface Segregation) | Protocolos/abstractas para repos, estrategias o plugins con contratos acotados. | Una sola implementación; interfaces gigantes “por si acaso”. |
+| **D** (Dependency Inversion) | Servicios que reciben repos, FastAPI `Depends`, pruebas con mocks. | Un único implementation sin alternativas (tests, variantes); no abstraer “por norma”. |
+
+**Patrones:** usar cuando aporten extensibilidad o claridad; **no** cuando añadan capas sin beneficio.
+
+- **Repository**: Siempre para acceso a datos (ya en uso).
+- **Factory/Registry**: Múltiples variantes (PDF/HTML/JSON, etc.). No para crear un solo tipo de objeto.
+- **Strategy**: Comportamiento intercambiable (validación, exportación, formatos). No para una sola estrategia.
+- **Mixin**: Lógica reutilizable (eager load, paginación). No para un solo uso.
+- **Decorator**: Cross‑cutting (logging, cache, retry). No para un solo punto de uso.
+- **Observer/Eventos**: Múltiples consumidores desacoplados (ej. notificaciones tras crear usuario). No para flujos síncronos y simples.
+
+Si añadir un patrón o abstracción no simplifica el cambio futuro ni la lectura, preferir implementación directa. Más detalle: [AGENTS.md](AGENTS.md#solid-and-design-patterns-when-to-apply).
 
 ## Critical Workflows
 
@@ -157,7 +182,7 @@ const Users = () => {
 
 ## File References
 - Architecture overview: [README.md](README.md#-arquitectura)
-- Full agent guidelines: [AGENTS.md](AGENTS.md)
+- Full agent guidelines (SOLID, patrones, Cursor): [AGENTS.md](AGENTS.md)
 - API structure: [backend/app/api/v1/](backend/app/api/v1/)
 - Factory pattern: [backend/app/factories/report_factory.py](backend/app/factories/report_factory.py)
 - Repository mixins: [backend/app/repositories/mixins.py](backend/app/repositories/mixins.py)

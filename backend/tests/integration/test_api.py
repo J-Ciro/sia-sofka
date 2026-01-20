@@ -1,86 +1,58 @@
-"""Script para probar que la API está funcionando."""
+"""Pruebas de que los endpoints básicos de la API responden correctamente.
 
-import requests
-import json
+Usa TestClient (in-process) para no depender de un servidor en localhost:8000.
+"""
 
-BASE_URL = "http://localhost:8000"
+from fastapi.testclient import TestClient
+
+from app.main import app
+
+client = TestClient(app)
+
 
 def test_health_check():
     """Probar el endpoint de health check."""
-    print("1. Probando health check...")
-    response = requests.get(f"{BASE_URL}/health")
-    print(f"   Status: {response.status_code}")
-    print(f"   Response: {response.json()}")
+    response = client.get("/health")
     assert response.status_code == 200
-    print("   ✓ Health check OK\n")
+    assert response.json() == {"status": "healthy"}
+
 
 def test_root_endpoint():
     """Probar el endpoint raíz."""
-    print("2. Probando endpoint raíz...")
-    response = requests.get(f"{BASE_URL}/")
-    print(f"   Status: {response.status_code}")
-    print(f"   Response: {json.dumps(response.json(), indent=2)}")
+    response = client.get("/")
     assert response.status_code == 200
-    print("   ✓ Root endpoint OK\n")
+    data = response.json()
+    assert "message" in data
+    assert "version" in data
+    assert data.get("docs") == "/docs"
+
 
 def test_docs():
-    """Probar que la documentación está disponible."""
-    print("3. Probando documentación...")
-    response = requests.get(f"{BASE_URL}/docs")
-    print(f"   Status: {response.status_code}")
+    """Probar que la documentación Swagger está disponible."""
+    response = client.get("/docs")
     assert response.status_code == 200
-    print("   ✓ Documentación disponible en http://localhost:8000/docs\n")
+
 
 def test_openapi_schema():
     """Probar que el schema OpenAPI está disponible."""
-    print("4. Probando schema OpenAPI...")
-    response = requests.get(f"{BASE_URL}/openapi.json")
-    print(f"   Status: {response.status_code}")
+    response = client.get("/openapi.json")
     assert response.status_code == 200
     schema = response.json()
-    print(f"   Título: {schema.get('info', {}).get('title')}")
-    print(f"   Versión: {schema.get('info', {}).get('version')}")
-    print(f"   Endpoints disponibles: {len(schema.get('paths', {}))}")
-    print("   ✓ OpenAPI schema OK\n")
+    assert "info" in schema
+    assert "paths" in schema
+    assert "title" in schema["info"]
+    assert "version" in schema["info"]
+
 
 def main():
-    """Ejecutar todas las pruebas."""
-    print("=" * 60)
-    print("PRUEBAS DE LA API - SIA SOFKA U")
-    print("=" * 60)
-    print()
-    
-    try:
-        test_health_check()
-        test_root_endpoint()
-        test_docs()
-        test_openapi_schema()
-        
-        print("=" * 60)
-        print("✓ TODAS LAS PRUEBAS PASARON")
-        print("=" * 60)
-        print()
-        print("La API está funcionando correctamente!")
-        print()
-        print("Endpoints disponibles:")
-        print("  - Documentación interactiva: http://localhost:8000/docs")
-        print("  - Documentación alternativa: http://localhost:8000/redoc")
-        print("  - Health check: http://localhost:8000/health")
-        print("  - API Base: http://localhost:8000/api/v1")
-        print()
-        
-    except requests.exceptions.ConnectionError:
-        print("✗ ERROR: No se puede conectar a la API")
-        print("  Asegúrate de que el servicio esté corriendo:")
-        print("  docker-compose up -d")
-        print()
-    except AssertionError as e:
-        print(f"✗ ERROR: {e}")
-        print()
-    except Exception as e:
-        print(f"✗ ERROR: {e}")
-        print()
+    """Ejecutar las pruebas (para uso como script: python -m tests.integration.test_api)."""
+    import sys
+
+    # Reutilizar pytest desde aquí no es habitual; se puede ejecutar con:
+    # pytest tests/integration/test_api.py -v
+    print("Ejecuta: pytest tests/integration/test_api.py -v")
+    sys.exit(0)
+
 
 if __name__ == "__main__":
     main()
-
