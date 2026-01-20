@@ -8,6 +8,7 @@ from datetime import datetime, date
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
 from app.api.v1.dependencies import get_db, get_current_user
 from app.schemas.attendance import (
@@ -87,10 +88,11 @@ async def get_clase_session(
     db: AsyncSession = Depends(get_db),
 ):
     """Get a class session by ID."""
-    from app.repositories.attendance_repository import AttendanceRepository
-    repo = AttendanceRepository(db)
+    from sqlalchemy import select
     
-    clase_session = await repo.get_by_id(ClaseSession, session_id)
+    stmt = select(ClaseSession).where(ClaseSession.id == session_id)
+    result = await db.execute(stmt)
+    clase_session = result.scalar_one_or_none()
     
     if not clase_session:
         raise HTTPException(status_code=404, detail=f"ClaseSession {session_id} not found")
@@ -106,10 +108,14 @@ async def get_session_attendances(
 ):
     """Get all attendance records for a class session."""
     from app.repositories.attendance_repository import AttendanceRepository
+    from sqlalchemy import select
+    
     repo = AttendanceRepository(db)
     
     # Verify session exists
-    clase_session = await repo.get_by_id(ClaseSession, session_id)
+    stmt = select(ClaseSession).where(ClaseSession.id == session_id)
+    result = await db.execute(stmt)
+    clase_session = result.scalar_one_or_none()
     if not clase_session:
         raise HTTPException(status_code=404, detail=f"ClaseSession {session_id} not found")
     
@@ -139,7 +145,9 @@ async def save_session_attendances(
     repo = AttendanceRepository(db)
     
     # Verify session exists
-    clase_session = await repo.get_by_id(ClaseSession, session_id)
+    stmt = select(ClaseSession).where(ClaseSession.id == session_id)
+    result = await db.execute(stmt)
+    clase_session = result.scalar_one_or_none()
     if not clase_session:
         raise HTTPException(status_code=404, detail=f"ClaseSession {session_id} not found")
     
@@ -184,20 +192,23 @@ async def update_attendance(
     
     # Get existing attendance
     from app.repositories.attendance_repository import AttendanceRepository
+    from sqlalchemy import select
+    
     repo = AttendanceRepository(db)
     
-    attendance = await repo.get_by_id(Attendance, attendance_id)
+    stmt = select(Attendance).where(Attendance.id == attendance_id)
+    result = await db.execute(stmt)
+    attendance = result.scalar_one_or_none()
     
     if not attendance:
         raise HTTPException(status_code=404, detail=f"Attendance {attendance_id} not found")
     
-    # Update attendance
-    updated_attendance = service.update_attendance(
-        attendance_id=attendance_id,
-        estado=attendance_data.estado,
-    )
+    # Update attendance directly using async session
+    attendance.estado = attendance_data.estado
+    await db.commit()
+    await db.refresh(attendance)
     
-    return AttendanceResponse.model_validate(updated_attendance)
+    return AttendanceResponse.model_validate(attendance)
 
 
 @router.get("/sessions/{session_id}/stats", response_model=SessionStatisticsResponse)
@@ -211,9 +222,13 @@ async def get_session_statistics(
     
     # Verify session exists
     from app.repositories.attendance_repository import AttendanceRepository
+    from sqlalchemy import select
+    
     repo = AttendanceRepository(db)
     
-    clase_session = await repo.get_by_id(ClaseSession, session_id)
+    stmt = select(ClaseSession).where(ClaseSession.id == session_id)
+    result = await db.execute(stmt)
+    clase_session = result.scalar_one_or_none()
     
     if not clase_session:
         raise HTTPException(status_code=404, detail=f"ClaseSession {session_id} not found")
