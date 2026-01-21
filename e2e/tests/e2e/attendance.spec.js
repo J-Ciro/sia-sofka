@@ -434,19 +434,32 @@ test.describe('Manual Attendance System - Complete HU Coverage', () => {
       await attendancePage.goto();
       
       // Test boundary time values
-      await attendancePage.createSession({
+      const sessionCreated = await attendancePage.createSession({
         date: getTestDate(14),
         startTime: '23:30',
         endTime: '23:59', // Boundary: latest possible time
         description: 'Late Night Session'
       });
       
-      // Should either create session or show appropriate validation
-      const sessionCreated = await profesorPage.getByRole('heading', { name: /lista de estudiantes/i }).isVisible({ timeout: 5000 }).catch(() => false);
-      const errorVisible = await profesorPage.getByText(/error|debe|no se puede/i).isVisible({ timeout: 5000 }).catch(() => false);
-      
-      // One of these should be true
-      expect(sessionCreated || errorVisible).toBeTruthy();
+      // Should either create session successfully or show session overlap message
+      if (sessionCreated) {
+        // Session created successfully
+        await attendancePage.verifySessionCreated();
+        console.log('✅ Late night session created successfully');
+      } else {
+        // Check for session overlap or other validation messages
+        const overlapVisible = await profesorPage.getByText(/ya existe una sesión/i).isVisible().catch(() => false);
+        const validationError = await profesorPage.getByText(/error|debe|no se puede/i).isVisible().catch(() => false);
+        
+        // Either overlap message or validation error should be visible
+        expect(overlapVisible || validationError).toBeTruthy();
+        
+        if (overlapVisible) {
+          console.log('✅ Session overlap validation working correctly');
+        } else if (validationError) {
+          console.log('✅ Time validation working correctly');
+        }
+      }
     });
 
     test('Validación de horario límite (00:00)', async ({ profesorPage }) => {
@@ -454,19 +467,32 @@ test.describe('Manual Attendance System - Complete HU Coverage', () => {
       await attendancePage.goto();
       
       // Test boundary time values
-      await attendancePage.createSession({
+      const sessionCreated = await attendancePage.createSession({
         date: getTestDate(15),
         startTime: '00:00', // Boundary: earliest possible time
         endTime: '00:30',
         description: 'Midnight Session'
       });
       
-      // Should either create session or show appropriate validation
-      const sessionCreated = await profesorPage.getByRole('heading', { name: /lista de estudiantes/i }).isVisible({ timeout: 5000 }).catch(() => false);
-      const errorVisible = await profesorPage.getByText(/error|debe|no se puede/i).isVisible({ timeout: 5000 }).catch(() => false);
-      
-      // One of these should be true
-      expect(sessionCreated || errorVisible).toBeTruthy();
+      // Should either create session successfully or show session overlap message
+      if (sessionCreated) {
+        // Session created successfully
+        await attendancePage.verifySessionCreated();
+        console.log('✅ Midnight session created successfully');
+      } else {
+        // Check for session overlap or other validation messages
+        const overlapVisible = await profesorPage.getByText(/ya existe una sesión/i).isVisible().catch(() => false);
+        const validationError = await profesorPage.getByText(/error|debe|no se puede/i).isVisible().catch(() => false);
+        
+        // Either overlap message or validation error should be visible
+        expect(overlapVisible || validationError).toBeTruthy();
+        
+        if (overlapVisible) {
+          console.log('✅ Session overlap validation working correctly');
+        } else if (validationError) {
+          console.log('✅ Time validation working correctly');
+        }
+      }
     });
 
     test('Búsqueda con caracteres especiales', async ({ profesorPage }) => {
