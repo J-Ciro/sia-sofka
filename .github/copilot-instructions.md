@@ -5,6 +5,14 @@
 ## Project Overview
 Full-stack academic management system with FastAPI backend (Python 3.11+) and React 18 frontend. Follows Clean Architecture with strict layered separation: API → Services → Repositories → Models.
 
+## Reglas críticas de evolución (obligatorias)
+
+1. **El nuevo código no debe afectar al existente; debe complementarlo.**  
+   Extender con nuevos endpoints, componentes o lógica sin alterar el comportamiento actual. No cambiar firmas, contratos de API ni esquemas ya usados; usar parámetros opcionales o nuevos recursos si hace falta.
+
+2. **Los tests que se creen jamás deben afectar a los demás.**  
+   Cada test ha de ser independiente (sin orden de ejecución ni estado compartido). Usar fixtures/transacciones que se reinician por test. Si un test nuevo hace fallar otros, corregir el test nuevo (mocks, alcance, datos), no tocar los que ya pasaban. Más detalle: [AGENTS.md](AGENTS.md#critical-evolution-rules).
+
 ## Architecture Patterns
 
 ### Backend: Layered Architecture (4 layers)
@@ -68,12 +76,7 @@ alembic revision --autogenerate -m "description"
 ### Frontend Development
 ```bash
 cd frontend
-npm run dev                      # Dev server on localhost:5173
-```
-
-### E2E Tests (Playwright, carpeta `e2e/`)
-```bash
-cd e2e
+npm run dev                      # Dev server on localhost:3000
 npm run test:e2e                 # Playwright E2E tests
 npm run test:e2e:ui              # Interactive test mode
 ```
@@ -169,6 +172,7 @@ const Users = () => {
 - **Mark tests**: `@pytest.mark.unit` or `@pytest.mark.integration`
 - **Use fixtures**: Database setup in `tests/conftest.py`
 - **Async tests**: `pytest-asyncio` with `asyncio_mode = auto`
+- **Aislamiento**: Los tests nuevos no deben afectar a los existentes; cada test independiente, sin estado compartido ni dependencia del orden. Si un test nuevo rompe otros, ajustar el nuevo (fixtures, mocks), no los que ya pasaban.
 
 ## Integration Points
 
@@ -184,6 +188,8 @@ const Users = () => {
 3. **Async consistency**: Use `async/await` for all DB operations
 4. **Migration safety**: Test migrations with `alembic upgrade/downgrade` before committing
 5. **Role-specific services**: Use AdminService/ProfesorService/EstudianteService, not generic UserService for role-specific operations
+6. **Nuevo código que rompe lo existente**: El código nuevo debe complementar, no alterar el comportamiento actual; extender en lugar de reemplazar.
+7. **Tests que rompen otros tests**: Los tests han de ser aislados; si un test nuevo hace fallar a otros, hay que corregir el test nuevo (fixtures, mocks, datos), no desactivar ni modificar los existentes.
 
 ## File References
 - Architecture overview: [README.md](README.md#-arquitectura)

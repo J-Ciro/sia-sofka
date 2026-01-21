@@ -16,6 +16,8 @@ This document provides comprehensive guidelines for AI coding agents working on 
 - **Sin efectos colaterales entre tests**: Usar fixtures, `setUp`/`tearDown` o bases de datos en memoria/transacciones que se reinician por test; evitar estado global compartido que un test modifique y otro espere.
 - **Nuevos tests sin romper existentes**: Al añadir tests, los ya existentes deben seguir pasando; si un test nuevo obliga a cambiar o desactivar otros, replantear el diseño del test (datos, mocks, alcance).
 
+Resumen para agentes: [.github/copilot-instructions.md](.github/copilot-instructions.md) → sección *Reglas críticas de evolución (obligatorias)*.
+
 ## Project Structure
 
 ```
