@@ -1,9 +1,9 @@
 """Schedule and Classroom schemas - horarios-calendario."""
 
-from datetime import time
+from datetime import time, date
 from typing import Optional
 
-from pydantic import BaseModel, Field, field_validator, ConfigDict
+from pydantic import BaseModel, Field, field_validator, computed_field, ConfigDict
 
 
 # --- Horas límite (CON-001, CON-002) ---
@@ -24,6 +24,34 @@ class ScheduleBase(BaseModel):
     dia_semana: int = Field(..., ge=1, le=6, description="1=Lunes..6=Sábado")
     hora_inicio: time
     hora_fin: time
+    
+    # New optional field for specific dates
+    fecha_especifica: Optional[date] = Field(None, description="Fecha específica (opcional)")
+
+    @field_validator("fecha_especifica")
+    @classmethod
+    def validate_fecha_especifica(cls, v: Optional[date], info):
+        """Validate that day of week matches if both fecha_especifica and dia_semana are provided."""
+        if v is not None and "dia_semana" in info.data:
+            # Convert date's weekday to our 1-6 format (Monday=1, Saturday=6)
+            # Python's weekday(): Monday=0, Sunday=6
+            expected_dia = v.weekday() + 1  # Convert to 1-7 format
+            if expected_dia == 7:  # Sunday becomes 7, but we only support 1-6
+                raise ValueError("No se permiten horarios los domingos")
+            
+            actual_dia = info.data["dia_semana"]
+            if actual_dia != expected_dia:
+                dias_nombres = {
+                    1: "Lunes", 2: "Martes", 3: "Miércoles", 
+                    4: "Jueves", 5: "Viernes", 6: "Sábado"
+                }
+                expected_name = dias_nombres.get(expected_dia, f"día {expected_dia}")
+                actual_name = dias_nombres.get(actual_dia, f"día {actual_dia}")
+                raise ValueError(
+                    f"dia_semana ({actual_name}) debe coincidir con el día de la semana "
+                    f"de fecha_especifica ({expected_name})"
+                )
+        return v
 
     @field_validator("hora_fin")
     @classmethod
@@ -53,6 +81,12 @@ class ScheduleBase(BaseModel):
             raise ValueError("La clase no puede durar más de 4 horas")
         return v
 
+    @computed_field
+    @property
+    def es_fecha_especifica(self) -> bool:
+        """Computed field indicating if this is a date-specific schedule."""
+        return self.fecha_especifica is not None
+
 
 class ScheduleCreate(ScheduleBase):
     """Schema for creating a schedule."""
@@ -65,6 +99,7 @@ class ScheduleUpdate(BaseModel):
     dia_semana: Optional[int] = Field(None, ge=1, le=6)
     hora_inicio: Optional[time] = None
     hora_fin: Optional[time] = None
+    fecha_especifica: Optional[date] = Field(None, description="Fecha específica (opcional)")
 
 
 # --- Anidados para respuesta ---
@@ -102,9 +137,16 @@ class ScheduleResponse(BaseModel):
     dia_semana: int
     hora_inicio: time
     hora_fin: time
+    fecha_especifica: Optional[date] = None
     subject: Optional[SubjectNested] = None
     classroom: Optional[ClassroomNested] = None
     model_config = ConfigDict(from_attributes=True)
+
+    @computed_field
+    @property
+    def es_fecha_especifica(self) -> bool:
+        """Computed field indicating if this is a date-specific schedule."""
+        return self.fecha_especifica is not None
 
 
 # --- Classroom (para listados y formularios) ---
