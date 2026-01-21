@@ -101,12 +101,12 @@ export default function ScheduleForm({ isOpen, onClose, onSuccess }) {
           const parts = (d.conflicts || []).map((c) =>
             c.type === 'classroom' ? 'Aula ocupada en ese horario' : c.type === 'professor' ? 'El profesor tiene otra clase a esa hora' : `Conflicto: ${c.type}`
           )
-          setConflictError(parts.join('. ') || d.message || 'Conflictos de horario.')
+          setConflictError(parts.join('. ') || d.message || err.response?.data?.detail || err.message || 'Conflictos de horario.')
         } else {
-          setConflictError(d.message || 'Conflictos de horario.')
+          setConflictError(d.message || err.response?.data?.detail || err.message || 'Conflictos de horario.')
         }
       } else {
-        setConflictError(err?.message || 'Error al crear el horario.')
+        setConflictError(err.response?.data?.detail || err.message || 'Error al crear el horario.')
       }
     } finally {
       setLoading(false)

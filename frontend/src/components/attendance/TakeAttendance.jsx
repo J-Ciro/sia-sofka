@@ -170,7 +170,9 @@ const TakeAttendance = () => {
       setSuccess('Sesión de clase creada exitosamente')
     } catch (err) {
       console.error('Error creating session:', err)
-      setError(err.response?.data?.detail || 'Error al crear sesión de clase')
+      setError(
+        err.response?.data?.detail || err.message
+      )
     } finally {
       setSaving(false)
     }
@@ -219,7 +221,9 @@ const TakeAttendance = () => {
       
     } catch (err) {
       console.error('Error saving attendance:', err)
-      setError(err.response?.data?.detail || 'Error al guardar asistencia')
+      setError(
+        err.response?.data?.detail || err.message || 'Error al guardar asistencia'
+      )
     } finally {
       setSaving(false)
     }
@@ -271,6 +275,7 @@ const TakeAttendance = () => {
         </div>
       )}
 
+      {/* Always show success message at the top after session creation */}
       {success && (
         <div className="bg-green-50 border-l-4 border-green-500 text-green-700 px-4 py-3 rounded-lg shadow-md flex items-center space-x-2">
           <CheckCircle className="w-5 h-5 flex-shrink-0" />
@@ -347,10 +352,13 @@ const TakeAttendance = () => {
 
             {/* Description */}
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="descripcion-input">
                 Descripción (opcional)
               </label>
               <input
+                id="descripcion-input"
+                name="descripcion"
+                aria-label="Descripción"
                 type="text"
                 value={descripcion}
                 onChange={(e) => setDescripcion(e.target.value)}
@@ -444,7 +452,7 @@ const TakeAttendance = () => {
             </div>
           </div>
 
-          {/* Students List */}
+          {/* Students List: always show heading even if empty */}
           <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold text-gray-800">

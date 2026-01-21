@@ -6,7 +6,7 @@ test.describe('Authentication Flow', () => {
   });
 
   test('should redirect to login page when not authenticated', async ({ page }) => {
-    await page.goto('/dashboard');
+    await page.goto('/');
     await expect(page).toHaveURL(/.*login/);
   });
 
@@ -21,10 +21,11 @@ test.describe('Authentication Flow', () => {
     await page.click('button[type="submit"]');
 
     // Wait for navigation
-    await page.waitForURL('**/dashboard');
 
-    // Verify we're on dashboard
-    await expect(page).toHaveURL(/.*dashboard/);
+    await page.waitForURL('**/');
+
+    // Verify we're on dashboard (root)
+    await expect(page).toHaveURL('http://localhost:3000/');
 
     // Verify user info is displayed
     await expect(page.locator('text=Admin')).toBeVisible();

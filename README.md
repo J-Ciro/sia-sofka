@@ -640,7 +640,7 @@ npm run test:e2e:headed
 npm run test:e2e:report
 ```
 
-Requisitos: backend en `http://localhost:8000`, frontend en `http://localhost:5173`.
+Requisitos: backend en `http://localhost:8000`, frontend en `http://localhost:3000`.
 
 ---
 

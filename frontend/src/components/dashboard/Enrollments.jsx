@@ -56,7 +56,9 @@ const Enrollments = () => {
       fetchEnrollments()
       setTimeout(() => setSuccess(''), 3000)
     } catch (err) {
-      setError(err.message || 'Error al eliminar inscripción')
+      setError(
+        err.response?.data?.detail || err.message || 'Error al eliminar inscripción'
+      )
       setTimeout(() => setError(''), 5000)
     }
   }
@@ -70,26 +72,9 @@ const Enrollments = () => {
       fetchEnrollments()
       setTimeout(() => setSuccess(''), 3000)
     } catch (err) {
-      // Extraer mensaje de error más específico
-      let errorMessage = 'Error al crear inscripción'
-      
-      if (err.status === 409) {
-        // Error de conflicto (duplicado)
-        if (err.data?.detail) {
-          const detail = err.data.detail
-          if (detail.includes('already enrolled') || detail.includes('ya está inscrito')) {
-            errorMessage = 'El estudiante ya está inscrito en esta materia'
-          } else {
-            errorMessage = detail
-          }
-        } else {
-          errorMessage = 'El estudiante ya está inscrito en esta materia'
-        }
-      } else if (err.message) {
-        errorMessage = err.message
-      }
-      
-      setError(errorMessage)
+      setError(
+        err.response?.data?.detail || err.message || 'Error al crear inscripción'
+      )
       setTimeout(() => setError(''), 5000)
     }
   }

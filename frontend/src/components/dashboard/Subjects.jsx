@@ -23,7 +23,7 @@ const Subjects = () => {
       const data = await subjectService.getAll()
       setSubjects(data)
     } catch (err) {
-      setError(err.message || 'Error al cargar materias')
+          setError(err.response?.data?.detail || err.message || 'Error al cargar materias')
       console.error('Error fetching subjects:', err)
     } finally {
       setLoading(false)
@@ -51,7 +51,7 @@ const Subjects = () => {
       fetchSubjects()
       setTimeout(() => setSuccess(''), 3000)
     } catch (err) {
-      setError(err.message || 'Error al eliminar materia')
+          setError(err.response?.data?.detail || err.message || 'Error al eliminar materia')
       setTimeout(() => setError(''), 5000)
     }
   }
@@ -70,7 +70,7 @@ const Subjects = () => {
       fetchSubjects()
       setTimeout(() => setSuccess(''), 3000)
     } catch (err) {
-      setError(err.message || 'Error al guardar materia')
+          setError(err.response?.data?.detail || err.message || 'Error al guardar materia')
       setTimeout(() => setError(''), 5000)
     }
   }

@@ -117,7 +117,7 @@ const EstudianteSubjects = () => {
       window.URL.revokeObjectURL(url)
     } catch (err) {
       console.error('Error generating report:', err)
-      setError(err.message || 'Error al generar el reporte')
+        setError(err.response?.data?.detail || err.message || 'Error al generar el reporte')
     } finally {
       setGeneratingReport(false)
     }

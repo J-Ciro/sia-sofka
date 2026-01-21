@@ -63,8 +63,8 @@ class SessionValidator:
             return
         ids = [s.id for s in overlapping]
         raise ValidationError(
-            "Ya existe una sesión de esta materia en la misma fecha con horario que se solapa. "
-            "Use editar la sesión existente en lugar de crear otra. IDs de sesiones: " + str(ids)
+            "Ya existe una sesión de esta materia en la misma fecha con horario que se solapa,"
+            "Use editar la sesión existente en lugar de crear otra."
         )
 
 
