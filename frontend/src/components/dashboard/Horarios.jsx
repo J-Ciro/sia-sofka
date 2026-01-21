@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { Plus } from 'lucide-react'
-import WeeklyCalendar from '../schedule/WeeklyCalendar'
+import CalendarContainer from '../schedule/CalendarContainer'
 import ScheduleForm from '../schedule/ScheduleForm'
 
 export default function Horarios() {
@@ -26,7 +26,7 @@ export default function Horarios() {
         )}
       </div>
 
-      <WeeklyCalendar refreshKey={refreshKey} />
+      <CalendarContainer refreshKey={refreshKey} />
 
       <ScheduleForm
         isOpen={formOpen}
