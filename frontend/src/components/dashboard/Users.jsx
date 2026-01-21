@@ -52,7 +52,9 @@ const Users = () => {
       fetchUsers()
       setTimeout(() => setSuccess(''), 3000)
     } catch (err) {
-      setError(err.message || 'Error al eliminar usuario')
+      setError(
+        err.response?.data?.detail || err.message || 'Error al eliminar usuario'
+      )
       setTimeout(() => setError(''), 5000)
     }
   }
@@ -71,7 +73,9 @@ const Users = () => {
       fetchUsers()
       setTimeout(() => setSuccess(''), 3000)
     } catch (err) {
-      setError(err.message || 'Error al guardar usuario')
+      setError(
+        err.response?.data?.detail || err.message || 'Error al guardar usuario'
+      )
       setTimeout(() => setError(''), 5000)
     }
   }

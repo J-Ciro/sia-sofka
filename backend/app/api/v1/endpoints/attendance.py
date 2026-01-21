@@ -271,3 +271,40 @@ async def get_session_statistics(
     
     return SessionStatisticsResponse(**stats)
 
+
+@router.delete("/sessions/{session_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_clase_session(
+    session_id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Delete a class session and all its attendance records.
+    
+    Only Profesores can delete sessions they created.
+    Useful for cleaning up test data or removing incorrect sessions.
+    """
+    if current_user.role != UserRole.PROFESOR:
+        raise HTTPException(status_code=403, detail="Only professors can delete sessions")
+    
+    from sqlalchemy import select, delete
+    
+    # Verify session exists and belongs to current user
+    stmt = select(ClaseSession).where(ClaseSession.id == session_id)
+    result = await db.execute(stmt)
+    clase_session = result.scalar_one_or_none()
+    
+    if not clase_session:
+        raise HTTPException(status_code=404, detail=f"ClaseSession {session_id} not found")
+    
+    if clase_session.creado_por != current_user.id:
+        raise HTTPException(status_code=403, detail="You can only delete sessions you created")
+    
+    # Delete all attendance records for this session first
+    delete_attendance_stmt = delete(Attendance).where(Attendance.clase_session_id == session_id)
+    await db.execute(delete_attendance_stmt)
+    
+    # Delete the session
+    await db.delete(clase_session)
+    await db.commit()
+    
+    return None

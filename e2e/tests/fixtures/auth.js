@@ -1,39 +1,109 @@
 import { test as base } from '@playwright/test';
+import { test as dbTest } from './database.js';
 
 /**
  * Test fixtures for SIA SOFKA
- * Provides reusable setup and teardown logic
+ * Provides reusable setup and teardown logic with authentication
+ * 
+ * Best Practices:
+ * - Fixtures are composable and reusable
+ * - Each fixture has a single responsibility
+ * - Automatic cleanup after tests
+ * - Type-safe with JSDoc comments
  */
 
-// Extend basic test by providing authentication fixtures
-export const test = base.extend({
-  // Auto-login as Admin
-  authenticatedPage: async ({ page }, use) => {
-    await page.goto('/login');
-    await page.fill('input[name="email"]', 'admin@sofka.edu.co');
-    await page.fill('input[name="password"]', 'admin123');
-    await page.click('button[type="submit"]');
-    await page.waitForURL('**/dashboard');
+/**
+ * Test credentials for different user roles
+ * 
+ * IMPORTANT: These users must exist in the database
+ * Run backend seed script if needed: python create_admin.py
+ */
+export const TEST_USERS = {
+  admin: {
+    email: 'admin@sofka.edu.co',
+    password: 'admin123',
+    role: 'Admin'
+  },
+  profesor: {
+    email: 'juan@mail.com', // Using existing user from DB
+    password: 'juan123',
+    role: 'Profesor'
+  },
+  estudiante: {
+    email: 'sara@mail.com', // Using existing user from DB
+    password: 'sara123',
+    role: 'Estudiante'
+  },
+};
+
+/**
+ * Login helper function
+ * @param {import('@playwright/test').Page} page - Playwright page object
+ * @param {string} email - User email
+ * @param {string} password - User password
+ */
+async function login(page, email, password) {
+  await page.goto('/login');
+  
+  // Wait for login page to load
+  await page.waitForLoadState('networkidle');
+  
+  // Fill credentials using more specific selectors
+  const emailInput = page.getByRole('textbox', { name: /correo electrónico/i });
+  const passwordInput = page.getByRole('textbox', { name: /contraseña/i });
+  
+  await emailInput.fill(email);
+  await passwordInput.fill(password);
+  
+  // Click login button
+  const loginButton = page.getByRole('button', { name: /iniciar sesión/i });
+  await loginButton.click();
+  
+  // Wait for navigation to complete - check for either dashboard or error
+  await Promise.race([
+    page.waitForURL('/', { timeout: 10000 }),
+    page.getByText(/error al iniciar sesión/i).waitFor({ timeout: 10000 })
+  ]);
+  
+  // Check if login was successful
+  const errorVisible = await page.getByText(/error al iniciar sesión/i).isVisible().catch(() => false);
+  if (errorVisible) {
+    const errorText = await page.getByText(/error al iniciar sesión/i).textContent();
+    throw new Error(`Login failed: ${errorText}`);
+  }
+  
+  // Verify we're on dashboard
+  await page.waitForSelector('text=Dashboard', { timeout: 5000 });
+}
+
+/**
+ * Extend base test with authentication and database fixtures
+ */
+export const test = dbTest.extend({
+  /**
+   * Auto-login as Admin
+   * @type {import('@playwright/test').Page}
+   */
+  authenticatedPage: async ({ page, cleanDatabase }, use) => {
+    await login(page, TEST_USERS.admin.email, TEST_USERS.admin.password);
     await use(page);
   },
 
-  // Login as Profesor
-  profesorPage: async ({ page }, use) => {
-    await page.goto('/login');
-    await page.fill('input[name="email"]', 'profesor@sofka.edu.co');
-    await page.fill('input[name="password"]', 'profesor123');
-    await page.click('button[type="submit"]');
-    await page.waitForURL('**/dashboard');
+  /**
+   * Login as Profesor with database cleanup
+   * @type {import('@playwright/test').Page}
+   */
+  profesorPage: async ({ page, cleanDatabase }, use) => {
+    await login(page, TEST_USERS.profesor.email, TEST_USERS.profesor.password);
     await use(page);
   },
 
-  // Login as Estudiante
-  estudiantePage: async ({ page }, use) => {
-    await page.goto('/login');
-    await page.fill('input[name="email"]', 'estudiante@sofka.edu.co');
-    await page.fill('input[name="password"]', 'estudiante123');
-    await page.click('button[type="submit"]');
-    await page.waitForURL('**/dashboard');
+  /**
+   * Login as Estudiante with database cleanup
+   * @type {import('@playwright/test').Page}
+   */
+  estudiantePage: async ({ page, cleanDatabase }, use) => {
+    await login(page, TEST_USERS.estudiante.email, TEST_USERS.estudiante.password);
     await use(page);
   },
 });
@@ -41,49 +111,86 @@ export const test = base.extend({
 export { expect } from '@playwright/test';
 
 /**
- * Helper function to create test data
+ * Test data builders for creating test objects
  */
-export const testData = {
-  admin: {
-    email: 'admin@sofka.edu.co',
-    password: 'admin123',
-  },
-  profesor: {
-    email: 'profesor@sofka.edu.co',
-    password: 'profesor123',
-    nombre: 'Carlos',
-    apellido: 'Ramírez',
-    codigo_institucional: 'PROF001',
-  },
-  estudiante: {
-    email: 'estudiante@sofka.edu.co',
-    password: 'estudiante123',
-    nombre: 'Ana',
-    apellido: 'García',
-    codigo_institucional: 'EST001',
-  },
-  subject: {
-    nombre: 'Matemáticas Avanzadas',
+export const testDataBuilder = {
+  /**
+   * Build a session data object
+   * @param {Object} overrides - Properties to override
+   * @returns {Object} Session data
+   */
+  session: (overrides = {}) => ({
+    subject_id: 1,
+    fecha: new Date().toISOString().split('T')[0],
+    hora_inicio: '08:00',
+    hora_fin: '09:00',
+    descripcion: 'Test Session',
+    ...overrides
+  }),
+
+  /**
+   * Build a subject data object
+   * @param {Object} overrides - Properties to override
+   * @returns {Object} Subject data
+   */
+  subject: (overrides = {}) => ({
+    nombre: 'Matematicas',
     codigo_institucional: 'MAT301',
-    numero_creditos: 4,
-    horario: 'Lunes y Miércoles 8:00-10:00',
-  },
+    creditos: 4,
+    descripcion: 'Test Subject',
+    ...overrides
+  }),
+
+  /**
+   * Build a user data object
+   * @param {Object} overrides - Properties to override
+   * @returns {Object} User data
+   */
+  user: (overrides = {}) => ({
+    email: `test${Date.now()}@test.com`,
+    nombre: 'Test',
+    apellido: 'User',
+    password: 'password123',
+    role: 'Estudiante',
+    ...overrides
+  }),
 };
 
 /**
- * Helper function to wait for API response
+ * API helpers for common operations
  */
-export async function waitForApiResponse(page, urlPattern) {
-  return page.waitForResponse(response =>
-    response.url().includes(urlPattern) && response.status() === 200
-  );
-}
+export const apiHelpers = {
+  /**
+   * Wait for API response matching pattern
+   * @param {import('@playwright/test').Page} page - Playwright page
+   * @param {string} urlPattern - URL pattern to match
+   * @param {number} status - Expected status code
+   */
+  waitForResponse: async (page, urlPattern, status = 200) => {
+    return page.waitForResponse(
+      response => response.url().includes(urlPattern) && response.status() === status,
+      { timeout: 10000 }
+    );
+  },
 
-/**
- * Helper function to clear all data (for test isolation)
- */
-export async function clearTestData(page) {
-  // This would call your backend API to clear test data
-  // Implement based on your backend endpoints
-  await page.request.delete('/api/v1/test/clear-data');
-}
+  /**
+   * Make authenticated API request
+   * @param {import('@playwright/test').APIRequestContext} request - Request context
+   * @param {string} method - HTTP method
+   * @param {string} url - API endpoint
+   * @param {Object} data - Request data
+   */
+  makeRequest: async (request, method, url, data = null) => {
+    const options = {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    };
+
+    if (data) {
+      options.data = data;
+    }
+
+    return request[method.toLowerCase()](url, options);
+  },
+};

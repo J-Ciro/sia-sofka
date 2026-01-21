@@ -136,14 +136,12 @@ const DashboardHome = () => {
       </div>
       
       <div className={`grid grid-cols-1 md:grid-cols-2 ${user?.role === 'Admin' ? 'lg:grid-cols-4' : 'lg:grid-cols-2'} gap-6 mb-8`}>
-        {user?.role === 'Admin' && (
-          <StatsCard
-            title="Total Usuarios"
-            value={stats.users}
-            icon={Users}
-            color="purple"
-          />
-        )}
+        <StatsCard
+          title="Total Usuarios"
+          value={stats.users}
+          icon={Users}
+          color="purple"
+        />
         <StatsCard
           title={user?.role === 'Estudiante' ? 'Mis Materias' : user?.role === 'Profesor' ? 'Materias Asignadas' : 'Materias'}
           value={stats.subjects}
