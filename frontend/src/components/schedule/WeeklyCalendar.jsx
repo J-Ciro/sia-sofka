@@ -364,11 +364,11 @@ export default function WeeklyCalendar({ refreshKey = 0, currentDate: propCurren
       {/* Visual Legend */}
       <div className="mb-4 flex items-center gap-6 text-sm text-gray-600">
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 bg-purple-500 rounded border-2 border-transparent"></div>
+          <div className="w-4 h-4 bg-gray-300 rounded border-2 border-transparent"></div>
           <span>Horario recurrente</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 bg-purple-500 rounded border-2 border-green-600 shadow-sm"></div>
+          <div className="w-4 h-4 bg-gray-300 rounded border-2 border-gray-600 shadow-sm"></div>
           <span>Fecha específica</span>
         </div>
         {isDragging && (
