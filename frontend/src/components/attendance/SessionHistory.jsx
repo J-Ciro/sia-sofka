@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Calendar, Clock, Users, TrendingUp, Edit, Eye, BookOpen } from 'lucide-react'
-import { attendanceService } from '../../services/apiService'
+import { attendanceService } from '../../services'
 import { formatDate, formatTime, getAttendancePercentageColor } from '../../utils/formatters'
 
 const SessionHistory = () => {

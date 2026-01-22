@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react'
 import { Calendar, dateFnsLocalizer } from 'react-big-calendar'
 import { format, parse, startOfWeek, getDay, startOfMonth, endOfMonth, setHours, setMinutes } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { scheduleService } from '../../services/apiService'
+import { scheduleService } from '../../services'
 import { X } from 'lucide-react'
 import 'react-big-calendar/lib/css/react-big-calendar.css'
 
@@ -99,7 +99,7 @@ export default function MonthlyCalendar({ refreshKey = 0, currentDate, onDateCha
     return {
       style: {
         backgroundColor: color,
-        border: isDateSpecific ? '2px solid #059669' : '1px solid transparent',
+        border: isDateSpecific ? '2px solid #1F2937' : '1px solid transparent',
         fontSize: '12px',
         padding: '2px 4px',
       }

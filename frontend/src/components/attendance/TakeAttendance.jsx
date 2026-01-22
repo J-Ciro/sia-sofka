@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { useSearchParams, useNavigate } from 'react-router-dom'
-import { attendanceService, profesorService } from '../../services/apiService'
+import { attendanceService, profesorService } from '../../services'
 import { 
   CheckCircle, 
   XCircle, 

@@ -3,7 +3,7 @@ import { Calendar, dateFnsLocalizer } from 'react-big-calendar'
 import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop'
 import { format, parse, startOfWeek, getDay, addDays, setHours, setMinutes } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { scheduleService } from '../../services/apiService'
+import { scheduleService } from '../../services'
 import { X } from 'lucide-react'
 import 'react-big-calendar/lib/css/react-big-calendar.css'
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css'
@@ -20,16 +20,8 @@ const localizer = dateFnsLocalizer({
 const DragAndDropCalendar = withDragAndDrop(Calendar)
 
 const CALENDAR_COLORS = [
-  '#C7C5F7',  // pastel indigo
-'#A7E3C6',  // pastel green
-'#F4B6B6',  // pastel red
-'#F6D2A1',  // pastel orange
-'#D8C9F6',  // pastel purple
-'#BEE9F2',  // pastel cyan
-'#F2B6D4',  // pastel pink
-'#BFE7E1',  // pastel teal
-'#F3E1A6',  // pastel yellow
-'#BFD6F9',  // pastel blue
+  '#4F46E5', '#059669', '#DC2626', '#D97706', '#7C3AED', '#0891B2',
+  '#BE185D', '#0D9488', '#CA8A04', '#2563EB',
 ]
 
 const MESSAGES = {
@@ -153,7 +145,7 @@ export default function WeeklyCalendar({ refreshKey = 0, currentDate: propCurren
     return {
       style: {
         backgroundColor: color,
-        border: isDateSpecific ? '3px solid #059669' : '2px solid transparent',
+        border: isDateSpecific ? '3px solid #1F2937' : '2px solid transparent',
         borderRadius: '4px',
         opacity: isDragging ? 0.7 : 1,
         boxShadow: isDateSpecific ? '0 2px 4px rgba(5, 150, 105, 0.3)' : 'none',

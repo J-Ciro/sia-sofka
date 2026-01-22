@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
-import { estudianteService, gradeService } from '../../services/apiService'
+import { estudianteService } from '../../services'
 import { useAuth } from '../../context/AuthContext'
 import { BookOpen, GraduationCap, TrendingUp, AlertCircle, FileText } from 'lucide-react'
 import Loading from '../common/Loading'
-import { reportService } from '../../services/apiService'
+import { reportService } from '../../services'
 
 const EstudianteSubjects = () => {
   const { user } = useAuth()
@@ -32,15 +32,23 @@ const EstudianteSubjects = () => {
       setLoading(true)
       setError('')
       
-      // El estudiante no puede acceder a /enrollments (requiere Admin)
-      // NO intentar acceder para evitar errores 403 en consola
-      // Mostrar mensaje informativo
-      setError('')
-      setEnrollments([])
+      // Usar el endpoint /enrollments/me para obtener las inscripciones del estudiante
+      const enrollmentsData = await estudianteService.getMyEnrollments(user.id)
+      
+      if (enrollmentsData && enrollmentsData.length > 0) {
+        setEnrollments(enrollmentsData)
+        // Seleccionar automáticamente la primera materia
+        if (enrollmentsData[0]?.subject) {
+          setSelectedSubject(enrollmentsData[0].subject)
+        }
+      } else {
+        setEnrollments([])
+        setError('No estás inscrito a ninguna materia. Contacta con tu profesor.')
+      }
     } catch (err) {
-      // No debería llegar aquí, pero por si acaso
       console.error('Error fetching enrollments:', err)
       setEnrollments([])
+      setError('No se pudieron cargar tus materias inscritas. Contacta con tu profesor.')
     } finally {
       setLoading(false)
     }
@@ -168,12 +176,12 @@ const EstudianteSubjects = () => {
       {enrollments.length === 0 ? (
         <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100 text-center">
           <BookOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-gray-700 mb-2">No se pueden cargar tus materias</h3>
+          <h3 className="text-xl font-semibold text-gray-700 mb-2">No estás inscrito a ninguna materia</h3>
           <p className="text-gray-500 mb-4">
-            Para ver tus materias inscritas, ve a la sección <strong>"Notas"</strong> y selecciona una materia para ver tus calificaciones.
+            Contacta con tu profesor o administrador para inscribirte en las materias correspondientes.
           </p>
           <p className="text-sm text-gray-400">
-            Si necesitas ver todas tus materias, contacta al administrador.
+            Una vez inscrito, podrás ver aquí todas tus materias y calificaciones.
           </p>
         </div>
       ) : (
@@ -219,7 +227,7 @@ const EstudianteSubjects = () => {
             {selectedSubject ? (
               <div className="space-y-6">
                 {/* Información de la Materia */}
-                <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+                {/* <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
                   <h2 className="text-2xl font-bold text-gray-900 mb-4">{selectedSubject?.nombre || 'Sin nombre'}</h2>
                   <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-4">
                     <span><strong>Código:</strong> {selectedSubject?.codigo_institucional || 'N/A'}</span>
@@ -231,7 +239,7 @@ const EstudianteSubjects = () => {
                   {selectedSubject?.descripcion && (
                     <p className="text-gray-700">{selectedSubject.descripcion}</p>
                   )}
-                </div>
+                </div> */}
 
                 {/* Estado y Notas */}
                 {loadingStatus ? (

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
-import { attendanceService, estudianteService } from '../../services/apiService'
+import { attendanceService, estudianteService } from '../../services'
 import { 
   CheckCircle, 
   XCircle, 

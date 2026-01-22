@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Users, BookOpen, GraduationCap, UserCheck } from 'lucide-react'
 import StatsCard from '../common/StatsCard'
-import { userService, subjectService, enrollmentService, gradeService, profesorService, estudianteService } from '../../services/apiService'
+import { userService, subjectService, enrollmentService, gradeService, profesorService, estudianteService } from '../../services'
 import { useAuth } from '../../context/AuthContext'
 import Loading from '../common/Loading'
 
@@ -41,7 +41,7 @@ const DashboardHome = () => {
           grades: grades.length || 0,
         })
       } else if (user?.role === 'Profesor') {
-        // Profesor: sus materias y notas de sus materias
+        // Profesor: sus materias y estudiantes inscritos en sus materias
         try {
           const mySubjects = await profesorService.getAssignedSubjects(user.id)
           if (!mySubjects || mySubjects.length === 0) {
@@ -49,24 +49,39 @@ const DashboardHome = () => {
             return
           }
           
-          // Obtener notas de todas las materias del profesor
+          // Obtener estudiantes únicos inscritos en las materias del profesor
+          const uniqueStudents = new Set()
+          let totalEnrollments = 0
           let totalGrades = 0
+          
           for (const subject of mySubjects) {
             if (subject?.id) {
               try {
+                // Obtener inscripciones de la materia
+                const enrollments = await profesorService.getEnrollmentsBySubject(subject.id)
+                totalEnrollments += (enrollments?.length || 0)
+                
+                // Agregar estudiantes únicos
+                enrollments?.forEach(enrollment => {
+                  if (enrollment.estudiante_id) {
+                    uniqueStudents.add(enrollment.estudiante_id)
+                  }
+                })
+                
+                // Obtener notas de la materia
                 const grades = await gradeService.getAll({ subject_id: subject.id })
                 totalGrades += (grades?.length || 0)
               } catch (err) {
                 // Silenciar errores individuales, solo loguear
-                console.warn(`No se pudieron obtener notas para materia ${subject.id}:`, err)
+                console.warn(`No se pudieron obtener datos para materia ${subject.id}:`, err)
               }
             }
           }
           
           setStats({
-            users: 0,
+            users: uniqueStudents.size, // Total de estudiantes únicos
             subjects: mySubjects.length || 0,
-            enrollments: 0,
+            enrollments: totalEnrollments,
             grades: totalGrades,
           })
         } catch (err) {
@@ -135,20 +150,23 @@ const DashboardHome = () => {
         <p className="text-gray-600">Bienvenido al Sistema de Información Académica</p>
       </div>
       
-      <div className={`grid grid-cols-1 md:grid-cols-2 ${user?.role === 'Admin' ? 'lg:grid-cols-4' : 'lg:grid-cols-2'} gap-6 mb-8`}>
-        <StatsCard
-          title="Total Usuarios"
-          value={stats.users}
-          icon={Users}
-          color="purple"
-        />
+      <div className={`grid grid-cols-1 md:grid-cols-2 ${user?.role === 'Estudiante' ? 'lg:grid-cols-2' : 'lg:grid-cols-4'} gap-6 mb-8`}>
+        {/* Solo mostrar Total Usuarios para Admin y Profesor */}
+        {(user?.role === 'Admin' || user?.role === 'Profesor') && (
+          <StatsCard
+            title={user?.role === 'Admin' ? 'Total Usuarios' : 'Mis Estudiantes'}
+            value={stats.users}
+            icon={Users}
+            color="purple"
+          />
+        )}
         <StatsCard
           title={user?.role === 'Estudiante' ? 'Mis Materias' : user?.role === 'Profesor' ? 'Materias Asignadas' : 'Materias'}
           value={stats.subjects}
           icon={BookOpen}
           color="blue"
         />
-        {user?.role === 'Admin' && (
+        {(user?.role === 'Admin' || user?.role === 'Profesor') && (
           <StatsCard
             title="Inscripciones"
             value={stats.enrollments}

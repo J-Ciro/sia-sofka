@@ -112,10 +112,12 @@ async def test_serialize_batch_with_relationships(
     assert result[0].estudiante.nombre == "Carlos"
     assert result[0].subject is not None
     assert result[0].subject.nombre == "Física"
+    assert result[0].subject.numero_creditos == 3  # Verify credits are included
     
     assert result[1].id == enrollments[1].id
     assert result[1].estudiante.nombre == "Carlos"  # Same estudiante
     assert result[1].subject.nombre == "Química"
+    assert result[1].subject.numero_creditos == 3  # Verify credits are included
 
 
 @pytest.mark.asyncio

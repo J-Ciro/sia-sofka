@@ -82,6 +82,7 @@ class EnrollmentSerializer:
                     id=subject.id,
                     nombre=subject.nombre,
                     codigo_institucional=subject.codigo_institucional,
+                    numero_creditos=subject.numero_creditos,
                 )
 
             responses.append(

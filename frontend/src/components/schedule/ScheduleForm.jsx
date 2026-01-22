@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { X } from 'lucide-react'
-import { scheduleService, subjectService, classroomService } from '../../services/apiService'
+import { scheduleService, subjectService, classroomService } from '../../services'
+import TimeInput from '../common/TimeInput'
 
 const DIAS = [
   { value: 1, label: 'Lunes' },
@@ -42,8 +43,8 @@ export default function ScheduleForm({ isOpen, onClose, onSuccess }) {
       subject_id: '', 
       classroom_id: '', 
       dia_semana: 1, 
-      hora_inicio: '08:00', 
-      hora_fin: '10:00',
+      hora_inicio: '08:00', // 8:00 AM
+      hora_fin: '10:00',    // 10:00 AM
       fecha_especifica: '',
       es_fecha_especifica: false,
     })
@@ -133,8 +134,14 @@ export default function ScheduleForm({ isOpen, onClose, onSuccess }) {
       const startMinutes = startTime[0] * 60 + startTime[1]
       const endMinutes = endTime[0] * 60 + endTime[1]
       
+      // Check time consistency
       if (startMinutes >= endMinutes) {
         e.hora_fin = 'La hora de fin debe ser posterior a la hora de inicio'
+      }
+      
+      // Check minimum duration (at least 30 minutes)
+      if (endMinutes - startMinutes < 30) {
+        e.hora_fin = 'La clase debe durar al menos 30 minutos'
       }
     }
     
@@ -310,28 +317,26 @@ export default function ScheduleForm({ isOpen, onClose, onSuccess }) {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Hora inicio</label>
-              <input
-                type="time"
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Hora de inicio
+              </label>
+              <TimeInput
                 name="hora_inicio"
                 value={formData.hora_inicio}
                 onChange={handleChange}
-                min="06:00"
-                max="22:00"
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                className="w-full"
               />
               {errors.hora_inicio && <p className="mt-1 text-sm text-red-600">{errors.hora_inicio}</p>}
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Hora fin</label>
-              <input
-                type="time"
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Hora de finalización
+              </label>
+              <TimeInput
                 name="hora_fin"
                 value={formData.hora_fin}
                 onChange={handleChange}
-                min="06:00"
-                max="22:00"
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                className="w-full"
               />
               {errors.hora_fin && <p className="mt-1 text-sm text-red-600">{errors.hora_fin}</p>}
             </div>

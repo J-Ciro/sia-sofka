@@ -33,6 +33,7 @@ class SubjectInfo(BaseModel):
     id: int
     nombre: str
     codigo_institucional: str
+    numero_creditos: int
     
     model_config = ConfigDict(from_attributes=True)
 

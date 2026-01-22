@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { X } from 'lucide-react'
-import { userService } from '../../services/apiService'
+import { userService } from '../../services'
 
 const SubjectModal = ({ isOpen, onClose, subject, onSubmit }) => {
   const [formData, setFormData] = useState({

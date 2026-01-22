@@ -1,2 +1,7 @@
 .cursor
 .kiro
+.coverage
+htmlcov
+logs
+.vscode
+coverage.xml

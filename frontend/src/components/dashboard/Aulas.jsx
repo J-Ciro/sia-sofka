@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
-import { classroomService } from '../../services/apiService'
+import { classroomService } from '../../services'
 import { Plus, Edit, Trash2 } from 'lucide-react'
 import ClassroomModal from '../modals/ClassroomModal'
 import Loading from '../common/Loading'

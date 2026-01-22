@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { gradeService, subjectService, profesorService, estudianteService } from '../../services/apiService'
+import { gradeService, subjectService, profesorService, estudianteService } from '../../services'
 import { useAuth } from '../../context/AuthContext'
 import { Plus, Edit, Trash2 } from 'lucide-react'
 import GradeModal from '../modals/GradeModal'
@@ -16,7 +16,6 @@ const Grades = () => {
   const [selectedGrade, setSelectedGrade] = useState(null)
   const [selectedSubjectId, setSelectedSubjectId] = useState(null)
   const [filterSubjectId, setFilterSubjectId] = useState('')
-  const [discoveredSubjects, setDiscoveredSubjects] = useState([]) // Materias descubiertas desde notas
   const [currentSubject, setCurrentSubject] = useState(null) // Materia actual mostrada
 
   useEffect(() => {
@@ -24,14 +23,16 @@ const Grades = () => {
   }, [])
 
   useEffect(() => {
-    // Solo ejecutar automáticamente si NO es estudiante (estudiantes usan el botón Buscar)
-    if (user?.role !== 'Estudiante') {
-      if (filterSubjectId) {
-        fetchGrades({ subject_id: parseInt(filterSubjectId) })
-      } else if (user?.role === 'Admin') {
-        // Solo Admin puede ver todas las notas sin filtro
-        fetchGrades()
-      }
+    // Cargar notas automáticamente cuando se selecciona una materia
+    if (filterSubjectId) {
+      fetchGrades({ subject_id: parseInt(filterSubjectId) })
+    } else if (user?.role === 'Admin') {
+      // Solo Admin puede ver todas las notas sin filtro
+      fetchGrades()
+    } else {
+      // Para Profesor y Estudiante, limpiar notas si no hay materia seleccionada
+      setGrades([])
+      setCurrentSubject(null)
     }
   }, [filterSubjectId, user?.role])
 
@@ -57,22 +58,25 @@ const Grades = () => {
           setSubjects([])
         }
       } else if (user?.role === 'Estudiante') {
-        // Para estudiante, intentar cargar materias descubiertas desde localStorage
-        // o desde notas previas
-        const savedSubjects = localStorage.getItem(`estudiante_${user.id}_subjects`)
-        if (savedSubjects) {
-          try {
-            const parsed = JSON.parse(savedSubjects)
-            setSubjects(parsed)
-            setDiscoveredSubjects(parsed)
-            if (parsed.length > 0) {
-              setFilterSubjectId(parsed[0].id.toString())
+        // Para estudiante, obtener sus inscripciones usando el endpoint /me
+        try {
+          const enrollments = await estudianteService.getMyEnrollments(user.id)
+          if (enrollments && enrollments.length > 0) {
+            // Extraer las materias de las inscripciones
+            const mySubjects = enrollments.map(enrollment => enrollment.subject).filter(Boolean)
+            setSubjects(mySubjects)
+            if (mySubjects.length > 0) {
+              setFilterSubjectId(mySubjects[0].id.toString())
             }
-          } catch (e) {
-            console.warn('Error parsing saved subjects:', e)
+          } else {
+            setSubjects([])
+            setError('No estás inscrito a ninguna materia. Contacta con tu profesor.')
           }
+        } catch (err) {
+          console.error('Error fetching student enrollments:', err)
+          setSubjects([])
+          setError('No estás inscrito a ninguna materia. Contacta con tu profesor.')
         }
-        setError('')
       } else {
         // Admin: obtener todas las materias
         try {
@@ -105,53 +109,12 @@ const Grades = () => {
       const data = await gradeService.getAll(params)
       setGrades(data)
       
-      // Si es estudiante y hay notas, extraer materias descubiertas y establecer materia actual
+      // Si es estudiante y hay notas, establecer la materia actual
       if (user?.role === 'Estudiante' && data && data.length > 0) {
-        const newSubjects = []
-        const subjectMap = new Map()
-        let foundSubject = null
-        
-        data.forEach((grade) => {
-          if (grade.enrollment?.subject && !subjectMap.has(grade.enrollment.subject.id)) {
-            subjectMap.set(grade.enrollment.subject.id, grade.enrollment.subject)
-            newSubjects.push(grade.enrollment.subject)
-            // Establecer la materia actual (la primera que encontremos)
-            if (!foundSubject) {
-              foundSubject = grade.enrollment.subject
-            }
-          }
-        })
-        
-        // Establecer la materia actual para mostrar su información
-        if (foundSubject) {
-          setCurrentSubject(foundSubject)
+        const firstGrade = data[0]
+        if (firstGrade.enrollment?.subject) {
+          setCurrentSubject(firstGrade.enrollment.subject)
         }
-        
-        // Agregar nuevas materias descubiertas sin duplicar
-        setDiscoveredSubjects((prev) => {
-          const combined = [...prev]
-          newSubjects.forEach((subject) => {
-            if (!combined.find((s) => s.id === subject.id)) {
-              combined.push(subject)
-            }
-          })
-          // Guardar en localStorage para persistencia
-          if (user?.id) {
-            localStorage.setItem(`estudiante_${user.id}_subjects`, JSON.stringify(combined))
-          }
-          return combined
-        })
-        
-        // Actualizar también el estado de subjects para el selector
-        setSubjects((prev) => {
-          const combined = [...prev]
-          newSubjects.forEach((subject) => {
-            if (!combined.find((s) => s.id === subject.id)) {
-              combined.push(subject)
-            }
-          })
-          return combined
-        })
       } else if (user?.role === 'Estudiante' && (!data || data.length === 0)) {
         // Si no hay notas, limpiar la materia actual
         setCurrentSubject(null)
@@ -239,12 +202,11 @@ const Grades = () => {
       </div>
 
       {user?.role === 'Estudiante' ? (
-        <div className="mb-4 space-y-4">
-          {/* Selector de materias descubiertas */}
-          {subjects.length > 0 && (
+        <div className="mb-4">
+          {subjects.length > 0 ? (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Seleccionar Materia Asignada <span className="text-gray-400 text-xs">(opcional)</span>
+                Seleccionar Materia Inscrita
               </label>
               <select
                 value={filterSubjectId}
@@ -257,7 +219,7 @@ const Grades = () => {
                     if (selectedSubject) {
                       setCurrentSubject(selectedSubject)
                     }
-                    // Buscar las notas de esa materia
+                    // Buscar las notas de esa materia automáticamente
                     fetchGrades({ subject_id: parseInt(selectedId) })
                   } else {
                     setGrades([])
@@ -266,7 +228,7 @@ const Grades = () => {
                 }}
                 className="w-full px-4 py-2.5 border-2 border-purple-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-200 outline-none transition-all duration-200 bg-white text-gray-700 font-medium"
               >
-                <option value="">Selecciona una materia descubierta</option>
+                <option value="">Selecciona una materia</option>
                 {subjects.map((subject) => (
                   <option key={subject.id} value={subject.id}>
                     {subject.nombre} - {subject.codigo_institucional}
@@ -274,48 +236,14 @@ const Grades = () => {
                 ))}
               </select>
               <p className="mt-1 text-xs text-gray-500">
-                Materias que has consultado anteriormente
+                Materias en las que estás inscrito
               </p>
             </div>
-          )}
-          
-          {/* Campo para ingresar ID manualmente */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Ingresar ID de Materia Manualmente <span className="text-red-500 ml-1">*</span>
-            </label>
-            <div className="flex space-x-2">
-              <input
-                type="number"
-                value={filterSubjectId}
-                onChange={(e) => setFilterSubjectId(e.target.value)}
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter' && filterSubjectId) {
-                    fetchGrades({ subject_id: parseInt(filterSubjectId) })
-                  }
-                }}
-                placeholder="Ej: 1, 2, 3..."
-                className="flex-1 px-4 py-2.5 border-2 border-purple-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-200 outline-none transition-all duration-200 bg-white text-gray-700 font-medium"
-                min="1"
-              />
-              <button
-                onClick={() => {
-                  if (filterSubjectId) {
-                    fetchGrades({ subject_id: parseInt(filterSubjectId) })
-                  } else {
-                    setError('Por favor ingresa un ID de materia')
-                  }
-                }}
-                disabled={!filterSubjectId}
-                className="px-6 py-2.5 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl hover:from-purple-700 hover:to-purple-800 shadow-lg hover:shadow-xl transition-all duration-200 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Buscar
-              </button>
+          ) : (
+            <div className="bg-yellow-50 border-l-4 border-yellow-500 text-yellow-700 px-4 py-3 rounded-lg mb-4 shadow-md">
+              <p className="font-medium">No estás inscrito a ninguna materia. Contacta con tu profesor.</p>
             </div>
-            <p className="mt-1 text-xs text-gray-500">
-              Ingresa el ID de la materia para buscar tus notas. Una vez que veas tus notas, la materia se guardará automáticamente.
-            </p>
-          </div>
+          )}
         </div>
       ) : subjects.length > 0 ? (
         <div className="mb-4">
@@ -338,12 +266,7 @@ const Grades = () => {
           </select>
         </div>
       ) : null}
-      
-      {user?.role === 'Estudiante' && !filterSubjectId && (
-        <div className="bg-blue-50 border-l-4 border-blue-500 text-blue-700 px-4 py-3 rounded-lg mb-4 shadow-md">
-          <p className="font-medium">Ingresa el ID de una materia para ver tus notas</p>
-        </div>
-      )}
+
 
       {error && (
         <div className="bg-red-50 border-l-4 border-red-500 text-red-700 px-4 py-3 rounded-lg mb-4 shadow-md">

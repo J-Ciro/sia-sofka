@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { subjectService, profesorService, enrollmentService } from '../../services/apiService'
+import { subjectService, profesorService, enrollmentService } from '../../services'
 import { useAuth } from '../../context/AuthContext'
 import { BookOpen, Users, FileText, AlertCircle } from 'lucide-react'
 import Loading from '../common/Loading'
