@@ -11,7 +11,7 @@ Full-stack academic management system with FastAPI backend (Python 3.11+) and Re
    Extender con nuevos endpoints, componentes o lógica sin alterar el comportamiento actual. No cambiar firmas, contratos de API ni esquemas ya usados; usar parámetros opcionales o nuevos recursos si hace falta.
 
 2. **Los tests que se creen jamás deben afectar a los demás.**  
-   Cada test ha de ser independiente (sin orden de ejecución ni estado compartido). Usar fixtures/transacciones que se reinician por test. Si un test nuevo hace fallar otros, corregir el test nuevo (mocks, alcance, datos), no tocar los que ya pasaban. Más detalle: [AGENTS.md](AGENTS.md#critical-evolution-rules).
+   Cada test ha de ser independiente (sin orden de ejecución ni estado compartido). Usar fixtures/transacciones que se reinician por test. Si un test nuevo hace fallar otros, corregir el test nuevo (mocks, alcance, datos), no tocar los que ya pasaban. Más detalle: [AGENTS.md](../AGENTS.md).
 
 ## Architecture Patterns
 
@@ -48,7 +48,7 @@ Aplicar SOLID y patrones **solo cuando sea necesario o viable**. Omitir en casos
 - **Decorator**: Cross‑cutting (logging, cache, retry). No para un solo punto de uso.
 - **Observer/Eventos**: Múltiples consumidores desacoplados (ej. notificaciones tras crear usuario). No para flujos síncronos y simples.
 
-Si añadir un patrón o abstracción no simplifica el cambio futuro ni la lectura, preferir implementación directa. Más detalle: [AGENTS.md](AGENTS.md#solid-and-design-patterns-when-to-apply).
+Si añadir un patrón o abstracción no simplifica el cambio futuro ni la lectura, preferir implementación directa. Más detalle: [AGENTS.md](../AGENTS.md).
 
 ## Critical Workflows
 
@@ -192,7 +192,7 @@ const Users = () => {
 7. **Tests que rompen otros tests**: Los tests han de ser aislados; si un test nuevo hace fallar a otros, hay que corregir el test nuevo (fixtures, mocks, datos), no desactivar ni modificar los existentes.
 
 ## File References
-- Architecture overview: [README.md](README.md#-arquitectura)
+- Architecture overview: [ARCHITECTURE.md]
 - Full agent guidelines (SOLID, patrones, Cursor): [AGENTS.md](AGENTS.md)
 - API structure: [backend/app/api/v1/](backend/app/api/v1/)
 - Factory pattern: [backend/app/factories/report_factory.py](backend/app/factories/report_factory.py)

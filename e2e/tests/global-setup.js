@@ -21,7 +21,7 @@ export default async function globalSetup() {
   try {
     // 1. Verify backend is running
     console.log('📡 Checking backend connection...');
-    const healthCheck = await apiContext.get('/api/v1/health').catch(() => null);
+    const healthCheck = await apiContext.get('/health').catch(() => null);
     
     if (!healthCheck || !healthCheck.ok()) {
       console.warn('⚠️  Backend not responding. Make sure backend is running on port 8000');
