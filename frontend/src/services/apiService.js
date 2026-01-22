@@ -521,16 +521,20 @@ export const estudianteService = {
   },
 
   /**
-   * Obtiene las materias inscritas del estudiante
-   * Intenta acceder a /enrollments y filtra por estudiante_id
-   * Si falla (403), intenta inferir desde las notas
+   * Obtiene las materias inscritas del estudiante usando el endpoint /enrollments/me
    */
   getMyEnrollments: async (estudianteId) => {
-    // NO intentar acceder a /enrollments porque requiere Admin y genera error 403
-    // Retornar array vacío directamente para evitar errores en consola
-    // El estudiante puede ver sus notas usando /grades?subject_id={id} pero necesita conocer el subject_id
-    // La mejor solución sería que el backend proporcione un endpoint específico para estudiantes
-    return []
+    try {
+      const response = await api.get('/enrollments/me')
+      return response.data || []
+    } catch (error) {
+      console.error('Error fetching my enrollments:', error)
+      // Si hay error 403 o similar, retornar array vacío
+      if (error.response?.status === 403 || error.response?.status === 401) {
+        return []
+      }
+      throw error
+    }
   },
 
   /**
