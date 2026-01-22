@@ -21,6 +21,22 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
+    # Check if schedules table exists before adding column
+    from sqlalchemy import inspect
+    bind = op.get_bind()
+    inspector = inspect(bind)
+    existing_tables = inspector.get_table_names()
+    
+    if 'schedules' not in existing_tables:
+        print("Table 'schedules' does not exist. Skipping fecha_especifica column addition.")
+        return
+    
+    # Check if column already exists
+    existing_columns = [col['name'] for col in inspector.get_columns('schedules')]
+    if 'fecha_especifica' in existing_columns:
+        print("Column 'fecha_especifica' already exists. Skipping.")
+        return
+    
     # Add fecha_especifica column to schedules table
     op.add_column('schedules', sa.Column('fecha_especifica', sa.Date(), nullable=True))
     
