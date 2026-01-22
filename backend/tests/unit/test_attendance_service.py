@@ -61,14 +61,15 @@ class TestAttendanceService:
         SessionValidator.validate_time_range(hora_inicio, hora_fin)
 
     @pytest.mark.unit
-    def test_mark_attendance_all_present_sync(self, db_session, clase_session, profesor_user):
-        """Test marking all students as present using sync repository methods."""
+    @pytest.mark.asyncio
+    async def test_mark_attendance_all_present_async(self, async_db_session, async_clase_session, async_profesor_user):
+        """Test marking all students as present using async repository methods."""
         from app.models.enrollment import Enrollment
         from app.models.user import User, UserRole
         from bcrypt import hashpw, gensalt
         from app.repositories.attendance_repository import AttendanceRepository
         
-        repo = AttendanceRepository(db_session)
+        repo = AttendanceRepository(async_db_session)
         
         # Create and enroll 3 students
         students = []
@@ -82,40 +83,42 @@ class TestAttendanceService:
                 codigo_institucional=f"EST40{i}",
                 fecha_nacimiento=date(2005, 3, 20),
             )
-            db_session.add(student)
-            db_session.commit()
+            async_db_session.add(student)
+            await async_db_session.commit()
+            await async_db_session.refresh(student)
             
             enrollment = Enrollment(
                 estudiante_id=student.id,
-                subject_id=clase_session.subject_id,
+                subject_id=async_clase_session.subject_id,
             )
-            db_session.add(enrollment)
-            db_session.commit()
+            async_db_session.add(enrollment)
+            await async_db_session.commit()
             students.append(student)
         
-        # Create attendance records for each student using sync repo
+        # Create attendance records for each student using async repo
         for student in students:
-            repo.create(
-                clase_session_id=clase_session.id,
-                estudiante_id=student.id,
-                estado=AttendanceStatus.PRESENTE,
-            )
+            await repo.create({
+                "clase_session_id": async_clase_session.id,
+                "estudiante_id": student.id,
+                "estado": AttendanceStatus.PRESENTE,
+            })
         
         # Verify all are present
-        attendances = repo.get_all_by_session(clase_session.id)
+        attendances = await repo.get_all_by_session(async_clase_session.id)
         present_count = sum(1 for a in attendances if a.estado == AttendanceStatus.PRESENTE)
         
         assert present_count == 3
 
     @pytest.mark.unit
-    def test_mark_attendance_all_absent_sync(self, db_session, clase_session, profesor_user):
-        """Test marking all students as absent using sync repository methods."""
+    @pytest.mark.asyncio
+    async def test_mark_attendance_all_absent_async(self, async_db_session, async_clase_session, async_profesor_user):
+        """Test marking all students as absent using async repository methods."""
         from app.models.enrollment import Enrollment
         from app.models.user import User, UserRole
         from bcrypt import hashpw, gensalt
         from app.repositories.attendance_repository import AttendanceRepository
         
-        repo = AttendanceRepository(db_session)
+        repo = AttendanceRepository(async_db_session)
         
         # Create and enroll 2 students
         for i in range(2):
@@ -128,62 +131,67 @@ class TestAttendanceService:
                 codigo_institucional=f"EST50{i}",
                 fecha_nacimiento=date(2005, 3, 20),
             )
-            db_session.add(student)
-            db_session.commit()
+            async_db_session.add(student)
+            await async_db_session.commit()
+            await async_db_session.refresh(student)
             
             enrollment = Enrollment(
                 estudiante_id=student.id,
-                subject_id=clase_session.subject_id,
+                subject_id=async_clase_session.subject_id,
             )
-            db_session.add(enrollment)
-            db_session.commit()
+            async_db_session.add(enrollment)
+            await async_db_session.commit()
             
             # Create attendance as absent
-            repo.create(
-                clase_session_id=clase_session.id,
-                estudiante_id=student.id,
-                estado=AttendanceStatus.AUSENTE,
-            )
+            await repo.create({
+                "clase_session_id": async_clase_session.id,
+                "estudiante_id": student.id,
+                "estado": AttendanceStatus.AUSENTE,
+            })
         
         # Verify all are absent
-        attendances = repo.get_all_by_session(clase_session.id)
+        attendances = await repo.get_all_by_session(async_clase_session.id)
         absent_count = sum(1 for a in attendances if a.estado == AttendanceStatus.AUSENTE)
         
         assert absent_count == 2
 
     @pytest.mark.unit
-    def test_update_individual_attendance_sync(self, db_session, clase_session, estudiante_user):
-        """Test updating a single student's attendance using sync repo."""
+    @pytest.mark.asyncio
+    async def test_update_individual_attendance_async(self, async_db_session, async_clase_session, async_estudiante_user):
+        """Test updating a single student's attendance using async repo."""
         from app.repositories.attendance_repository import AttendanceRepository
         
-        repo = AttendanceRepository(db_session)
+        repo = AttendanceRepository(async_db_session)
         
         # Create initial attendance as PRESENTE
-        attendance = repo.create(
-            clase_session_id=clase_session.id,
-            estudiante_id=estudiante_user.id,
-            estado=AttendanceStatus.PRESENTE,
-        )
+        attendance = await repo.create({
+            "clase_session_id": async_clase_session.id,
+            "estudiante_id": async_estudiante_user.id,
+            "estado": AttendanceStatus.PRESENTE,
+        })
         
         # Update to AUSENTE
-        updated = repo.update(attendance.id, estado=AttendanceStatus.AUSENTE)
+        updated = await repo.update(attendance.id, {"estado": AttendanceStatus.AUSENTE})
         
+        assert updated is not None
         assert updated.estado == AttendanceStatus.AUSENTE
         
         # Update to TARDANZA
-        updated = repo.update(attendance.id, estado=AttendanceStatus.TARDANZA)
+        updated = await repo.update(attendance.id, {"estado": AttendanceStatus.TARDANZA})
         
+        assert updated is not None
         assert updated.estado == AttendanceStatus.TARDANZA
 
     @pytest.mark.unit
-    def test_get_session_statistics_sync(self, db_session, clase_session, profesor_user):
-        """Test getting attendance statistics for a session using sync methods."""
+    @pytest.mark.asyncio
+    async def test_get_session_statistics_async(self, async_db_session, async_clase_session, async_profesor_user):
+        """Test getting attendance statistics for a session using async methods."""
         from app.models.enrollment import Enrollment
         from app.models.user import User, UserRole
         from bcrypt import hashpw, gensalt
         from app.repositories.attendance_repository import AttendanceRepository
         
-        repo = AttendanceRepository(db_session)
+        repo = AttendanceRepository(async_db_session)
         
         # Create 10 students with mixed attendance
         statuses = [
@@ -209,25 +217,26 @@ class TestAttendanceService:
                 codigo_institucional=f"EST60{i}",
                 fecha_nacimiento=date(2005, 3, 20),
             )
-            db_session.add(student)
-            db_session.commit()
+            async_db_session.add(student)
+            await async_db_session.commit()
+            await async_db_session.refresh(student)
             
             enrollment = Enrollment(
                 estudiante_id=student.id,
-                subject_id=clase_session.subject_id,
+                subject_id=async_clase_session.subject_id,
             )
-            db_session.add(enrollment)
-            db_session.commit()
+            async_db_session.add(enrollment)
+            await async_db_session.commit()
             
-            repo.create(
-                clase_session_id=clase_session.id,
-                estudiante_id=student.id,
-                estado=status,
-            )
+            await repo.create({
+                "clase_session_id": async_clase_session.id,
+                "estudiante_id": student.id,
+                "estado": status,
+            })
         
-        # Get statistics using sync repo methods
-        counts = repo.count_by_status(clase_session.id)
-        percentage = repo.calculate_attendance_percentage(clase_session.id)
+        # Get statistics using async repo methods
+        counts = await repo.count_by_status_async(async_clase_session.id)
+        percentage = await repo.calculate_attendance_percentage_async(async_clase_session.id)
         
         total = sum(counts.values())
         
@@ -238,49 +247,52 @@ class TestAttendanceService:
         assert percentage == 70.0  # (5+2)/10 * 100
 
     @pytest.mark.unit
-    def test_check_low_attendance_warning(self, db_session, estudiante_user, subject, profesor_user):
-        """Test checking if student meets warning threshold for low attendance."""
+    @pytest.mark.asyncio
+    async def test_check_low_attendance_warning_async(self, async_db_session, async_estudiante_user, async_subject, async_profesor_user):
+        """Test checking if student meets warning threshold for low attendance (async)."""
         from app.models.enrollment import Enrollment
         from app.repositories.attendance_repository import AttendanceRepository
         
-        repo = AttendanceRepository(db_session)
+        repo = AttendanceRepository(async_db_session)
         
         # Enroll student
         enrollment = Enrollment(
-            estudiante_id=estudiante_user.id,
-            subject_id=subject.id,
+            estudiante_id=async_estudiante_user.id,
+            subject_id=async_subject.id,
         )
-        db_session.add(enrollment)
-        db_session.commit()
+        async_db_session.add(enrollment)
+        await async_db_session.commit()
         
         # Create 10 sessions: 1 present, 9 absent = 10% attendance
+        today = date.today()
         for i in range(10):
             estado = AttendanceStatus.PRESENTE if i == 0 else AttendanceStatus.AUSENTE
             clase = ClaseSession(
-                subject_id=subject.id,
-                fecha=date(2026, 1, 10 + i),  # Use past dates
-                hora_inicio=datetime(2026, 1, 10 + i, 8, 0),
-                hora_fin=datetime(2026, 1, 10 + i, 10, 0),
-                creado_por=profesor_user.id,
+                subject_id=async_subject.id,
+                fecha=date(today.year, today.month, today.day - (10 - i)),  # Use past dates
+                hora_inicio=datetime.combine(today, datetime.min.time().replace(hour=8)),
+                hora_fin=datetime.combine(today, datetime.min.time().replace(hour=10)),
+                creado_por=async_profesor_user.id,
             )
-            db_session.add(clase)
-            db_session.commit()
+            async_db_session.add(clase)
+            await async_db_session.commit()
+            await async_db_session.refresh(clase)
             
-            repo.create(
-                clase_session_id=clase.id,
-                estudiante_id=estudiante_user.id,
-                estado=estado,
-            )
+            await repo.create({
+                "clase_session_id": clase.id,
+                "estudiante_id": async_estudiante_user.id,
+                "estado": estado,
+            })
         
         # Get all attendance for this student in this subject
-        attendances = repo.get_by_student_and_subject(estudiante_user.id, subject.id)
+        attendances = await repo.get_by_student_and_subject(async_estudiante_user.id, async_subject.id)
         
         total_present_or_late = sum(
             1 for a in attendances 
             if a.estado in (AttendanceStatus.PRESENTE, AttendanceStatus.TARDANZA)
         )
         total_sessions = len(attendances)
-        percentage = (total_present_or_late / total_sessions) * 100
+        percentage = (total_present_or_late / total_sessions) * 100 if total_sessions > 0 else 0.0
         
         # Should have low attendance (10%)
         assert percentage == 10.0
@@ -288,13 +300,14 @@ class TestAttendanceService:
         assert AttendanceCalculator.get_alert_level(percentage) == 'critical'
 
     @pytest.mark.unit
-    def test_create_attendance_stats(self, db_session, estudiante_user, subject):
-        """Test creating attendance statistics record."""
-        service = AttendanceService(db_session, estudiante_user)
+    @pytest.mark.asyncio
+    async def test_create_attendance_stats_async(self, async_db_session, async_estudiante_user, async_subject):
+        """Test creating attendance statistics record (async)."""
+        service = AttendanceService(async_db_session, async_estudiante_user)
         
-        stats = service.create_attendance_stats(
-            estudiante_id=estudiante_user.id,
-            subject_id=subject.id,
+        stats = await service.create_attendance_stats(
+            estudiante_id=async_estudiante_user.id,
+            subject_id=async_subject.id,
             total_sesiones=20,
             presentes=16,
             ausentes=3,
