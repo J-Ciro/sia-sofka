@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { userService } from '../../services/apiService'
+import { userService } from '../../services'
 import { Plus, Edit, Trash2, GraduationCap, Users as UsersIcon, FileSpreadsheet } from 'lucide-react'
 import UserModal from '../modals/UserModal'
 import BulkImportModal from '../modals/BulkImportModal'

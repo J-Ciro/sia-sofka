@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
-import { estudianteService } from '../../services/apiService'
+import { estudianteService } from '../../services'
 import { useAuth } from '../../context/AuthContext'
 import { BookOpen, GraduationCap, TrendingUp, AlertCircle, FileText } from 'lucide-react'
 import Loading from '../common/Loading'
-import { reportService } from '../../services/apiService'
+import { reportService } from '../../services'
 
 const EstudianteSubjects = () => {
   const { user } = useAuth()

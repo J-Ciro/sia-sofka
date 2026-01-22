@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
 import { X, FileSpreadsheet, Download, Upload } from 'lucide-react'
-import { userService } from '../../services/apiService'
+import { userService } from '../../services'
 
 const BulkImportModal = ({ isOpen, onClose, onSuccess }) => {
   const [file, setFile] = useState(null)

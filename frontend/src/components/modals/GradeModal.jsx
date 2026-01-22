@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { X } from 'lucide-react'
-import { enrollmentService, profesorService } from '../../services/apiService'
+import { enrollmentService, profesorService } from '../../services'
 import { useAuth } from '../../context/AuthContext'
 
 const GradeModal = ({ isOpen, onClose, grade, subjectId, onSubmit }) => {

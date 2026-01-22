@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { enrollmentService } from '../../services/apiService'
+import { enrollmentService } from '../../services'
 import { Plus, Trash2 } from 'lucide-react'
 import EnrollmentModal from '../modals/EnrollmentModal'
 import Loading from '../common/Loading'

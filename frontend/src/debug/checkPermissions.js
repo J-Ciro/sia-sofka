@@ -25,7 +25,7 @@ export const debugPermissions = async () => {
     }
     
     // Import API service
-    const { scheduleService, subjectService } = await import('../services/apiService');
+    const { scheduleService, subjectService } = await import('../services');
     
     // Get user's subjects (if professor)
     if (user.role === 'Profesor') {

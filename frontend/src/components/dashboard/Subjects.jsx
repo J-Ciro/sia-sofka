@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { subjectService } from '../../services/apiService'
+import { subjectService } from '../../services'
 import { Plus, Edit, Trash2 } from 'lucide-react'
 import SubjectModal from '../modals/SubjectModal'
 import Loading from '../common/Loading'

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { gradeService, subjectService, profesorService, estudianteService } from '../../services/apiService'
+import { gradeService, subjectService, profesorService, estudianteService } from '../../services'
 import { useAuth } from '../../context/AuthContext'
 import { Plus, Edit, Trash2 } from 'lucide-react'
 import GradeModal from '../modals/GradeModal'

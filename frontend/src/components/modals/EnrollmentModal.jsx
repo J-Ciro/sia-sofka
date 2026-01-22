@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { X } from 'lucide-react'
-import { userService, subjectService } from '../../services/apiService'
+import { userService, subjectService } from '../../services'
 
 const EnrollmentModal = ({ isOpen, onClose, onSubmit, existingEnrollments = [] }) => {
   const [formData, setFormData] = useState({
