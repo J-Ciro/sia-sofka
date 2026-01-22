@@ -15,7 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from app.core.database import get_db
-from app.core.exceptions import NotFoundError, ValidationError, ForbiddenError
+from app.core.exceptions import NotFoundError, ValidationError, ForbiddenError, ScheduleConflictError
 from app.models.user import User, UserRole
 from app.models.subject import Subject
 from app.schemas.schedule import ScheduleCreate, ScheduleUpdate, ScheduleResponse
