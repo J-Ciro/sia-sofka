@@ -26,7 +26,115 @@ router = APIRouter()
 
 
 def _to_response(s) -> ScheduleResponse:
-    return ScheduleResponse.model_validate(s)
+    """Convert Schedule to ScheduleResponse, handling both regular and virtual schedules."""
+    # For virtual schedules (detached from session), ensure clean serialization
+    if hasattr(s, '_sa_instance_state') and s._sa_instance_state is None:
+        # Virtual schedule - create dict manually to avoid SQLAlchemy serialization issues
+        data = {
+            'id': s.id,
+            'codigo': s.codigo,
+            'subject_id': s.subject_id,
+            'classroom_id': s.classroom_id,
+            'dia_semana': s.dia_semana,
+            'hora_inicio': s.hora_inicio,
+            'hora_fin': s.hora_fin,
+            'fecha_especifica': s.fecha_especifica,
+        }
+        # Handle nested relationships - convert to dict if they exist
+        if hasattr(s, 'subject') and s.subject is not None:
+            from app.schemas.schedule import SubjectNested
+            try:
+                # Try to serialize subject using Pydantic
+                data['subject'] = SubjectNested.model_validate(s.subject, from_attributes=True)
+            except Exception:
+                # Fallback: create dict manually with all required fields
+                subject_data = {
+                    'id': s.subject.id,
+                    'nombre': s.subject.nombre,
+                    'codigo_institucional': getattr(s.subject, 'codigo_institucional', ''),
+                    'profesor_id': getattr(s.subject, 'profesor_id', 0),
+                }
+                # Add profesor nested if available
+                if hasattr(s.subject, 'profesor') and s.subject.profesor is not None:
+                    from app.schemas.schedule import ProfesorNested
+                    try:
+                        subject_data['profesor'] = ProfesorNested.model_validate(s.subject.profesor, from_attributes=True)
+                    except Exception:
+                        subject_data['profesor'] = {
+                            'id': s.subject.profesor.id,
+                            'nombre': getattr(s.subject.profesor, 'nombre', ''),
+                            'apellido': getattr(s.subject.profesor, 'apellido', ''),
+                        }
+                data['subject'] = subject_data
+        if hasattr(s, 'classroom') and s.classroom is not None:
+            from app.schemas.schedule import ClassroomNested
+            try:
+                # Try to serialize classroom using Pydantic
+                data['classroom'] = ClassroomNested.model_validate(s.classroom, from_attributes=True)
+            except Exception:
+                # Fallback: create dict manually with all required fields
+                data['classroom'] = {
+                    'id': s.classroom.id,
+                    'codigo': s.classroom.codigo,
+                    'nombre': s.classroom.nombre,
+                    'capacidad': getattr(s.classroom, 'capacidad', 0),
+                    'ubicacion': getattr(s.classroom, 'ubicacion', None),
+                }
+        return ScheduleResponse.model_validate(data)
+    else:
+        # Regular schedule - standard serialization
+        try:
+            return ScheduleResponse.model_validate(s, from_attributes=True)
+        except Exception as e:
+            # Fallback for regular schedules too
+            data = {
+                'id': s.id,
+                'codigo': s.codigo,
+                'subject_id': s.subject_id,
+                'classroom_id': s.classroom_id,
+                'dia_semana': s.dia_semana,
+                'hora_inicio': s.hora_inicio,
+                'hora_fin': s.hora_fin,
+                'fecha_especifica': getattr(s, 'fecha_especifica', None),
+            }
+            if hasattr(s, 'subject') and s.subject is not None:
+                from app.schemas.schedule import SubjectNested
+                try:
+                    data['subject'] = SubjectNested.model_validate(s.subject, from_attributes=True)
+                except Exception:
+                    # Fallback: create dict manually with all required fields
+                    subject_data = {
+                        'id': s.subject.id,
+                        'nombre': s.subject.nombre,
+                        'codigo_institucional': getattr(s.subject, 'codigo_institucional', ''),
+                        'profesor_id': getattr(s.subject, 'profesor_id', 0),
+                    }
+                    # Add profesor nested if available
+                    if hasattr(s.subject, 'profesor') and s.subject.profesor is not None:
+                        from app.schemas.schedule import ProfesorNested
+                        try:
+                            subject_data['profesor'] = ProfesorNested.model_validate(s.subject.profesor, from_attributes=True)
+                        except Exception:
+                            subject_data['profesor'] = {
+                                'id': s.subject.profesor.id,
+                                'nombre': getattr(s.subject.profesor, 'nombre', ''),
+                                'apellido': getattr(s.subject.profesor, 'apellido', ''),
+                            }
+                    data['subject'] = subject_data
+            if hasattr(s, 'classroom') and s.classroom is not None:
+                from app.schemas.schedule import ClassroomNested
+                try:
+                    data['classroom'] = ClassroomNested.model_validate(s.classroom, from_attributes=True)
+                except Exception:
+                    # Fallback: create dict manually with all required fields
+                    data['classroom'] = {
+                        'id': s.classroom.id,
+                        'codigo': s.classroom.codigo,
+                        'nombre': s.classroom.nombre,
+                        'capacidad': getattr(s.classroom, 'capacidad', 0),
+                        'ubicacion': getattr(s.classroom, 'ubicacion', None),
+                    }
+            return ScheduleResponse.model_validate(data)
 
 
 # POST /api/v1/schedules - TASK-014 (Enhanced for Task 5.1)
@@ -52,8 +160,14 @@ async def create_schedule(
         schedule = await service.create_schedule(data)
         return _to_response(schedule)
     except ValueError as e:
-        if str(e) == "Subject not found":
+        error_msg = str(e)
+        if error_msg == "Subject not found":
             raise ValidationError("Subject not found")
+        # Convert other ValueError (like validation errors from Pydantic) to ValidationError
+        # This ensures proper HTTP status code (400) and error message display
+        raise ValidationError(error_msg)
+    except ScheduleConflictError:
+        # Re-raise conflict errors as-is (they have proper 422 status)
         raise
 
 
@@ -150,7 +264,22 @@ async def get_schedules_by_date_range(
     else:
         schedules = []
 
-    return [_to_response(s) for s in schedules]
+    try:
+        return [_to_response(s) for s in schedules]
+    except Exception as e:
+        import traceback
+        print(f"Error serializing schedules: {e}")
+        print(traceback.format_exc())
+        # Try to return at least basic data
+        result = []
+        for s in schedules:
+            try:
+                result.append(_to_response(s))
+            except Exception as inner_e:
+                print(f"Error serializing schedule {getattr(s, 'id', 'unknown')}: {inner_e}")
+                # Skip this schedule if it can't be serialized
+                continue
+        return result
 
 
 # PUT /api/v1/schedules/{schedule_id} - TASK-016 (Enhanced for Task 5.1)
