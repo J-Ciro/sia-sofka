@@ -4,3 +4,4 @@
 htmlcov
 logs
 .vscode
+coverage.xml
