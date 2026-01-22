@@ -24,7 +24,7 @@ const Sidebar = () => {
     { path: '/subjects', label: 'Materias', icon: BookOpen, roles: ['Admin', 'Profesor', 'Estudiante'] },
     { path: '/horarios', label: 'Horarios', icon: Calendar, roles: ['Admin', 'Profesor', 'Estudiante'] },
     { path: '/enrollments', label: 'Inscripciones', icon: UserCheck, roles: ['Admin'] },
-    { path: '/grades', label: 'Notas', icon: GraduationCap },
+    { path: '/grades', label: 'Notas', icon: GraduationCap, roles: ['Admin', 'Profesor'] },
     { path: '/attendance', label: 'Asistencia', icon: ClipboardCheck, roles: ['Profesor', 'Estudiante'] },
     { path: '/reports', label: 'Reportes', icon: FileText },
   ]
