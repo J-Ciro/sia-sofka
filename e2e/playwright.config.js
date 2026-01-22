@@ -14,8 +14,6 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
 
-  // 1. ELIMINÉ launchOptions DE AQUÍ (estaba mal ubicado)
-
   reporter: [
     ['html', { outputFolder: 'playwright-report' }],
     ['list'],
@@ -25,17 +23,13 @@ export default defineConfig({
   globalSetup: resolve(__dirname, './tests/global-setup.js'),
   globalTeardown: resolve(__dirname, './tests/global-teardown.js'),
 
-  // Shared settings
   use: {
     baseURL: process.env.BASE_URL || 'http://localhost:3000',
     apiURL: process.env.API_URL || 'http://localhost:8000',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
-
-    // 2. AQUÍ ES DONDE DEBE IR
-    // He eliminado la línea anterior que decía "slowMo: ... 500"
     launchOptions: {
-        slowMo: 500, // 10 segundos de espera entre acciones
+        slowMo: 500, 
     },
 
   //  actionTimeout: 500,

@@ -59,21 +59,25 @@ async function login(page, email, password) {
   const loginButton = page.getByRole('button', { name: /iniciar sesión/i });
   await loginButton.click();
   
-  // Wait for navigation to complete - check for either dashboard or error
-  await Promise.race([
-    page.waitForURL('/', { timeout: 10000 }),
-    page.getByText(/error al iniciar sesión/i).waitFor({ timeout: 10000 })
-  ]);
-  
-  // Check if login was successful
-  const errorVisible = await page.getByText(/error al iniciar sesión/i).isVisible().catch(() => false);
-  if (errorVisible) {
-    const errorText = await page.getByText(/error al iniciar sesión/i).textContent();
-    throw new Error(`Login failed: ${errorText}`);
+  // Wait for navigation to complete - expect successful login
+  try {
+    await page.waitForURL('/', { timeout: 15000 });
+    
+    // Verify we're on dashboard by looking for the dashboard content
+    await page.waitForSelector('h1:has-text("Dashboard")', { timeout: 10000 });
+    
+    console.log(`✅ Login successful for ${email}`);
+  } catch (error) {
+    // Check if there's an error message on the login page
+    const errorVisible = await page.getByText(/error al iniciar sesión/i).isVisible().catch(() => false);
+    if (errorVisible) {
+      const errorText = await page.getByText(/error al iniciar sesión/i).textContent();
+      throw new Error(`Login failed: ${errorText}`);
+    }
+    
+    // If no error message but still failed, throw the original error
+    throw new Error(`Login failed for ${email}: ${error.message}`);
   }
-  
-  // Verify we're on dashboard
-  await page.waitForSelector('text=Dashboard', { timeout: 5000 });
 }
 
 /**
