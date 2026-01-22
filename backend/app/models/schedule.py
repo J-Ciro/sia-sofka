@@ -11,6 +11,7 @@ from sqlalchemy import (
     String,
     ForeignKey,
     Time,
+    Date,
     DateTime,
     UniqueConstraint,
     Index,
@@ -83,6 +84,9 @@ class Schedule(Base):
     dia_semana = Column(Integer, nullable=False, index=True)  # 1=Lunes .. 6=Sábado
     hora_inicio = Column(Time, nullable=False)
     hora_fin = Column(Time, nullable=False)
+    
+    # New field for specific date scheduling (nullable for backward compatibility)
+    fecha_especifica = Column(Date, nullable=True, index=True)
 
     # Timestamps
     created_at = Column(
@@ -97,16 +101,25 @@ class Schedule(Base):
         nullable=False,
     )
 
-    # TASK-003: unique (asignatura_id, dia_semana, hora_inicio)
+    # TASK-003: unique (asignatura_id, dia_semana, hora_inicio) - only for weekly schedules
+    # New constraint for date-specific schedules
     __table_args__ = (
         UniqueConstraint(
             "subject_id",
-            "dia_semana",
+            "dia_semana", 
             "hora_inicio",
             name="uq_schedule_subject_dia_hora",
         ),
+        UniqueConstraint(
+            "subject_id",
+            "fecha_especifica",
+            "hora_inicio", 
+            name="uq_schedule_subject_fecha_hora",
+        ),
         # TASK-004: índice para consultas de solapamiento por aula
         Index("ix_schedule_classroom_dia_hora", "classroom_id", "dia_semana", "hora_inicio"),
+        # New index for date-specific queries
+        Index("ix_schedule_classroom_fecha_hora", "classroom_id", "fecha_especifica", "hora_inicio"),
     )
 
     # Relationships

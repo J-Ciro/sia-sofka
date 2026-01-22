@@ -69,25 +69,62 @@ async def bulk_import_users(
     current_user: User = Depends(require_admin),
 ):
     """Import students from Excel (Admin only). Upsert by email. Max 1000 rows, 5 MB."""
+    from app.core.exceptions import (
+        FileFormatError,
+        FileSizeError,
+        FileCorruptedError,
+        EmptyFileError,
+        MissingColumnsError,
+        TooManyRowsError,
+        DatabaseOperationError,
+    )
+    
+    # Validate file format
     if not (file.filename and file.filename.lower().endswith(".xlsx")):
-        raise HTTPException(status_code=400, detail="Solo se aceptan archivos .xlsx")
-    content = await file.read()
-    if len(content) > MAX_FILE_SIZE:
-        raise HTTPException(status_code=400, detail="El archivo supera el límite de 5 MB")
-    svc = BulkImportService(db)
+        raise FileFormatError(file.filename)
+    
+    # Read and validate file size
     try:
+        content = await file.read()
+    except Exception as e:
+        raise FileCorruptedError(file.filename)
+    
+    size_mb = len(content) / (1024 * 1024)
+    if len(content) > MAX_FILE_SIZE:
+        raise FileSizeError(size_mb, MAX_FILE_SIZE // (1024 * 1024))
+    
+    # Process file
+    svc = BulkImportService(db)
+    
+    try:
+        # Parse Excel file
         rows = svc.parse_excel(BytesIO(content))
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    valid, errs = svc.validate_rows(rows)
-    if errs:
-        return Response(
-            content=BulkImportResult(created=0, updated=0, errors=errs).model_dump_json(),
-            status_code=400,
-            media_type="application/json",
+        
+        # Validate rows
+        valid, errs = svc.validate_rows(rows)
+        
+        # If there are validation errors, return them
+        if errs:
+            return Response(
+                content=BulkImportResult(created=0, updated=0, errors=errs).model_dump_json(),
+                status_code=400,
+                media_type="application/json",
+            )
+        
+        # Perform bulk import
+        result = await svc.bulk_import_students(valid)
+        return result
+        
+    except (FileFormatError, FileSizeError, FileCorruptedError, EmptyFileError, 
+            MissingColumnsError, TooManyRowsError, DatabaseOperationError) as e:
+        # These are our custom exceptions with specific error messages
+        raise HTTPException(status_code=e.status_code, detail=e.detail)
+    except Exception as e:
+        # Catch any unexpected errors
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Error inesperado durante la importación: {str(e)}"
         )
-    result = await svc.bulk_import_students(valid)
-    return result
 
 
 @router.get("/export")
@@ -97,13 +134,24 @@ async def export_users(
     current_user: User = Depends(require_admin),
 ):
     """Export users to Excel (Admin only). Excludes passwords."""
+    from app.core.exceptions import DatabaseOperationError, FileCorruptedError
+    
     svc = BulkImportService(db)
-    buf = await svc.export_users_to_excel(role=role)
-    return Response(
-        content=buf.getvalue(),
-        media_type=EXCEL_MIME,
-        headers={"Content-Disposition": "attachment; filename=usuarios.xlsx"},
-    )
+    
+    try:
+        buf = await svc.export_users_to_excel(role=role)
+        return Response(
+            content=buf.getvalue(),
+            media_type=EXCEL_MIME,
+            headers={"Content-Disposition": "attachment; filename=usuarios.xlsx"},
+        )
+    except (DatabaseOperationError, FileCorruptedError) as e:
+        raise HTTPException(status_code=e.status_code, detail=e.detail)
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error inesperado durante la exportación: {str(e)}"
+        )
 
 
 @router.get("/template")
@@ -112,13 +160,22 @@ async def download_import_template(
     current_user: User = Depends(require_admin),
 ):
     """Download Excel template for bulk import (Admin only)."""
+    from app.core.exceptions import FileCorruptedError
+    
     svc = BulkImportService(db)
-    buf = svc.generate_import_template()
-    return Response(
-        content=buf.getvalue(),
-        media_type=EXCEL_MIME,
-        headers={"Content-Disposition": "attachment; filename=plantilla_estudiantes.xlsx"},
-    )
+    
+    try:
+        buf = svc.generate_import_template()
+        return Response(
+            content=buf.getvalue(),
+            media_type=EXCEL_MIME,
+            headers={"Content-Disposition": "attachment; filename=plantilla_estudiantes.xlsx"},
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error generando plantilla: {str(e)}"
+        )
 
 
 @router.get("/{user_id}", response_model=UserResponse)

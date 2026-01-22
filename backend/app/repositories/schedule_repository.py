@@ -4,7 +4,7 @@ TASK-006 a TASK-009. Validación de solapamientos (aula, profesor, estudiante)
 y consulta de horario semanal por rol. Async para uso en API.
 """
 
-from datetime import time
+from datetime import time, date
 from typing import List, Optional
 
 from sqlalchemy import select, and_
@@ -172,3 +172,145 @@ class ScheduleRepository:
         )
         result = await self.db.execute(stmt)
         return list(result.scalars().all())
+
+    async def find_classroom_overlaps_by_date(
+        self,
+        classroom_id: int,
+        fecha: date,
+        hora_inicio: time,
+        hora_fin: time,
+        exclude_schedule_id: Optional[int] = None,
+    ) -> List[Schedule]:
+        """Find classroom conflicts for a specific date.
+        
+        Args:
+            classroom_id: ID of the classroom to check
+            fecha: Specific date to check for conflicts
+            hora_inicio: Start time of the schedule
+            hora_fin: End time of the schedule
+            exclude_schedule_id: Optional schedule ID to exclude from conflict check
+            
+        Returns:
+            List of conflicting schedules for the same classroom on the specific date
+        """
+        stmt = (
+            select(Schedule)
+            .where(
+                Schedule.classroom_id == classroom_id,
+                Schedule.fecha_especifica == fecha,
+                _overlap_condition(hora_inicio, hora_fin),
+            )
+        )
+        if exclude_schedule_id is not None:
+            stmt = stmt.where(Schedule.id != exclude_schedule_id)
+        
+        result = await self.db.execute(stmt)
+        return list(result.scalars().all())
+
+    async def find_professor_overlaps_by_date(
+        self,
+        profesor_id: int,
+        fecha: date,
+        hora_inicio: time,
+        hora_fin: time,
+        exclude_schedule_id: Optional[int] = None,
+    ) -> List[Schedule]:
+        """Find professor conflicts for a specific date.
+        
+        Args:
+            profesor_id: ID of the professor to check
+            fecha: Specific date to check for conflicts
+            hora_inicio: Start time of the schedule
+            hora_fin: End time of the schedule
+            exclude_schedule_id: Optional schedule ID to exclude from conflict check
+            
+        Returns:
+            List of conflicting schedules for the same professor on the specific date
+        """
+        stmt = (
+            select(Schedule)
+            .join(Subject, Schedule.subject_id == Subject.id)
+            .where(
+                Subject.profesor_id == profesor_id,
+                Schedule.fecha_especifica == fecha,
+                _overlap_condition(hora_inicio, hora_fin),
+            )
+        )
+        if exclude_schedule_id is not None:
+            stmt = stmt.where(Schedule.id != exclude_schedule_id)
+        
+        result = await self.db.execute(stmt)
+        return list(result.scalars().all())
+
+    async def get_schedules_by_date_range(
+        self,
+        start_date: date,
+        end_date: date,
+        user_id: Optional[int] = None,
+        role: Optional[UserRole] = None,
+    ) -> List[Schedule]:
+        """Get schedules for a date range, including both weekly and date-specific.
+        
+        Args:
+            start_date: Start date of the range (inclusive)
+            end_date: End date of the range (inclusive)
+            user_id: Optional user ID for filtering by role
+            role: Optional user role for filtering schedules
+            
+        Returns:
+            List of schedules within the date range, including:
+            - Date-specific schedules that fall within the range
+            - Weekly recurring schedules (without fecha_especifica)
+        """
+        # Base query for date-specific schedules within the range
+        date_query = (
+            select(Schedule)
+            .where(Schedule.fecha_especifica.between(start_date, end_date))
+            .options(
+                joinedload(Schedule.subject).joinedload(Subject.profesor),
+                joinedload(Schedule.classroom),
+            )
+        )
+        
+        # Base query for weekly recurring schedules (no specific date)
+        weekly_query = (
+            select(Schedule)
+            .where(Schedule.fecha_especifica.is_(None))
+            .options(
+                joinedload(Schedule.subject).joinedload(Subject.profesor),
+                joinedload(Schedule.classroom),
+            )
+        )
+        
+        # Apply user/role filters if provided
+        if user_id is not None and role is not None:
+            if role == UserRole.PROFESOR:
+                # Filter by professor's subjects
+                date_query = date_query.join(Subject).where(Subject.profesor_id == user_id)
+                weekly_query = weekly_query.join(Subject).where(Subject.profesor_id == user_id)
+            elif role == UserRole.ESTUDIANTE:
+                # Filter by student's enrolled subjects
+                date_query = (
+                    date_query.join(Subject)
+                    .join(Enrollment, and_(
+                        Enrollment.subject_id == Subject.id,
+                        Enrollment.estudiante_id == user_id,
+                    ))
+                )
+                weekly_query = (
+                    weekly_query.join(Subject)
+                    .join(Enrollment, and_(
+                        Enrollment.subject_id == Subject.id,
+                        Enrollment.estudiante_id == user_id,
+                    ))
+                )
+        
+        # Execute both queries
+        date_result = await self.db.execute(date_query)
+        weekly_result = await self.db.execute(weekly_query)
+        
+        # Combine results and return
+        date_schedules = list(date_result.scalars().all())
+        weekly_schedules = list(weekly_result.scalars().all())
+        
+        return date_schedules + weekly_schedules

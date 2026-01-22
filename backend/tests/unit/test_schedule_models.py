@@ -5,7 +5,7 @@ Following INVEST: Independent, Negotiable, Valuable, Estimable, Small, Testable.
 """
 
 import pytest
-from datetime import time
+from datetime import time, date
 from sqlalchemy.exc import IntegrityError
 
 from app.models.schedule import Classroom, Schedule
@@ -198,3 +198,131 @@ class TestScheduleModel:
         db_session.commit()
 
         assert s1.id != s2.id
+
+    @pytest.mark.unit
+    def test_schedule_with_fecha_especifica(self, db_session, subject, classroom):
+        """Schedule puede tener fecha_especifica para horarios de fecha específica."""
+        specific_date = date(2024, 3, 15)  # Friday
+        schedule = Schedule(
+            subject_id=subject.id,
+            classroom_id=classroom.id,
+            dia_semana=5,  # Friday
+            hora_inicio=time(8, 0),
+            hora_fin=time(10, 0),
+            fecha_especifica=specific_date,
+        )
+        db_session.add(schedule)
+        db_session.commit()
+
+        assert schedule.fecha_especifica == specific_date
+        assert schedule.dia_semana == 5
+
+    @pytest.mark.unit
+    def test_schedule_fecha_especifica_nullable(self, db_session, subject, classroom):
+        """fecha_especifica debe ser nullable para mantener compatibilidad."""
+        schedule = Schedule(
+            subject_id=subject.id,
+            classroom_id=classroom.id,
+            dia_semana=1,
+            hora_inicio=time(8, 0),
+            hora_fin=time(10, 0),
+            # fecha_especifica=None (default)
+        )
+        db_session.add(schedule)
+        db_session.commit()
+
+        assert schedule.fecha_especifica is None
+        assert schedule.dia_semana == 1
+
+    @pytest.mark.unit
+    def test_schedule_unique_fecha_especifica_constraint(self, db_session, subject, classroom):
+        """Constraint: (subject_id, fecha_especifica, hora_inicio) debe ser único."""
+        specific_date = date(2024, 3, 15)
+        
+        s1 = Schedule(
+            subject_id=subject.id,
+            classroom_id=classroom.id,
+            dia_semana=5,
+            hora_inicio=time(8, 0),
+            hora_fin=time(10, 0),
+            fecha_especifica=specific_date,
+        )
+        db_session.add(s1)
+        db_session.commit()
+
+        # Misma asignatura, misma fecha específica, misma hora_inicio -> debe fallar
+        s2 = Schedule(
+            subject_id=subject.id,
+            classroom_id=classroom.id,
+            dia_semana=5,
+            hora_inicio=time(8, 0),
+            hora_fin=time(9, 0),
+            fecha_especifica=specific_date,
+        )
+        db_session.add(s2)
+        with pytest.raises(IntegrityError):
+            db_session.commit()
+
+    @pytest.mark.unit
+    def test_schedule_fecha_especifica_different_dates_ok(self, db_session, subject, classroom):
+        """Misma asignatura y hora pero fechas específicas diferentes debe permitirse."""
+        date1 = date(2024, 3, 15)  # Friday
+        date2 = date(2024, 3, 22)  # Next Friday
+        
+        s1 = Schedule(
+            subject_id=subject.id,
+            classroom_id=classroom.id,
+            dia_semana=5,
+            hora_inicio=time(8, 0),
+            hora_fin=time(10, 0),
+            fecha_especifica=date1,
+        )
+        db_session.add(s1)
+        db_session.commit()
+
+        s2 = Schedule(
+            subject_id=subject.id,
+            classroom_id=classroom.id,
+            dia_semana=5,
+            hora_inicio=time(10, 0),  # Different time to avoid weekly constraint conflict
+            hora_fin=time(12, 0),
+            fecha_especifica=date2,
+        )
+        db_session.add(s2)
+        db_session.commit()
+
+        assert s1.id != s2.id
+        assert s1.fecha_especifica != s2.fecha_especifica
+
+    @pytest.mark.unit
+    def test_schedule_fecha_especifica_and_weekly_coexist(self, db_session, subject, classroom):
+        """Horarios con fecha específica y semanales pueden coexistir."""
+        specific_date = date(2024, 3, 15)  # Friday
+        
+        # Horario semanal (sin fecha específica)
+        weekly_schedule = Schedule(
+            subject_id=subject.id,
+            classroom_id=classroom.id,
+            dia_semana=5,  # Friday
+            hora_inicio=time(8, 0),
+            hora_fin=time(10, 0),
+            # fecha_especifica=None
+        )
+        db_session.add(weekly_schedule)
+        db_session.commit()
+
+        # Horario para fecha específica (mismo día de semana)
+        specific_schedule = Schedule(
+            subject_id=subject.id,
+            classroom_id=classroom.id,
+            dia_semana=5,  # Friday
+            hora_inicio=time(10, 0),  # Different time
+            hora_fin=time(12, 0),
+            fecha_especifica=specific_date,
+        )
+        db_session.add(specific_schedule)
+        db_session.commit()
+
+        assert weekly_schedule.fecha_especifica is None
+        assert specific_schedule.fecha_especifica == specific_date
+        assert weekly_schedule.id != specific_schedule.id

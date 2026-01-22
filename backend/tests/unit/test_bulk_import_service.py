@@ -8,6 +8,13 @@ import pandas as pd
 
 from app.schemas.bulk_import import EstudianteImportRow, BulkImportError
 from app.services.bulk_import_service import BulkImportService
+from app.core.exceptions import (
+    FileCorruptedError,
+    EmptyFileError,
+    MissingColumnsError,
+    TooManyRowsError,
+    DatabaseOperationError,
+)
 
 
 def _excel_bytes(rows: list[dict]) -> BytesIO:
@@ -46,15 +53,17 @@ class TestParseExcel:
         assert got[0]["rol"] == "Estudiante"
 
     def test_parse_excel_missing_column_raises(self):
-        """Missing required column raises ValueError."""
+        """Missing required column raises MissingColumnsError."""
         data = [{"email": "a@sofka.edu", "nombre": "A"}]  # missing password, etc.
         buf = _excel_bytes(data)
         svc = BulkImportService(None)
-        with pytest.raises(ValueError, match="columnas|requeridas|faltan"):
+        with pytest.raises(MissingColumnsError) as exc_info:
             svc.parse_excel(buf)
+        assert "password" in str(exc_info.value.detail)
+        assert "apellido" in str(exc_info.value.detail)
 
     def test_parse_excel_more_than_1000_rows_raises(self):
-        """More than 1000 data rows raises ValueError."""
+        """More than 1000 data rows raises TooManyRowsError."""
         row = {
             "email": "a@sofka.edu",
             "password": "Password123!",
@@ -69,8 +78,28 @@ class TestParseExcel:
         data = [dict(row, email=f"u{i}@sofka.edu") for i in range(1001)]
         buf = _excel_bytes(data)
         svc = BulkImportService(None)
-        with pytest.raises(ValueError, match="1000|límite"):
+        with pytest.raises(TooManyRowsError) as exc_info:
             svc.parse_excel(buf)
+        assert "1001" in str(exc_info.value.detail)
+        assert "1000" in str(exc_info.value.detail)
+
+    def test_parse_excel_empty_file_raises(self):
+        """Empty Excel file raises EmptyFileError."""
+        data = []  # No data rows
+        buf = _excel_bytes(data)
+        svc = BulkImportService(None)
+        with pytest.raises(EmptyFileError) as exc_info:
+            svc.parse_excel(buf)
+        assert "vacío" in str(exc_info.value.detail) or "no contiene datos" in str(exc_info.value.detail)
+
+    def test_parse_excel_corrupted_file_raises(self):
+        """Corrupted file content raises FileCorruptedError."""
+        # Create invalid Excel content
+        buf = BytesIO(b"This is not an Excel file")
+        svc = BulkImportService(None)
+        with pytest.raises(FileCorruptedError) as exc_info:
+            svc.parse_excel(buf)
+        assert "corrupto" in str(exc_info.value.detail) or "no se puede leer" in str(exc_info.value.detail)
 
 
 class TestValidateRows:
@@ -211,6 +240,14 @@ class TestExportUsersToExcel:
         assert "password" not in cols
         assert "password_hash" not in cols
 
+    @pytest.mark.asyncio
+    async def test_export_without_database_raises_error(self):
+        """export_users_to_excel without database raises DatabaseOperationError."""
+        svc = BulkImportService(None)  # No database connection
+        with pytest.raises(DatabaseOperationError) as exc_info:
+            await svc.export_users_to_excel()
+        assert "database connection" in str(exc_info.value.detail) or "inicialización" in str(exc_info.value.detail)
+
 
 @pytest.mark.asyncio
 class TestBulkImportStudents:
@@ -288,3 +325,23 @@ class TestBulkImportStudents:
         assert user.codigo_institucional == "EST-2026-0001"
         assert user.nombre == "Updated"
         assert user.ciudad_residencia == "Medellín"
+
+    async def test_import_without_database_raises_error(self):
+        """bulk_import_students without database raises DatabaseOperationError."""
+        rows = [
+            EstudianteImportRow(
+                email="test@sofka.edu",
+                password="Password123!",
+                nombre="Test",
+                apellido="User",
+                rol="Estudiante",
+                fecha_nacimiento=date(2000, 1, 1),
+                numero_contacto="3001234567",
+                programa_academico="Test",
+                ciudad_residencia="Test",
+            ),
+        ]
+        svc = BulkImportService(None)  # No database connection
+        with pytest.raises(DatabaseOperationError) as exc_info:
+            await svc.bulk_import_students(rows)
+        assert "database connection" in str(exc_info.value.detail) or "inicialización" in str(exc_info.value.detail)

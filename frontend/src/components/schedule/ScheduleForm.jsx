@@ -9,6 +9,7 @@ const DIAS = [
   { value: 4, label: 'Jueves' },
   { value: 5, label: 'Viernes' },
   { value: 6, label: 'Sábado' },
+  { value: 7, label: 'Domingo' },
 ]
 
 function toTimeStr(v) {
@@ -25,6 +26,8 @@ export default function ScheduleForm({ isOpen, onClose, onSuccess }) {
     dia_semana: 1,
     hora_inicio: '08:00',
     hora_fin: '10:00',
+    fecha_especifica: '', // New field for specific date
+    es_fecha_especifica: false, // Toggle for date-specific mode
   })
   const [subjects, setSubjects] = useState([])
   const [classrooms, setClassrooms] = useState([])
@@ -35,7 +38,15 @@ export default function ScheduleForm({ isOpen, onClose, onSuccess }) {
 
   useEffect(() => {
     if (!isOpen) return
-    setFormData({ subject_id: '', classroom_id: '', dia_semana: 1, hora_inicio: '08:00', hora_fin: '10:00' })
+    setFormData({ 
+      subject_id: '', 
+      classroom_id: '', 
+      dia_semana: 1, 
+      hora_inicio: '08:00', 
+      hora_fin: '10:00',
+      fecha_especifica: '',
+      es_fecha_especifica: false,
+    })
     setErrors({})
     setConflictError('')
   }, [isOpen])
@@ -62,8 +73,33 @@ export default function ScheduleForm({ isOpen, onClose, onSuccess }) {
   }, [isOpen])
 
   const handleChange = (e) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: name === 'dia_semana' ? parseInt(value, 10) : value }))
+    const { name, value, type, checked } = e.target
+    
+    setFormData((prev) => {
+      const updates = { ...prev }
+      
+      if (type === 'checkbox') {
+        updates[name] = checked
+        // If toggling date-specific mode off, clear the specific date
+        if (name === 'es_fecha_especifica' && !checked) {
+          updates.fecha_especifica = ''
+        }
+      } else if (name === 'fecha_especifica') {
+        updates[name] = value
+        // Auto-calculate dia_semana from selected date
+        if (value) {
+          const selectedDate = new Date(value)
+          const dayOfWeek = selectedDate.getDay() // 0 = Sunday, 1 = Monday, etc.
+          // Convert to our format: 1 = Monday, 2 = Tuesday, ..., 6 = Saturday, 7 = Sunday
+          updates.dia_semana = dayOfWeek === 0 ? 7 : dayOfWeek
+        }
+      } else {
+        updates[name] = name === 'dia_semana' ? parseInt(value, 10) : value
+      }
+      
+      return updates
+    })
+    
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: '' }))
     setConflictError('')
   }
@@ -74,6 +110,34 @@ export default function ScheduleForm({ isOpen, onClose, onSuccess }) {
     if (!formData.classroom_id) e.classroom_id = 'Seleccione un aula'
     if (!formData.hora_inicio) e.hora_inicio = 'Hora de inicio requerida'
     if (!formData.hora_fin) e.hora_fin = 'Hora de fin requerida'
+    
+    // Validate date-specific mode requirements
+    if (formData.es_fecha_especifica && !formData.fecha_especifica) {
+      e.fecha_especifica = 'Fecha específica requerida'
+    }
+    
+    // Validate that specific date is not in the past
+    if (formData.fecha_especifica) {
+      const selectedDate = new Date(formData.fecha_especifica)
+      const today = new Date()
+      today.setHours(0, 0, 0, 0) // Reset time to compare only dates
+      if (selectedDate < today) {
+        e.fecha_especifica = 'No se pueden crear horarios para fechas pasadas'
+      }
+    }
+    
+    // Validate time consistency
+    if (formData.hora_inicio && formData.hora_fin) {
+      const startTime = formData.hora_inicio.split(':').map(Number)
+      const endTime = formData.hora_fin.split(':').map(Number)
+      const startMinutes = startTime[0] * 60 + startTime[1]
+      const endMinutes = endTime[0] * 60 + endTime[1]
+      
+      if (startMinutes >= endMinutes) {
+        e.hora_fin = 'La hora de fin debe ser posterior a la hora de inicio'
+      }
+    }
+    
     setErrors(e)
     return Object.keys(e).length === 0
   }
@@ -84,13 +148,20 @@ export default function ScheduleForm({ isOpen, onClose, onSuccess }) {
     setConflictError('')
     setLoading(true)
     try {
-      await scheduleService.create({
+      const submitData = {
         subject_id: parseInt(formData.subject_id, 10),
         classroom_id: parseInt(formData.classroom_id, 10),
         dia_semana: formData.dia_semana,
         hora_inicio: toTimeStr(formData.hora_inicio),
         hora_fin: toTimeStr(formData.hora_fin),
-      })
+      }
+
+      // Add date-specific field if enabled
+      if (formData.es_fecha_especifica && formData.fecha_especifica) {
+        submitData.fecha_especifica = formData.fecha_especifica
+      }
+
+      await scheduleService.create(submitData)
       onSuccess?.()
       onClose?.()
     } catch (err) {
@@ -170,18 +241,71 @@ export default function ScheduleForm({ isOpen, onClose, onSuccess }) {
             {errors.classroom_id && <p className="mt-1 text-sm text-red-600">{errors.classroom_id}</p>}
           </div>
 
+          {/* New: Date-specific mode toggle */}
+          <div className="border-t border-gray-200 pt-4">
+            <div className="flex items-center space-x-3">
+              <input
+                type="checkbox"
+                id="es_fecha_especifica"
+                name="es_fecha_especifica"
+                checked={formData.es_fecha_especifica}
+                onChange={handleChange}
+                className="h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+              />
+              <label htmlFor="es_fecha_especifica" className="text-sm font-medium text-gray-700">
+                Programar para fecha específica
+              </label>
+            </div>
+            <p className="mt-1 text-xs text-gray-500">
+              {formData.es_fecha_especifica 
+                ? 'El horario se creará solo para la fecha seleccionada' 
+                : 'El horario se repetirá semanalmente en el día seleccionado'
+              }
+            </p>
+          </div>
+
+          {/* New: Date picker (conditional) */}
+          {formData.es_fecha_especifica && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Fecha específica
+              </label>
+              <input
+                type="date"
+                name="fecha_especifica"
+                value={formData.fecha_especifica}
+                onChange={handleChange}
+                min={new Date().toISOString().split('T')[0]} // Prevent past dates
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                required={formData.es_fecha_especifica}
+              />
+              {errors.fecha_especifica && <p className="mt-1 text-sm text-red-600">{errors.fecha_especifica}</p>}
+            </div>
+          )}
+
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Día</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Día de la semana
+              {formData.es_fecha_especifica && (
+                <span className="text-xs text-gray-500 ml-1">(calculado automáticamente)</span>
+              )}
+            </label>
             <select
               name="dia_semana"
               value={formData.dia_semana}
               onChange={handleChange}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+              disabled={formData.es_fecha_especifica}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 disabled:bg-gray-100 disabled:text-gray-500"
             >
               {DIAS.map((d) => (
                 <option key={d.value} value={d.value}>{d.label}</option>
               ))}
             </select>
+            {formData.es_fecha_especifica && (
+              <p className="mt-1 text-xs text-gray-500">
+                Se calcula automáticamente según la fecha seleccionada
+              </p>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
