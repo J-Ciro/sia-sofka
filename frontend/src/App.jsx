@@ -42,6 +42,18 @@ const AttendanceRoute = () => {
   }
 }
 
+// Componente para renderizar Grades según el rol (solo Admin y Profesor)
+const GradesRoute = () => {
+  const { user } = useAuth()
+  
+  if (user?.role === 'Admin' || user?.role === 'Profesor') {
+    return <Grades />
+  } else {
+    // Redirigir estudiantes a sus materias donde pueden ver sus notas
+    return <Navigate to="/subjects" replace />
+  }
+}
+
 function App() {
   return (
     <AuthProvider>
@@ -54,7 +66,7 @@ function App() {
             <Route path="aulas" element={<Aulas />} />
             <Route path="subjects" element={<SubjectsRoute />} />
             <Route path="enrollments" element={<Enrollments />} />
-            <Route path="grades" element={<Grades />} />
+            <Route path="grades" element={<GradesRoute />} />
             <Route path="reports" element={<Reports />} />
             <Route path="attendance" element={<AttendanceRoute />} />
             <Route path="attendance/history" element={<SessionHistory />} />
