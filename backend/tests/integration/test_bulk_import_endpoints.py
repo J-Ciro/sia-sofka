@@ -106,8 +106,13 @@ async def test_upload_invalid_excel_rejects(client, db_session):
     )
     assert resp.status_code == 400
     j = resp.json()
-    assert "errors" in j or "detail" in j
+    # Should return BulkImportResult with validation errors
+    assert "errors" in j
     assert j.get("created", 0) == 0 and j.get("updated", 0) == 0
+    assert len(j["errors"]) > 0
+    # Check that error contains email validation message
+    email_errors = [e for e in j["errors"] if "email" in e.get("field", "").lower()]
+    assert len(email_errors) > 0
 
 
 @pytest.mark.integration
@@ -200,3 +205,145 @@ async def test_template_endpoint(client, db_session):
     for col in ["email", "password", "nombre", "apellido", "rol", "fecha_nacimiento",
                 "numero_contacto", "programa_academico", "ciudad_residencia"]:
         assert col in df.columns
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_upload_non_xlsx_file_rejects(client, db_session):
+    """POST /api/v1/users/bulk-import with non-.xlsx file returns 400 with specific error."""
+    codigo = await generar_codigo_institucional(db_session, "Admin")
+    admin = User(
+        email="admin5@bulk.com",
+        password_hash=get_password_hash("admin5"),
+        role=UserRole.ADMIN,
+        nombre="Admin",
+        apellido="Bulk",
+        codigo_institucional=codigo,
+        fecha_nacimiento=date(1975, 1, 1),
+    )
+    db_session.add(admin)
+    await db_session.commit()
+    await db_session.refresh(admin)
+    token = create_access_token({"sub": admin.email, "role": admin.role.value})
+
+    # Upload a text file instead of Excel
+    resp = await client.post(
+        "/api/v1/users/bulk-import",
+        files={"file": ("test.txt", b"This is not an Excel file", "text/plain")},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert resp.status_code == 400
+    j = resp.json()
+    assert "detail" in j
+    assert "Solo se aceptan archivos" in j["detail"] or ".xlsx" in j["detail"]
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_upload_missing_columns_rejects(client, db_session):
+    """POST /api/v1/users/bulk-import with missing required columns returns 400."""
+    codigo = await generar_codigo_institucional(db_session, "Admin")
+    admin = User(
+        email="admin6@bulk.com",
+        password_hash=get_password_hash("admin6"),
+        role=UserRole.ADMIN,
+        nombre="Admin",
+        apellido="Bulk",
+        codigo_institucional=codigo,
+        fecha_nacimiento=date(1975, 1, 1),
+    )
+    db_session.add(admin)
+    await db_session.commit()
+    await db_session.refresh(admin)
+    token = create_access_token({"sub": admin.email, "role": admin.role.value})
+
+    # Excel with missing required columns
+    data = [{"email": "test@sofka.edu", "nombre": "Test"}]  # Missing many required columns
+    excel = _make_excel(data)
+    resp = await client.post(
+        "/api/v1/users/bulk-import",
+        files={"file": ("missing_cols.xlsx", excel, EXCEL_TYPE)},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert resp.status_code == 400
+    j = resp.json()
+    assert "detail" in j
+    assert "Faltan" in j["detail"] and "columnas" in j["detail"]
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_upload_empty_excel_rejects(client, db_session):
+    """POST /api/v1/users/bulk-import with empty Excel returns 400."""
+    codigo = await generar_codigo_institucional(db_session, "Admin")
+    admin = User(
+        email="admin7@bulk.com",
+        password_hash=get_password_hash("admin7"),
+        role=UserRole.ADMIN,
+        nombre="Admin",
+        apellido="Bulk",
+        codigo_institucional=codigo,
+        fecha_nacimiento=date(1975, 1, 1),
+    )
+    db_session.add(admin)
+    await db_session.commit()
+    await db_session.refresh(admin)
+    token = create_access_token({"sub": admin.email, "role": admin.role.value})
+
+    # Empty Excel file
+    data = []  # No data rows
+    excel = _make_excel(data)
+    resp = await client.post(
+        "/api/v1/users/bulk-import",
+        files={"file": ("empty.xlsx", excel, EXCEL_TYPE)},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert resp.status_code == 400
+    j = resp.json()
+    assert "detail" in j
+    assert "vacío" in j["detail"] or "no contiene datos" in j["detail"]
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_upload_too_many_rows_rejects(client, db_session):
+    """POST /api/v1/users/bulk-import with >1000 rows returns 400."""
+    codigo = await generar_codigo_institucional(db_session, "Admin")
+    admin = User(
+        email="admin8@bulk.com",
+        password_hash=get_password_hash("admin8"),
+        role=UserRole.ADMIN,
+        nombre="Admin",
+        apellido="Bulk",
+        codigo_institucional=codigo,
+        fecha_nacimiento=date(1975, 1, 1),
+    )
+    db_session.add(admin)
+    await db_session.commit()
+    await db_session.refresh(admin)
+    token = create_access_token({"sub": admin.email, "role": admin.role.value})
+
+    # Create Excel with 1001 rows
+    base_row = {
+        "email": "test@sofka.edu",
+        "password": "Password123!",
+        "nombre": "Test",
+        "apellido": "User",
+        "rol": "Estudiante",
+        "fecha_nacimiento": date(2000, 1, 1),
+        "numero_contacto": "3001234567",
+        "programa_academico": "Test",
+        "ciudad_residencia": "Test",
+    }
+    data = [dict(base_row, email=f"test{i}@sofka.edu") for i in range(1001)]
+    excel = _make_excel(data)
+    
+    resp = await client.post(
+        "/api/v1/users/bulk-import",
+        files={"file": ("too_many.xlsx", excel, EXCEL_TYPE)},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert resp.status_code == 400
+    j = resp.json()
+    assert "detail" in j
+    assert "1001" in j["detail"] and "1000" in j["detail"]
