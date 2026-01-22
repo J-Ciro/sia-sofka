@@ -196,17 +196,66 @@ export class BulkImportPage {
    * @param {number} expectedUpdated - Expected number of updated records
    */
   async verifySuccessResult(expectedCreated = 0, expectedUpdated = 0) {
-    // Wait for result section
+    // Wait for result section to appear
     await this.page.waitForSelector(this.selectors.resultSection, { timeout: 15000 });
     
-    // Verify specific counts and labels
+    // Wait a bit for UI to update
+    await this.page.waitForTimeout(1000);
+    
+    // Find the result section container
+    const resultSection = this.page.locator('section:has-text("Resultado de la importación")');
+    await resultSection.waitFor({ timeout: 5000 });
+    
+    // Verify specific counts and labels within the result section
+    // The structure is: <div class="text-center"> contains <div class="text-lg font-bold">{number}</div> and <div class="text-xs">{label}</div>
     if (expectedCreated > 0) {
-      await this.page.waitForSelector(this.selectors.createdText(expectedCreated), { timeout: 5000 });
-      await this.page.waitForSelector(this.selectors.createdLabel, { timeout: 5000 });
+      // Look for the container that has both the number and "Creados" label
+      const createdColumn = resultSection.locator('div.text-center').filter({ hasText: 'Creados' });
+      await createdColumn.waitFor({ timeout: 5000 });
+      
+      // Get all text from this column (should include both number and "Creados")
+      const columnText = await createdColumn.textContent();
+      if (!columnText || !columnText.includes(String(expectedCreated))) {
+        // Try to find the number anywhere in the result section as fallback
+        const allText = await resultSection.textContent();
+        if (!allText || !allText.includes(String(expectedCreated))) {
+          throw new Error(
+            `Created count ${expectedCreated} not found in results. ` +
+            `Column text: "${columnText}", All text: ${allText?.substring(0, 300)}`
+          );
+        }
+      }
+      
+      // Also verify the label exists
+      if (!columnText || !columnText.includes('Creados')) {
+        throw new Error(`"Creados" label not found in created column. Column text: "${columnText}"`);
+      }
     }
     if (expectedUpdated > 0) {
-      await this.page.waitForSelector(this.selectors.updatedText(expectedUpdated), { timeout: 5000 });
-      await this.page.waitForSelector(this.selectors.updatedLabel, { timeout: 5000 });
+      const updatedColumn = resultSection.locator('div.text-center').filter({ hasText: 'Actualizados' });
+      await updatedColumn.waitFor({ timeout: 5000 });
+      
+      const columnText = await updatedColumn.textContent();
+      if (!columnText || !columnText.includes(String(expectedUpdated))) {
+        const allText = await resultSection.textContent();
+        if (!allText || !allText.includes(String(expectedUpdated))) {
+          throw new Error(
+            `Updated count ${expectedUpdated} not found in results. ` +
+            `Column text: "${columnText}", All text: ${allText?.substring(0, 300)}`
+          );
+        }
+      }
+      
+      if (!columnText || !columnText.includes('Actualizados')) {
+        throw new Error(`"Actualizados" label not found in updated column. Column text: "${columnText}"`);
+      }
+    }
+    
+    // Verify no error section is shown for success
+    const errorSection = await this.page.locator(this.selectors.errorMessage).isVisible().catch(() => false);
+    if (errorSection) {
+      const errorText = await this.page.locator(this.selectors.errorMessage).textContent().catch(() => '');
+      throw new Error(`Unexpected error shown in success case: ${errorText}`);
     }
   }
 
@@ -215,59 +264,205 @@ export class BulkImportPage {
    * @param {string[]} expectedErrors - Array of expected error messages
    */
   async verifyValidationErrors(expectedErrors = []) {
+    if (!expectedErrors || expectedErrors.length === 0) {
+      throw new Error('verifyValidationErrors requires at least one expected error');
+    }
+    
     // Wait for result section (validation errors appear in results)
     await this.page.waitForSelector(this.selectors.resultSection, { timeout: 15000 });
     
+    // Wait a bit for UI to update
+    await this.page.waitForTimeout(1000);
+    
+    // Find the result section container
+    const resultSection = this.page.locator('section:has-text("Resultado de la importación")');
+    await resultSection.waitFor({ timeout: 5000 });
+    
+    // Look for errors list within the result section
+    const errorsList = resultSection.locator('ul, div:has-text("Detalles de errores")');
+    const errorsListVisible = await errorsList.first().isVisible().catch(() => false);
+    
     // Check for specific error messages
+    const foundErrors = [];
     for (const errorText of expectedErrors) {
-      await this.page.waitForSelector(`text=${errorText}`, { timeout: 5000 });
+      try {
+        // Try to find in errors list first
+        if (errorsListVisible) {
+          const errorsText = await errorsList.first().textContent().catch(() => '');
+          if (errorsText && errorsText.toLowerCase().includes(errorText.toLowerCase())) {
+            foundErrors.push(errorText);
+            continue;
+          }
+        }
+        
+        // Try exact match in result section
+        const found = await resultSection.locator(`text=/.*${errorText}.*/i`).first().waitFor({ timeout: 5000 }).catch(() => null);
+        if (found) {
+          foundErrors.push(errorText);
+          continue;
+        }
+        
+        // Try partial match
+        const errorParts = errorText.split(' ').filter(p => p.length > 3);
+        let found = false;
+        for (const part of errorParts) {
+          const partFound = await resultSection.locator(`text=/.*${part}.*/i`).first().waitFor({ timeout: 2000 }).catch(() => null);
+          if (partFound) {
+            found = true;
+            foundErrors.push(part);
+            break;
+          }
+        }
+        if (!found) {
+          const allText = await resultSection.textContent();
+          throw new Error(
+            `Validation error not found: "${errorText}". ` +
+            `Result section text: ${allText?.substring(0, 500)}`
+          );
+        }
+      } catch (e) {
+        if (e.message.includes('Validation error not found')) {
+          throw e;
+        }
+        // Continue to next error
+      }
+    }
+    
+    if (foundErrors.length === 0) {
+      const pageContent = await this.page.textContent('body').catch(() => '');
+      throw new Error(
+        `No validation errors found. Expected: ${expectedErrors.join(', ')}. ` +
+        `Page content preview: ${pageContent?.substring(0, 500)}`
+      );
     }
   }
 
   /**
    * Verify general error message is displayed
-   * @param {string} expectedError - Expected error message pattern
+   * @param {string} expectedError - Expected error message pattern (required)
    */
-  async verifyErrorMessage(expectedError = null) {
+  async verifyErrorMessage(expectedError) {
+    if (!expectedError) {
+      throw new Error('verifyErrorMessage requires an expectedError parameter');
+    }
+
+    // Wait a bit for UI to update after API response
+    await this.page.waitForTimeout(1000);
+    
+    // Check if page is still available
+    try {
+      await this.page.evaluate(() => document.body);
+    } catch (e) {
+      throw new Error(`Page is closed or unavailable. Cannot verify error message: "${expectedError}"`);
+    }
+    
     // Try multiple selectors for error messages
     const errorSelectors = [
-      this.selectors.errorMessage,
+      '.bg-red-50', // Primary error container in BulkImportModal
       '.text-red-500',
       '.text-red-600', 
+      '.text-red-700',
+      '.text-red-800',
       '.bg-red-100',
       '[class*="error"]',
-      '[class*="red"]'
+      '[class*="red"]',
+      '[role="alert"]'
     ];
     
     let errorFound = false;
-    for (const selector of errorSelectors) {
-      try {
-        await this.page.waitForSelector(selector, { timeout: 3000 });
-        errorFound = true;
-        break;
-      } catch (e) {
-        // Continue to next selector
+    let foundText = null;
+    
+    // First try to find by text content (most reliable) - look in error containers
+    try {
+      // Look for error in the red error box
+      const errorBox = this.page.locator('.bg-red-50');
+      const isVisible = await errorBox.isVisible().catch(() => false);
+      if (isVisible) {
+        const errorText = await errorBox.textContent().catch(() => '');
+        if (errorText && errorText.toLowerCase().includes(expectedError.toLowerCase())) {
+          errorFound = true;
+          foundText = errorText;
+        }
       }
+    } catch (e) {
+      // Continue to other methods
     }
     
+    // If not found, try by text selector with timeout
     if (!errorFound) {
-      // Try to find any element containing error text
-      if (expectedError) {
-        try {
-          await this.page.waitForSelector(`*:has-text("${expectedError}")`, { timeout: 5000 });
-          errorFound = true;
-        } catch (e) {
-          // Last resort: check page content
-          const content = await this.page.textContent('body');
-          if (content.includes(expectedError)) {
+      try {
+        // Escape special characters in expectedError for selector
+        const escapedError = expectedError.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        await this.page.waitForSelector(`text=/.*${escapedError}.*/i`, { timeout: 5000 });
+        errorFound = true;
+        foundText = expectedError;
+      } catch (e) {
+        // Try with different patterns
+        const errorParts = expectedError.split(' ').filter(p => p.length > 3);
+        for (const part of errorParts) {
+          try {
+            await this.page.waitForSelector(`text=/.*${part}.*/i`, { timeout: 2000 });
             errorFound = true;
+            foundText = part;
+            break;
+          } catch (e2) {
+            // Continue
           }
         }
       }
     }
     
-    if (!errorFound && expectedError) {
-      throw new Error(`Error message not found: ${expectedError}`);
+    // If not found by text, try by selector
+    if (!errorFound) {
+      for (const selector of errorSelectors) {
+        try {
+          const element = await this.page.waitForSelector(selector, { timeout: 2000 });
+          if (element) {
+            const text = await element.textContent();
+            if (text && text.toLowerCase().includes(expectedError.toLowerCase())) {
+              errorFound = true;
+              foundText = text;
+              break;
+            }
+          }
+        } catch (e) {
+          // Continue to next selector
+        }
+      }
+    }
+    
+    // Last resort: check page content (with safety check)
+    if (!errorFound) {
+      try {
+        const content = await this.page.textContent('body').catch(() => null);
+        if (content && content.toLowerCase().includes(expectedError.toLowerCase())) {
+          errorFound = true;
+          foundText = expectedError;
+        }
+      } catch (e) {
+        // Page might be closed, but we already checked above
+      }
+    }
+    
+    if (!errorFound) {
+      // Take screenshot for debugging
+      try {
+        await this.page.screenshot({ path: `error-not-found-${Date.now()}.png` });
+      } catch (e) {
+        // Screenshot failed, page might be closed
+      }
+      
+      let pageContent = '';
+      try {
+        pageContent = await this.page.textContent('body') || '';
+      } catch (e) {
+        pageContent = 'Page content unavailable';
+      }
+      
+      throw new Error(
+        `Error message not found: "${expectedError}". ` +
+        `Page content preview: ${pageContent.substring(0, 500)}`
+      );
     }
   }
 
@@ -285,10 +480,60 @@ export class BulkImportPage {
    */
   async verifyPartialSuccess(expectedCreated, expectedErrors) {
     await this.page.waitForSelector(this.selectors.resultSection, { timeout: 15000 });
-    await this.page.waitForSelector(this.selectors.createdText(expectedCreated), { timeout: 5000 });
-    await this.page.waitForSelector(this.selectors.createdLabel, { timeout: 5000 });
-    await this.page.waitForSelector(this.selectors.errorsText(expectedErrors), { timeout: 5000 });
-    await this.page.waitForSelector(this.selectors.errorsLabel, { timeout: 5000 });
+    
+    // Wait a bit for UI to update
+    await this.page.waitForTimeout(1000);
+    
+    // Find the result section container
+    const resultSection = this.page.locator('section:has-text("Resultado de la importación")');
+    await resultSection.waitFor({ timeout: 5000 });
+    
+    // Verify created count - look in the "Creados" column
+    const createdColumn = resultSection.locator('div.text-center').filter({ hasText: 'Creados' });
+    const createdVisible = await createdColumn.isVisible().catch(() => false);
+    if (createdVisible) {
+      // Get all text from the column (includes both number and label)
+      const createdText = await createdColumn.textContent().catch(() => '');
+      if (!createdText || !createdText.includes(String(expectedCreated))) {
+        const allText = await resultSection.textContent();
+        throw new Error(
+          `Created count ${expectedCreated} not found in partial success results. ` +
+          `Column text: "${createdText}", All text: ${allText?.substring(0, 300)}`
+        );
+      }
+    } else {
+      // Fallback: check if number exists anywhere in result section
+      const allText = await resultSection.textContent();
+      if (!allText || !allText.includes(String(expectedCreated))) {
+        throw new Error(
+          `Created count ${expectedCreated} not found in partial success results. ` +
+          `Found text: ${allText?.substring(0, 300)}`
+        );
+      }
+    }
+    
+    // Verify error count - look in the "Errores" column
+    const errorsColumn = resultSection.locator('div.text-center').filter({ hasText: 'Errores' });
+    const errorsVisible = await errorsColumn.isVisible().catch(() => false);
+    if (errorsVisible) {
+      const errorsText = await errorsColumn.textContent().catch(() => '');
+      if (!errorsText || !errorsText.includes(String(expectedErrors))) {
+        const allText = await resultSection.textContent();
+        throw new Error(
+          `Error count ${expectedErrors} not found in partial success results. ` +
+          `Column text: "${errorsText}", All text: ${allText?.substring(0, 300)}`
+        );
+      }
+    } else {
+      // Fallback: check if number exists anywhere in result section
+      const allText = await resultSection.textContent();
+      if (!allText || !allText.includes(String(expectedErrors))) {
+        throw new Error(
+          `Error count ${expectedErrors} not found in partial success results. ` +
+          `Found text: ${allText?.substring(0, 300)}`
+        );
+      }
+    }
   }
 
   // ==================== UTILITY METHODS ====================

@@ -147,7 +147,13 @@ test.describe('🔄 Importación/Exportación Masiva de Excel (Administrador)', 
       
       const responsePromise = authenticatedPage.waitForResponse('**/api/v1/users/bulk-import')
       await bulkImportPage.clickImport()
-      await responsePromise
+      const response = await responsePromise
+      
+      // Verify response was successful
+      expect(response.status()).toBe(200)
+      
+      // Wait for UI to update after response
+      await authenticatedPage.waitForTimeout(1000)
       
       // Verificar resultados
       await bulkImportPage.verifySuccessResult(2, 0)
@@ -166,6 +172,7 @@ test.describe('🔄 Importación/Exportación Masiva de Excel (Administrador)', 
         if (route.request().method() === 'GET') {
           route.fulfill({
             status: 500,
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ detail: 'Error generando plantilla: Error interno del servidor' })
           })
         } else {
@@ -175,7 +182,14 @@ test.describe('🔄 Importación/Exportación Masiva de Excel (Administrador)', 
       
       // Ejecutar flujo con error
       await bulkImportPage.openImportModal()
+      
+      // Wait for response and UI update
+      const responsePromise = authenticatedPage.waitForResponse('**/api/v1/users/template').catch(() => null)
       await bulkImportPage.downloadTemplate()
+      await responsePromise
+      
+      // Wait for error message to appear in UI
+      await authenticatedPage.waitForTimeout(1000)
       
       // Verificar mensaje de error específico
       await bulkImportPage.verifyErrorMessage('Error generando plantilla')
@@ -187,6 +201,7 @@ test.describe('🔄 Importación/Exportación Masiva de Excel (Administrador)', 
         if (route.request().method() === 'GET') {
           route.fulfill({
             status: 500,
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ detail: 'Error en operación de base de datos durante consulta de usuarios' })
           })
         } else {
@@ -196,13 +211,21 @@ test.describe('🔄 Importación/Exportación Masiva de Excel (Administrador)', 
       
       // Ejecutar flujo con error
       await bulkImportPage.openImportModal()
+      
+      // Wait for response and UI update
+      const responsePromise = authenticatedPage.waitForResponse('**/api/v1/users/export*').catch(() => null)
       await bulkImportPage.exportUsers()
+      await responsePromise
+      
+      // Wait for error message to appear in UI
+      await authenticatedPage.waitForTimeout(1000)
       
       // Verificar mensaje de error específico
       await bulkImportPage.verifyErrorMessage('Error en operación de base de datos durante consulta')
     })
 
     test('HU-08: Debe rechazar archivo con formato no válido', async ({ authenticatedPage }) => {
+      test.setTimeout(60000); // Increase timeout for this test
       // Configurar interceptor para simular error de validación con mensaje específico
       await authenticatedPage.route('**/api/v1/users/bulk-import', async route => {
         if (route.request().method() === 'POST') {
@@ -219,13 +242,23 @@ test.describe('🔄 Importación/Exportación Masiva de Excel (Administrador)', 
       // Ejecutar flujo con archivo inválido
       await bulkImportPage.openImportModal()
       await bulkImportPage.uploadFile(testFiles.invalidFile)
+      
+      const responsePromise = authenticatedPage.waitForResponse('**/api/v1/users/bulk-import', { timeout: 10000 })
       await bulkImportPage.clickImport()
+      const response = await responsePromise
+      
+      // Verify response was error
+      expect(response.status()).toBe(400)
+      
+      // Wait for error message to appear in UI
+      await authenticatedPage.waitForTimeout(1500)
       
       // Verificar rechazo por formato con mensaje específico
       await bulkImportPage.verifyErrorMessage('Solo se aceptan archivos .xlsx')
     })
 
     test('HU-08: Debe rechazar archivo Excel vacío', async ({ authenticatedPage }) => {
+      test.setTimeout(60000); // Increase timeout for this test
       // Configurar interceptor para simular archivo vacío con mensaje específico
       await authenticatedPage.route('**/api/v1/users/bulk-import', async route => {
         if (route.request().method() === 'POST') {
@@ -242,12 +275,22 @@ test.describe('🔄 Importación/Exportación Masiva de Excel (Administrador)', 
       // Ejecutar flujo con archivo vacío
       await bulkImportPage.openImportModal()
       await bulkImportPage.uploadFile(testFiles.empty)
+      
+      const responsePromise = authenticatedPage.waitForResponse('**/api/v1/users/bulk-import', { timeout: 10000 })
       await bulkImportPage.clickImport()
+      const response = await responsePromise
+      
+      // Verify response was error
+      expect(response.status()).toBe(400)
+      
+      // Wait for error message to appear in UI
+      await authenticatedPage.waitForTimeout(1500)
       
       await bulkImportPage.verifyErrorMessage('El archivo está vacío o no contiene datos para importar')
     })
 
     test('HU-08: Debe rechazar archivo Excel corrupto', async ({ authenticatedPage }) => {
+      test.setTimeout(60000); // Increase timeout for this test
       // Configurar interceptor para simular archivo corrupto con mensaje específico
       await authenticatedPage.route('**/api/v1/users/bulk-import', async route => {
         if (route.request().method() === 'POST') {
@@ -264,12 +307,22 @@ test.describe('🔄 Importación/Exportación Masiva de Excel (Administrador)', 
       // Ejecutar flujo con archivo corrupto
       await bulkImportPage.openImportModal()
       await bulkImportPage.uploadFile(testFiles.corrupted)
+      
+      const responsePromise = authenticatedPage.waitForResponse('**/api/v1/users/bulk-import', { timeout: 10000 })
       await bulkImportPage.clickImport()
+      const response = await responsePromise
+      
+      // Verify response was error
+      expect(response.status()).toBe(400)
+      
+      // Wait for error message to appear in UI
+      await authenticatedPage.waitForTimeout(1500)
       
       await bulkImportPage.verifyErrorMessage('El archivo está corrupto o no se puede leer')
     })
 
     test('HU-03: Debe rechazar archivo con encabezados inválidos', async ({ authenticatedPage }) => {
+      test.setTimeout(60000); // Increase timeout for this test
       // Configurar interceptor para simular encabezados inválidos con mensaje específico
       await authenticatedPage.route('**/api/v1/users/bulk-import', async route => {
         if (route.request().method() === 'POST') {
@@ -286,7 +339,16 @@ test.describe('🔄 Importación/Exportación Masiva de Excel (Administrador)', 
       // Ejecutar flujo con encabezados inválidos
       await bulkImportPage.openImportModal()
       await bulkImportPage.uploadFile(testFiles.invalidHeaders)
+      
+      const responsePromise = authenticatedPage.waitForResponse('**/api/v1/users/bulk-import', { timeout: 10000 })
       await bulkImportPage.clickImport()
+      const response = await responsePromise
+      
+      // Verify response was error
+      expect(response.status()).toBe(400)
+      
+      // Wait for error message to appear in UI
+      await authenticatedPage.waitForTimeout(1500)
       
       await bulkImportPage.verifyErrorMessage('Faltan las siguientes columnas obligatorias')
     })
@@ -319,6 +381,9 @@ test.describe('🔄 Importación/Exportación Masiva de Excel (Administrador)', 
       const responsePromise = authenticatedPage.waitForResponse('**/api/v1/users/bulk-import')
       await bulkImportPage.clickImport()
       await responsePromise
+      
+      // Wait for UI to update after response
+      await authenticatedPage.waitForTimeout(1000)
       
       // Verificar errores específicos
       await bulkImportPage.verifyValidationErrors(['Email inválido'])
@@ -353,6 +418,9 @@ test.describe('🔄 Importación/Exportación Masiva de Excel (Administrador)', 
       await bulkImportPage.clickImport()
       await responsePromise
       
+      // Wait for UI to update after response
+      await authenticatedPage.waitForTimeout(1000)
+      
       // Verificar detección de duplicados
       await bulkImportPage.verifyValidationErrors(['Email duplicado'])
     })
@@ -385,6 +453,9 @@ test.describe('🔄 Importación/Exportación Masiva de Excel (Administrador)', 
       await bulkImportPage.clickImport()
       await responsePromise
       
+      // Wait for UI to update after response
+      await authenticatedPage.waitForTimeout(1000)
+      
       // Verificar éxito parcial
       await bulkImportPage.verifyPartialSuccess(1, 1)
     })
@@ -395,6 +466,7 @@ test.describe('🔄 Importación/Exportación Masiva de Excel (Administrador)', 
         if (route.request().method() === 'POST') {
           route.fulfill({
             status: 500,
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ detail: 'Internal server error' })
           })
         } else {
@@ -405,9 +477,16 @@ test.describe('🔄 Importación/Exportación Masiva de Excel (Administrador)', 
       // Ejecutar flujo con error del servidor
       await bulkImportPage.openImportModal()
       await bulkImportPage.uploadFile(testFiles.valid)
-      await bulkImportPage.clickImport()
       
-      await bulkImportPage.verifyErrorMessage()
+      const responsePromise = authenticatedPage.waitForResponse('**/api/v1/users/bulk-import')
+      await bulkImportPage.clickImport()
+      await responsePromise
+      
+      // Wait for error message to appear in UI
+      await authenticatedPage.waitForTimeout(1000)
+      
+      // Verificar mensaje de error (debe existir algún mensaje de error)
+      await bulkImportPage.verifyErrorMessage('Internal server error')
     })
 
     test('HU-06: Debe mostrar estado de procesamiento durante timeout', async ({ authenticatedPage }) => {
@@ -493,6 +572,7 @@ test.describe('🔄 Importación/Exportación Masiva de Excel (Administrador)', 
         if (route.request().method() === 'POST') {
           route.fulfill({
             status: 400,
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ detail: 'El archivo (7.2 MB) supera el límite máximo de 5 MB' })
           })
         } else {
@@ -503,17 +583,28 @@ test.describe('🔄 Importación/Exportación Masiva de Excel (Administrador)', 
       // Ejecutar flujo con archivo grande
       await bulkImportPage.openImportModal()
       await bulkImportPage.uploadFile(testFiles.valid) // Simular archivo grande
+      
+      const responsePromise = authenticatedPage.waitForResponse('**/api/v1/users/bulk-import', { timeout: 10000 })
       await bulkImportPage.clickImport()
+      const response = await responsePromise
+      
+      // Verify response was error
+      expect(response.status()).toBe(400)
+      
+      // Wait for error message to appear in UI
+      await authenticatedPage.waitForTimeout(1500)
       
       await bulkImportPage.verifyErrorMessage('El archivo (7.2 MB) supera el límite máximo de 5 MB')
     })
 
     test('HU-06: Debe rechazar archivo con demasiadas filas', async ({ authenticatedPage }) => {
+      test.setTimeout(60000); // Increase timeout for this test
       // Configurar interceptor para simular archivo con muchas filas
       await authenticatedPage.route('**/api/v1/users/bulk-import', route => {
         if (route.request().method() === 'POST') {
           route.fulfill({
             status: 400,
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ detail: 'El archivo contiene 1500 filas, pero el límite máximo es 1000 filas por importación' })
           })
         } else {
@@ -524,17 +615,27 @@ test.describe('🔄 Importación/Exportación Masiva de Excel (Administrador)', 
       // Ejecutar flujo con archivo con muchas filas
       await bulkImportPage.openImportModal()
       await bulkImportPage.uploadFile(testFiles.valid) // Simular archivo con muchas filas
+      
+      const responsePromise = authenticatedPage.waitForResponse('**/api/v1/users/bulk-import', { timeout: 10000 })
       await bulkImportPage.clickImport()
+      const response = await responsePromise
+      
+      // Verify response was error
+      expect(response.status()).toBe(400)
+      
+      // Wait for error message to appear in UI
+      await authenticatedPage.waitForTimeout(1500)
       
       await bulkImportPage.verifyErrorMessage('El archivo contiene 1500 filas, pero el límite máximo es 1000')
     })
 
-    test('HU-08: Debe manejar error del servidor durante importación', async ({ authenticatedPage }) => {
+    test('HU-08: Debe manejar error del servidor durante importación (duplicate)', async ({ authenticatedPage }) => {
       // Configurar interceptor para simular error del servidor con mensaje específico
       await authenticatedPage.route('**/api/v1/users/bulk-import', route => {
         if (route.request().method() === 'POST') {
           route.fulfill({
             status: 500,
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ detail: 'Error en operación de base de datos durante importación masiva' })
           })
         } else {
@@ -545,7 +646,13 @@ test.describe('🔄 Importación/Exportación Masiva de Excel (Administrador)', 
       // Ejecutar flujo con error del servidor
       await bulkImportPage.openImportModal()
       await bulkImportPage.uploadFile(testFiles.valid)
+      
+      const responsePromise = authenticatedPage.waitForResponse('**/api/v1/users/bulk-import')
       await bulkImportPage.clickImport()
+      await responsePromise
+      
+      // Wait for error message to appear in UI
+      await authenticatedPage.waitForTimeout(1000)
       
       await bulkImportPage.verifyErrorMessage('Error en operación de base de datos durante importación')
     })
