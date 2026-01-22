@@ -38,12 +38,21 @@ const BulkImportModal = ({ isOpen, onClose, onSuccess }) => {
     setResult(null)
     try {
       const data = await userService.bulkImport(file)
-      setResult(data)
-      if (data.errors?.length === 0 && (data.created > 0 || data.updated > 0)) {
-        onSuccess?.()
+      
+      // Always show the result if we get a BulkImportResult structure
+      // This includes both success cases and validation error cases
+      if (typeof data === 'object' && ('created' in data || 'updated' in data || 'errors' in data)) {
+        setResult(data)
+        // Only call onSuccess if there were actual successful operations and no errors
+        if (data.errors?.length === 0 && (data.created > 0 || data.updated > 0)) {
+          onSuccess?.()
+        }
+      } else {
+        // This shouldn't happen with our current backend, but handle unexpected responses
+        setError('Respuesta inesperada del servidor')
       }
     } catch (err) {
-      setError(formatErr(err, 'Error al importar'))
+      setError(formatError(err, 'importación'))
     } finally {
       setLoading(false)
     }
@@ -54,7 +63,7 @@ const BulkImportModal = ({ isOpen, onClose, onSuccess }) => {
     try {
       await userService.exportToExcel('Estudiante')
     } catch (err) {
-      setError(formatErr(err, 'Error al exportar'))
+      setError(formatError(err, 'exportación'))
     }
   }
 
@@ -63,17 +72,38 @@ const BulkImportModal = ({ isOpen, onClose, onSuccess }) => {
     try {
       await userService.downloadImportTemplate()
     } catch (err) {
-      setError(formatErr(err, 'Error al descargar plantilla'))
+      setError(formatError(err, 'descarga de plantilla'))
     }
   }
 
-  function formatErr(err, fallback) {
-    if (!err) return fallback
+  /**
+   * Format error messages with specific handling for different error types
+   * Provides user-friendly messages and technical details for QA
+   */
+  function formatError(err, operation) {
+    if (!err) return `Error durante ${operation}`
+    
+    // If we have a structured error from our API service
+    if (err.message && err.type) {
+      return err.message
+    }
+    
+    // Legacy error handling for backward compatibility
     if (typeof err.message === 'string') return err.message
-    const d = err.response?.data?.detail
-    if (d) return Array.isArray(d) ? d.map((x) => x.msg || (x.loc && x.loc.join('.'))).filter(Boolean).join('; ') : String(d)
-    if (Array.isArray(err.message)) return err.message.map((x) => x?.msg || (x?.loc && x.loc.join('.'))).filter(Boolean).join('; ') || fallback
-    return fallback
+    
+    const detail = err.response?.data?.detail
+    if (detail) {
+      if (Array.isArray(detail)) {
+        return detail.map((x) => x.msg || (x.loc && x.loc.join('.'))).filter(Boolean).join('; ')
+      }
+      return String(detail)
+    }
+    
+    if (Array.isArray(err.message)) {
+      return err.message.map((x) => x?.msg || (x?.loc && x.loc.join('.'))).filter(Boolean).join('; ') || `Error durante ${operation}`
+    }
+    
+    return `Error durante ${operation}`
   }
 
   if (!isOpen) return null
@@ -90,8 +120,18 @@ const BulkImportModal = ({ isOpen, onClose, onSuccess }) => {
 
         <div className="p-4 space-y-4">
           {error && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-              {error}
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+              <div className="flex items-start gap-2">
+                <div className="flex-shrink-0 w-5 h-5 text-red-500 mt-0.5">
+                  <svg fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <h4 className="text-sm font-medium text-red-800 mb-1">Error en la operación</h4>
+                  <p className="text-sm text-red-700">{error}</p>
+                </div>
+              </div>
             </div>
           )}
 
@@ -126,21 +166,63 @@ const BulkImportModal = ({ isOpen, onClose, onSuccess }) => {
           {/* Resultado importación */}
           {result && (
             <section className="p-3 bg-gray-50 rounded-lg border border-gray-200">
-              <h4 className="text-sm font-semibold text-gray-700 mb-2">Resultado</h4>
-              <p className="text-sm text-gray-700">
-                <span className="font-medium text-green-600">{result.created ?? 0}</span> creados,{' '}
-                <span className="font-medium text-blue-600">{result.updated ?? 0}</span> actualizados,{' '}
-                <span className="font-medium text-red-600">{result.errors?.length ?? 0}</span> errores
-              </p>
+              <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                <div className="w-4 h-4">
+                  {result.errors?.length === 0 ? (
+                    <svg className="text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                  ) : (
+                    <svg className="text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                  )}
+                </div>
+                Resultado de la importación
+              </h4>
+              
+              <div className="grid grid-cols-3 gap-4 mb-3">
+                <div className="text-center">
+                  <div className="text-lg font-bold text-green-600">{result.created ?? 0}</div>
+                  <div className="text-xs text-gray-600">Creados</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-lg font-bold text-blue-600">{result.updated ?? 0}</div>
+                  <div className="text-xs text-gray-600">Actualizados</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-lg font-bold text-red-600">{result.errors?.length ?? 0}</div>
+                  <div className="text-xs text-gray-600">Errores</div>
+                </div>
+              </div>
+              
               {result.errors?.length > 0 && (
-                <ul className="mt-2 text-xs text-red-700 space-y-1 max-h-32 overflow-y-auto">
-                  {result.errors.map((e, i) => (
-                    <li key={i}>
-                      Fila {e.row}: {e.field} – {e.message}
-                      {e.value != null && ` (${String(e.value).slice(0, 30)}…)`}
-                    </li>
-                  ))}
-                </ul>
+                <div className="mt-3 p-2 bg-red-50 rounded border border-red-200">
+                  <h5 className="text-xs font-semibold text-red-800 mb-2">Detalles de errores:</h5>
+                  <ul className="text-xs text-red-700 space-y-1 max-h-32 overflow-y-auto">
+                    {result.errors.map((e, i) => (
+                      <li key={i} className="flex items-start gap-2">
+                        <span className="flex-shrink-0 font-medium">Fila {e.row}:</span>
+                        <span className="flex-1">
+                          <span className="font-medium">{e.field}</span> – {e.message}
+                          {e.value != null && (
+                            <span className="text-red-600 ml-1">
+                              (valor: "{String(e.value).slice(0, 30)}{String(e.value).length > 30 ? '...' : ''}")
+                            </span>
+                          )}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              
+              {result.errors?.length === 0 && (result.created > 0 || result.updated > 0) && (
+                <div className="mt-2 p-2 bg-green-50 rounded border border-green-200">
+                  <p className="text-xs text-green-800">
+                    ✅ Importación completada exitosamente
+                  </p>
+                </div>
               )}
             </section>
           )}
