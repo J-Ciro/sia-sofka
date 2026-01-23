@@ -268,12 +268,31 @@ className={`px-3 py-1.5 text-xs font-semibold rounded-full ${
 backend/app/
 ├── api/v1/              # Presentation Layer
 │   ├── endpoints/       # REST API endpoints
+│   │   ├── attendance.py    # Attendance management
+│   │   ├── schedules.py     # Schedule & calendar
+│   │   ├── classrooms.py    # Classroom management
+│   │   └── users.py         # User management (includes bulk import)
 │   ├── serializers/     # Response serialization
 │   └── validators/      # Request validation
 ├── services/            # Business Logic Layer
+│   ├── attendance_service.py    # Attendance business logic
+│   ├── schedule_service.py      # Schedule business logic
+│   └── bulk_import_service.py    # Excel import/export
 ├── repositories/        # Data Access Layer
+│   ├── base.py          # AbstractRepository base class
+│   ├── mixins.py        # EagerLoadMixin, PaginationMixin
+│   ├── attendance_repository.py  # Inherits AbstractRepository
+│   ├── schedule_repository.py    # Inherits AbstractRepository
+│   └── ...              # Other repositories
 ├── models/              # SQLAlchemy Database Models
+│   ├── attendance.py    # Attendance, ClaseSession models
+│   └── schedule.py      # Schedule, Classroom models
 ├── schemas/             # Pydantic Schemas
+│   ├── attendance.py     # Attendance schemas
+│   ├── schedule.py      # Schedule schemas
+│   └── bulk_import.py    # Bulk import schemas
+├── factories/           # Design Patterns
+│   └── report_factory.py  # Factory + Registry for reports
 ├── core/                # Configuration & Security
 └── utils/               # Helper Utilities
 ```
@@ -284,10 +303,23 @@ frontend/src/
 ├── components/
 │   ├── auth/           # Authentication components
 │   ├── dashboard/      # Dashboard pages
+│   ├── attendance/     # Attendance components
+│   │   ├── TakeAttendance.jsx
+│   │   ├── SessionHistory.jsx
+│   │   └── StudentAttendanceHistory.jsx
+│   ├── schedule/       # Schedule & calendar components
+│   │   ├── CalendarContainer.jsx
+│   │   ├── WeeklyCalendar.jsx
+│   │   ├── MonthlyCalendar.jsx
+│   │   └── ScheduleForm.jsx
 │   ├── layout/         # Layout components
 │   ├── modals/         # Modal dialogs
+│   │   └── BulkImportModal.jsx  # Excel import/export
 │   └── common/         # Reusable components
 ├── services/           # API service layer
+│   ├── attendanceService.js
+│   ├── scheduleService.js
+│   └── ...             # Other services
 ├── context/            # React Context providers
 └── config/             # App configuration
 ```
@@ -361,10 +393,45 @@ If adding a pattern or abstraction does not make future changes or reading easie
 ## Common Patterns to Follow
 
 1. **Repository Pattern** for data access
+   - All repositories inherit from `AbstractRepository[Model]`
+   - Use `EagerLoadMixin` for relationship loading
+   - Use `PaginationMixin` for pagination validation
+   - Apply `@handle_repository_errors` decorator to async methods
 2. **Factory Pattern** for object creation when multiple variants exist (e.g. reports); see SOLID and Design Patterns above when in doubt
 3. **Context API** for global state management
 4. **Async/Await** for all asynchronous operations
 5. **Error Boundaries** for React error handling
 6. **Dependency Injection** via FastAPI's DI system
+
+## Repository Pattern Implementation
+
+All repositories follow a consistent pattern:
+
+```python
+from app.repositories.base import AbstractRepository
+from app.repositories.mixins import EagerLoadMixin, PaginationMixin
+from app.core.decorators import handle_repository_errors
+
+class AttendanceRepository(AbstractRepository[Attendance], EagerLoadMixin, PaginationMixin):
+    """Repository for Attendance model operations."""
+    
+    def __init__(self, db: AsyncSession):
+        super().__init__(db, Attendance)
+    
+    @handle_repository_errors
+    async def get_by_session_and_student(self, clase_session_id: int, estudiante_id: int):
+        return await self._get_one_with_relations(
+            Attendance,
+            and_(Attendance.clase_session_id == clase_session_id, ...),
+            use_joined=['clase_session', 'estudiante']
+        )
+```
+
+**Key Benefits:**
+- Consistent CRUD operations from `AbstractRepository`
+- Automatic eager loading via `EagerLoadMixin`
+- Pagination validation via `PaginationMixin`
+- Centralized error handling via `@handle_repository_errors`
+- Reduced code duplication (~150 lines saved per repository)
 
 Apply SOLID and extra patterns only when they add value; avoid over-engineering. Follow these guidelines to maintain consistency and quality across the SIA SOFKA codebase.

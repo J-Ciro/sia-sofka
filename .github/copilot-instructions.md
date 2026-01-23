@@ -17,9 +17,17 @@ Full-stack academic management system with FastAPI backend (Python 3.11+) and Re
 
 ### Backend: Layered Architecture (4 layers)
 - **API Layer** (`app/api/v1/endpoints/`): REST endpoints, request validation, response serialization
-- **Service Layer** (`app/services/`): Business logic, role-specific operations (AdminService, ProfesorService, EstudianteService)
-- **Repository Layer** (`app/repositories/`): Data access using AbstractRepository + Mixins (EagerLoadMixin, PaginationMixin)
+  - Key endpoints: `attendance.py`, `schedules.py`, `classrooms.py`, `users.py` (bulk import)
+- **Service Layer** (`app/services/`): Business logic, role-specific operations
+  - Role services: `AdminService`, `ProfesorService`, `EstudianteService`
+  - Feature services: `AttendanceService`, `ScheduleService`, `BulkImportService`
+- **Repository Layer** (`app/repositories/`): Data access using AbstractRepository + Mixins
+  - All repositories inherit from `AbstractRepository[Model]`
+  - Mixins: `EagerLoadMixin` (eager loading), `PaginationMixin` (pagination validation)
+  - Error handling: `@handle_repository_errors` decorator
+  - Key repositories: `AttendanceRepository`, `ScheduleRepository`, `UserRepository`
 - **Model Layer** (`app/models/`): SQLAlchemy ORM models with async support
+  - Key models: `Attendance`, `ClaseSession`, `Schedule`, `Classroom`
 
 ### Key Design Patterns
 1. **Factory + Registry Pattern** (`app/factories/report_factory.py`): Report generation (PDF/HTML/JSON) using `@ReportFactory.register('format')` decorator
@@ -122,17 +130,43 @@ if existing_email:
 
 ### Repository Pattern Usage
 ```python
-# Services MUST use repositories, never query directly
-class AdminService:
-    def __init__(self, db: AsyncSession, admin_user: User):
-        self.user_service = UserService(db)  # Compose services
-        self.enrollment_repo = EnrollmentRepository(db)  # Use repos
+# All repositories inherit from AbstractRepository with Mixins
+from app.repositories.base import AbstractRepository
+from app.repositories.mixins import EagerLoadMixin, PaginationMixin
+from app.core.decorators import handle_repository_errors
+
+class AttendanceRepository(AbstractRepository[Attendance], EagerLoadMixin, PaginationMixin):
+    def __init__(self, db: AsyncSession):
+        super().__init__(db, Attendance)
     
-    async def get_user_with_grades(self, user_id: int):
-        # Use mixins for eager loading
-        return await self.user_repo._get_one_with_relations(
-            User, User.id == user_id, relations=['enrollments.grades']
+    @handle_repository_errors
+    async def get_by_session_and_student(self, clase_session_id: int, estudiante_id: int):
+        # Use mixin method for eager loading
+        return await self._get_one_with_relations(
+            Attendance,
+            and_(Attendance.clase_session_id == clase_session_id, ...),
+            use_joined=['clase_session', 'estudiante']
         )
+    
+    @handle_repository_errors
+    async def get_all_by_session(self, clase_session_id: int, skip: int = 0, limit: int = 100):
+        skip, limit = self._validate_pagination(skip, limit)  # From PaginationMixin
+        return await self._get_many_with_relations(
+            Attendance,
+            Attendance.clase_session_id == clase_session_id,
+            use_joined=['clase_session', 'estudiante'],
+            skip=skip,
+            limit=limit
+        )
+
+# Services MUST use repositories, never query directly
+class AttendanceService:
+    def __init__(self, db: AsyncSession):
+        self.attendance_repo = AttendanceRepository(db)
+    
+    async def get_attendance_by_session(self, session_id: int):
+        # CRUD methods come from AbstractRepository
+        return await self.attendance_repo.get_all_by_session(session_id)
 ```
 
 ### Factory Pattern Registration
@@ -191,9 +225,23 @@ const Users = () => {
 6. **Nuevo código que rompe lo existente**: El código nuevo debe complementar, no alterar el comportamiento actual; extender en lugar de reemplazar.
 7. **Tests que rompen otros tests**: Los tests han de ser aislados; si un test nuevo hace fallar a otros, hay que corregir el test nuevo (fixtures, mocks, datos), no desactivar ni modificar los existentes.
 
+## Current Features
+
+### Implemented Features
+- **User Management**: Full CRUD with bulk import/export
+- **Subject & Enrollment Management**: Complete academic catalog
+- **Grade Management**: Multi-role grade recording and viewing
+- **Report Generation**: PDF/HTML/JSON via Factory pattern
+- **Manual Attendance System**: Session management, bulk/individual marking, analytics
+- **Schedule & Calendar**: Weekly/monthly views, classroom assignment, conflict detection
+- **Bulk Import/Export**: Excel import/export with validation and error reporting
+
 ## File References
-- Architecture overview: [ARCHITECTURE.md]
-- Full agent guidelines (SOLID, patrones, Cursor): [AGENTS.md](AGENTS.md)
-- API structure: [backend/app/api/v1/](backend/app/api/v1/)
-- Factory pattern: [backend/app/factories/report_factory.py](backend/app/factories/report_factory.py)
-- Repository mixins: [backend/app/repositories/mixins.py](backend/app/repositories/mixins.py)
+- Architecture overview: [ARCHITECTURE.md](ARCHITECTURE.md)
+- Product overview: [PRODUCT.md](PRODUCT.md)
+- Full agent guidelines (SOLID, patrones, Cursor): [AGENTS.md](../AGENTS.md)
+- Repository refactoring details: [MEJORAS_REFACTORIZACION_REPOSITORIOS.md](../MEJORAS_REFACTORIZACION_REPOSITORIOS.md)
+- API structure: [backend/app/api/v1/](../backend/app/api/v1/)
+- Factory pattern: [backend/app/factories/report_factory.py](../backend/app/factories/report_factory.py)
+- Repository base: [backend/app/repositories/base.py](../backend/app/repositories/base.py)
+- Repository mixins: [backend/app/repositories/mixins.py](../backend/app/repositories/mixins.py)

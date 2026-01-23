@@ -122,6 +122,39 @@ SIA SOFKA U is a comprehensive full-stack academic management system designed to
 - Performance trend analysis
 - Comprehensive academic dashboards
 
+### 📅 Manual Attendance System
+- **Session Management**: Professors create and manage class sessions with date, time, and description
+- **Bulk Actions**: Mark all students present/absent/late with single click
+- **Individual Control**: Toggle individual student attendance status (PRESENTE, AUSENTE, TARDANZA)
+- **Attendance Analytics**: Automatic calculation of attendance percentages per session
+- **Alert System**: Automated warnings for low attendance (<80%, <70%) displayed in dashboards
+- **Student Portal**: Students view their complete attendance history by subject
+- **Dashboard Integration**: Attendance alerts and statistics in admin/professor dashboards
+- **Historical Tracking**: Complete attendance history with session details and timestamps
+
+### 📊 Schedule & Calendar Management
+- **Weekly Calendar View**: Visual weekly schedule management for all users
+- **Monthly Calendar View**: Monthly overview of schedules and classes
+- **Classroom Assignment**: Room scheduling and management with capacity tracking
+- **Schedule Conflicts**: Automatic conflict detection for professors, students, and classrooms
+- **Time Slot Management**: Flexible scheduling system with day of week and time ranges
+- **Role-Based Views**: 
+  - Administrators: View all schedules
+  - Professors: View only their assigned subject schedules
+  - Students: View schedules for enrolled subjects
+- **Schedule CRUD**: Create, update, and delete schedules with validation
+
+### 📤 Excel Import/Export
+- **Bulk Data Import**: Import students and professors from Excel files (.xlsx)
+- **Template System**: Download standardized Excel templates for import
+- **Data Validation**: Comprehensive validation with detailed error reporting
+- **Error Handling**: 
+  - Format validation (file type, size limits)
+  - Data validation (required fields, email format, duplicates)
+  - Row-level error reporting with specific messages
+- **Export Functionality**: Export user data to Excel format
+- **Partial Success Handling**: Support for partial imports with success/error counts
+
 ### 🏗️ System Architecture Features
 - **Factory Pattern Implementation**: Extensible report generation system
 - **Repository Pattern**: Clean data access layer
@@ -159,28 +192,24 @@ SIA SOFKA U is a comprehensive full-stack academic management system designed to
 
 ---
 
-## Upcoming Features
+## Technical Improvements
 
-### 📅 Manual Attendance System (In Development)
-- **Session Management**: Professors create class sessions
-- **Bulk Actions**: Mark all students present/absent/late with single click
-- **Individual Control**: Toggle individual student attendance status
-- **Attendance Analytics**: Automatic calculation of attendance percentages
-- **Alert System**: Automated warnings for low attendance (<80%, <70%)
-- **Student Portal**: Students view their attendance history
-- **Dashboard Integration**: Attendance alerts in admin/professor dashboards
+### Repository Pattern Refactoring
+- **AbstractRepository Base Class**: All repositories now inherit from `AbstractRepository[Model]`
+- **Mixin Pattern**: Reusable logic via `EagerLoadMixin` and `PaginationMixin`
+- **Code Reduction**: ~150 lines of duplicate code eliminated per repository
+- **Consistent Error Handling**: `@handle_repository_errors` decorator for all async methods
+- **Standardized Pagination**: Built-in pagination validation and helpers
+- **Improved Maintainability**: Easier to extend and maintain repository code
 
-### 📊 Schedule & Calendar Management (Planned)
-- **Weekly Calendar View**: Visual schedule management
-- **Classroom Assignment**: Room scheduling and management
-- **Schedule Conflicts**: Automatic conflict detection
-- **Time Slot Management**: Flexible scheduling system
+## Future Enhancements
 
-### 📤 Excel Import/Export (Planned)
-- **Bulk Data Import**: Import students, subjects, grades from Excel
-- **Report Export**: Export academic data to Excel format
-- **Template System**: Standardized Excel templates
-- **Data Validation**: Import validation and error handling
+### Potential Features
+- **Advanced Analytics**: Enhanced reporting with charts and visualizations
+- **Notification System**: Email/SMS notifications for attendance alerts
+- **Mobile App**: Native mobile application for students and professors
+- **Integration APIs**: Third-party integrations (LMS, payment systems)
+- **Advanced Search**: Full-text search across all entities
 
 ---
 
@@ -197,12 +226,16 @@ SIA SOFKA U is a comprehensive full-stack academic management system designed to
 - **Real-Time Insights**: Instant access to academic analytics
 - **Automated Processes**: Reduced manual administrative tasks
 - **Audit Trail**: Comprehensive logging and tracking
+- **Bulk Operations**: Efficient user management via Excel import/export
+- **Schedule Management**: Complete control over class schedules and classrooms
 
 ### for Professors
 - **Teaching Focus**: Simplified grade management and reporting
 - **Student Insights**: Clear view of student performance
 - **Efficient Workflows**: Streamlined academic processes
 - **Professional Tools**: Modern interface for academic tasks
+- **Attendance Management**: Easy session creation and attendance tracking
+- **Schedule Visibility**: Clear view of teaching schedule and classroom assignments
 
 ### For Students
 - **Academic Transparency**: Clear view of grades and progress
