@@ -42,7 +42,7 @@ async def login(
     user_service = UserService(db)
     user = await user_service.get_user_by_email(form_data.username)
     
-    if not user or not verify_password(form_data.password, user.password_hash):
+    if not user or not verify_password(form_data.password, str(user.password_hash)):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",

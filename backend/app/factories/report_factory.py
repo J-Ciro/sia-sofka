@@ -6,7 +6,7 @@ new report formats to be registered without modifying the factory.
 
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Dict, Any, Type, TYPE_CHECKING
+from typing import Dict, Any, Type, Callable, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from app.factories.pdf_generator import PDFReportGenerator
@@ -48,7 +48,7 @@ class ReportFactory:
     _instances: Dict[str, ReportGenerator] = {}  # Cache for singleton instances
     
     @classmethod
-    def register(cls, format_name: str) -> callable:
+    def register(cls, format_name: str) -> Callable[[Type[ReportGenerator]], Type[ReportGenerator]]:
         """Decorator to register a report generator class.
         
         Args:

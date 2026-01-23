@@ -28,9 +28,9 @@ export default defineConfig({
     apiURL: process.env.API_URL || 'http://localhost:8000',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
-    launchOptions: {
-        slowMo: 500, 
-    },
+    // launchOptions: {
+    //     slowMo: 500, 
+    // },
 
   //  actionTimeout: 500,
   //  navigationTimeout: 500,

@@ -168,6 +168,9 @@ const TakeAttendance = () => {
       setCurrentSessionId(session.id)
       setSessionCreated(true)
       setSuccess('Sesión de clase creada exitosamente')
+      
+      // Recargar estudiantes después de crear la sesión
+      await fetchStudents(selectedSubject.id)
     } catch (err) {
       console.error('Error creating session:', err)
       setError(

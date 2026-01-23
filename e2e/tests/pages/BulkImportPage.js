@@ -304,16 +304,16 @@ export class BulkImportPage {
         
         // Try partial match
         const errorParts = errorText.split(' ').filter(p => p.length > 3);
-        let found = false;
+        let partialFound = false;
         for (const part of errorParts) {
           const partFound = await resultSection.locator(`text=/.*${part}.*/i`).first().waitFor({ timeout: 2000 }).catch(() => null);
           if (partFound) {
-            found = true;
+            partialFound = true;
             foundErrors.push(part);
             break;
           }
         }
-        if (!found) {
+        if (!partialFound) {
           const allText = await resultSection.textContent();
           throw new Error(
             `Validation error not found: "${errorText}". ` +
@@ -374,14 +374,31 @@ export class BulkImportPage {
     
     // First try to find by text content (most reliable) - look in error containers
     try {
+      // Wait for error box to appear
+      await this.page.waitForSelector('.bg-red-50', { timeout: 5000 }).catch(() => null);
+      
       // Look for error in the red error box
       const errorBox = this.page.locator('.bg-red-50');
       const isVisible = await errorBox.isVisible().catch(() => false);
       if (isVisible) {
-        const errorText = await errorBox.textContent().catch(() => '');
-        if (errorText && errorText.toLowerCase().includes(expectedError.toLowerCase())) {
-          errorFound = true;
-          foundText = errorText;
+        // First, try to find the error message paragraph specifically
+        const errorMessagePara = errorBox.locator('p.text-red-700').first();
+        const paraVisible = await errorMessagePara.isVisible().catch(() => false);
+        if (paraVisible) {
+          const messageText = await errorMessagePara.textContent().catch(() => '');
+          if (messageText && messageText.toLowerCase().includes(expectedError.toLowerCase())) {
+            errorFound = true;
+            foundText = expectedError;
+          }
+        }
+        
+        // If not found in paragraph, check entire error box
+        if (!errorFound) {
+          const errorText = await errorBox.textContent().catch(() => '');
+          if (errorText && errorText.toLowerCase().includes(expectedError.toLowerCase())) {
+            errorFound = true;
+            foundText = expectedError;
+          }
         }
       }
     } catch (e) {

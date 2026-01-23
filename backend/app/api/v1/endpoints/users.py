@@ -1,11 +1,13 @@
 """User endpoints - Refactored to use services directly."""
 
+import logging
 from io import BytesIO
 from typing import List
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from fastapi.responses import Response
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.exc import SQLAlchemyError
 
 from app.core.database import get_db
 from app.core.exceptions import NotFoundError, ValidationError
@@ -16,6 +18,8 @@ from app.services.admin_service import AdminService
 from app.services.bulk_import_service import BulkImportService
 from app.services.user_service import UserService
 from app.api.v1.dependencies import require_admin
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -46,6 +50,12 @@ async def create_user(
         return user
     except ValueError as e:
         raise ValidationError(str(e))
+    except Exception as e:
+        # Log the full error for debugging
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error creating user: {str(e)}", exc_info=True)
+        raise ValidationError(f"Error al crear usuario: {str(e)}")
 
 
 @router.get("", response_model=List[UserResponse])
@@ -81,7 +91,7 @@ async def bulk_import_users(
     
     # Validate file format
     if not (file.filename and file.filename.lower().endswith(".xlsx")):
-        raise FileFormatError(file.filename)
+        raise FileFormatError(file.filename if file.filename else None)
     
     # Read and validate file size
     try:
@@ -119,11 +129,26 @@ async def bulk_import_users(
             MissingColumnsError, TooManyRowsError, DatabaseOperationError) as e:
         # These are our custom exceptions with specific error messages
         raise HTTPException(status_code=e.status_code, detail=e.detail)
+    except ValueError as e:
+        # Validation errors from service layer
+        raise HTTPException(
+            status_code=400,
+            detail=f"Error de validación durante la importación: {str(e)}"
+        )
+    except SQLAlchemyError as e:
+        # Database errors
+        logger.error(f"Database error during bulk import: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail="Error en la base de datos durante la importación. Por favor, inténtelo de nuevo o contacte al administrador."
+        )
     except Exception as e:
-        # Catch any unexpected errors
+        # Catch any unexpected errors with more context
+        logger.error(f"Unexpected error during bulk import: {str(e)}", exc_info=True)
+        error_type = type(e).__name__
         raise HTTPException(
             status_code=500, 
-            detail=f"Error inesperado durante la importación: {str(e)}"
+            detail=f"Error inesperado durante la importación ({error_type}). Por favor, verifique el archivo y vuelva a intentar. Si el problema persiste, contacte al administrador."
         )
 
 
@@ -147,10 +172,18 @@ async def export_users(
         )
     except (DatabaseOperationError, FileCorruptedError) as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
-    except Exception as e:
+    except SQLAlchemyError as e:
+        logger.error(f"Database error during export: {str(e)}")
         raise HTTPException(
             status_code=500,
-            detail=f"Error inesperado durante la exportación: {str(e)}"
+            detail="Error en la base de datos durante la exportación. Por favor, inténtelo de nuevo o contacte al administrador."
+        )
+    except Exception as e:
+        logger.error(f"Unexpected error during export: {str(e)}", exc_info=True)
+        error_type = type(e).__name__
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error inesperado durante la exportación ({error_type}). Por favor, inténtelo de nuevo. Si el problema persiste, contacte al administrador."
         )
 
 
@@ -172,9 +205,11 @@ async def download_import_template(
             headers={"Content-Disposition": "attachment; filename=plantilla_estudiantes.xlsx"},
         )
     except Exception as e:
+        logger.error(f"Error generating import template: {str(e)}", exc_info=True)
+        error_type = type(e).__name__
         raise HTTPException(
             status_code=500,
-            detail=f"Error generando plantilla: {str(e)}"
+            detail=f"Error generando plantilla de importación ({error_type}). Por favor, inténtelo de nuevo. Si el problema persiste, contacte al administrador."
         )
 
 

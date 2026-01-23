@@ -263,6 +263,26 @@ TEST_USERS.profesor   // juan@mail.com / juan123
 TEST_USERS.estudiante // sara@mail.com / sara123
 ```
 
+**IMPORTANT**: These test users must exist in the database before running tests.
+
+#### Creating Test Users
+
+Before running E2E tests, you need to create the test users:
+
+```bash
+# From project root
+cd backend
+python create_test_users.py
+```
+
+This script will create:
+- `juan@mail.com` (Profesor) - Password: `juan123`
+- `sara@mail.com` (Estudiante) - Password: `sara123`
+
+The script is idempotent - it will skip users that already exist.
+
+**Note**: The admin user should already exist (created via `create_admin.py`).
+
 ## 🔧 Configuration
 
 ### Playwright Config (`playwright.config.js`)
@@ -343,7 +363,12 @@ cd frontend && npm run dev
 **Solution**:
 - Verify user exists in database
 - Check credentials in `tests/fixtures/auth.js`
-- Run backend seed script: `python backend/create_admin.py`
+- Run backend seed scripts:
+  ```bash
+  cd backend
+  python create_admin.py      # Creates admin user
+  python create_test_users.py # Creates test users (juan@mail.com, sara@mail.com)
+  ```
 
 ### Browser Installation Issues
 
@@ -425,7 +450,11 @@ Our tests follow INVEST principles:
 - [ ] Frontend running on port 3000
 - [ ] PostgreSQL database accessible
 - [ ] Test users exist in database:
-  - `juan@mail.com` (Profesor)
+  - `admin@sofka.edu.co` (Admin) - Created via `create_admin.py`
+  - `juan@mail.com` (Profesor) - Created via `create_test_users.py`
+  - `sara@mail.com` (Estudiante) - Created via `create_test_users.py`
+  
+  Run: `cd backend && python create_test_users.py`
   - `sara@mail.com` (Estudiante)
 - [ ] Subjects and enrollments seeded
 

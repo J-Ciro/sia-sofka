@@ -37,9 +37,10 @@ async def get_current_user(
     
     try:
         payload = decode_access_token(token)
-        email: str = payload.get("sub")
-        if email is None:
+        email_raw = payload.get("sub")
+        if email_raw is None or not isinstance(email_raw, str):
             raise credentials_exception
+        email: str = email_raw
         token_data = TokenData(email=email, role=payload.get("role"))
     except Exception:
         raise credentials_exception

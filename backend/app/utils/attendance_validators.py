@@ -61,8 +61,9 @@ class SessionValidator:
         """
         if not overlapping:
             return
-        ids = [str(s.id) for s in overlapping]
-        session_ids = ", ".join(ids)
+        # Extract IDs from overlapping sessions (works with both ClaseSession and mock objects)
+        ids = [str(s.id) for s in overlapping if hasattr(s, 'id') and s.id is not None]
+        session_ids = ", ".join(ids) if ids else "N/A"
         raise ValidationError(
             f"Ya existe una sesión de esta materia en la misma fecha con horario que se solapa (ID: {session_ids}). "
             "Use editar la sesión existente en lugar de crear otra."

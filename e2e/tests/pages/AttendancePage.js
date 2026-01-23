@@ -86,8 +86,18 @@ export class AttendancePage {
       late: /marcar todos tardanza/i,
     };
     
-    await this.page.getByRole('button', { name: buttonMap[status] }).click();
-    await this.page.waitForTimeout(500); // Wait for UI update
+    const button = this.page.getByRole('button', { name: buttonMap[status] });
+    await button.waitFor({ state: 'visible', timeout: 10000 });
+    await button.click();
+    
+    // Wait for success message or UI update
+    await Promise.race([
+      this.page.getByText(/todos los estudiantes marcados como/i).waitFor({ timeout: 5000 }).catch(() => null),
+      this.page.waitForTimeout(1000)
+    ]);
+    
+    // Wait a bit more for statistics to update
+    await this.page.waitForTimeout(500);
   }
 
   /**
@@ -95,10 +105,24 @@ export class AttendancePage {
    * @param {number} studentIndex - Index of student (0-based)
    */
   async changeStudentStatus(studentIndex = 0) {
+    // Wait for student buttons to be available
+    await this.page.getByRole('button').filter({ hasText: /EST-/ }).first().waitFor({ timeout: 10000 });
+    
     const studentButtons = this.page.getByRole('button').filter({ hasText: /EST-/ });
+    const count = await studentButtons.count();
+    
+    if (count === 0) {
+      throw new Error('No student buttons found. Make sure students are loaded.');
+    }
+    
+    if (studentIndex >= count) {
+      throw new Error(`Student index ${studentIndex} is out of range. Only ${count} students found.`);
+    }
+    
     const student = studentButtons.nth(studentIndex);
+    await student.waitFor({ state: 'visible', timeout: 5000 });
     await student.click();
-    await this.page.waitForTimeout(200); // Wait for UI update
+    await this.page.waitForTimeout(300); // Wait for UI update
   }
 
   /**
@@ -141,10 +165,29 @@ export class AttendancePage {
     // Wait for statistics to be visible
     await this.page.locator('.bg-white:has-text("Total")').waitFor({ timeout: 10000 });
     
+    // Also wait for students to be loaded before reading statistics
+    // This ensures the statistics are accurate
+    try {
+      await this.page.getByRole('button').filter({ hasText: /EST-/ }).first().waitFor({ timeout: 5000 });
+    } catch (error) {
+      // If no students found, statistics might be 0, which is valid
+      console.log('No students found when reading statistics');
+    }
+    
+    // Wait a bit more for statistics to update after any state changes
+    await this.page.waitForTimeout(300);
+    
     const getText = async (selector) => {
-      const element = this.page.locator(selector).locator('text=/^\\d+$/');
-      const text = await element.textContent();
-      return parseInt(text) || 0;
+      try {
+        const element = this.page.locator(selector);
+        await element.waitFor({ timeout: 5000 });
+        const textElement = element.locator('text=/^\\d+$/').first();
+        const text = await textElement.textContent();
+        return parseInt(text) || 0;
+      } catch (error) {
+        console.log(`Error reading statistics from ${selector}:`, error.message);
+        return 0;
+      }
     };
 
     return {
@@ -208,5 +251,37 @@ export class AttendancePage {
       this.page.getByRole('heading', { name: /acciones masivas/i }).waitFor({ timeout: 15000 }),
       this.page.getByText(/marcar todos presentes/i).waitFor({ timeout: 15000 })
     ]);
+    
+    // Wait for students to actually load - look for student buttons with EST- code
+    // This ensures the API call to fetch students has completed
+    // Give it more time and check multiple times
+    let studentsFound = false;
+    for (let attempt = 0; attempt < 5; attempt++) {
+      try {
+        await this.page.waitForTimeout(1000); // Wait between attempts
+        const studentButtons = this.page.getByRole('button').filter({ hasText: /EST-/ });
+        const count = await studentButtons.count();
+        if (count > 0) {
+          studentsFound = true;
+          break;
+        }
+      } catch (error) {
+        // Continue trying
+      }
+    }
+    
+    if (!studentsFound) {
+      // Check if there's a "no students" message
+      await this.page.waitForTimeout(1000);
+      const noStudentsMessage = await this.page.getByText(/no.*estudiantes|sin estudiantes|no hay estudiantes matriculados/i).isVisible().catch(() => false);
+      if (noStudentsMessage) {
+        // Log helpful debug info
+        const pageText = await this.page.textContent('body').catch(() => '');
+        console.warn('No students found. Page text snippet:', pageText.substring(0, 1000));
+        throw new Error('No students found in the subject. Make sure enrollments exist. Check global-setup.js logs to verify subject and enrollment were created.');
+      }
+      // If still no students after waiting, this is a real issue - the test needs students
+      throw new Error('Students did not appear after session creation. This indicates a data setup issue. Verify that: 1) global-setup.js created subject and enrollment, 2) The subject has students enrolled, 3) The API endpoint /subjects/{id}/students returns data.');
+    }
   }
 }

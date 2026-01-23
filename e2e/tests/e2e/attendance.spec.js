@@ -35,9 +35,14 @@ test.describe('Manual Attendance System - Complete HU Coverage', () => {
       // Then debo ver la sesión creada o mensaje de sesión existente
       if (sessionCreated) {
         await attendancePage.verifySessionCreated();
+        
+        // Wait a bit more for students to fully load
+        await profesorPage.waitForTimeout(1000);
+        
         // And debo ver la lista de estudiantes
         const stats = await attendancePage.getStatistics();
         expect(stats.total).toBeGreaterThan(0);
+        
         // And cada estudiante debe tener su código institucional
         const studentButtons = await profesorPage.getByRole('button').filter({ hasText: /EST-/ }).all();
         expect(studentButtons.length).toBeGreaterThan(0);
@@ -225,15 +230,25 @@ test.describe('Manual Attendance System - Complete HU Coverage', () => {
         return;
       }
       
+      // Verify session was created and students are loaded
+      await attendancePage.verifySessionCreated();
+      
+      // Wait for students to be available
+      await profesorPage.getByRole('button').filter({ hasText: /EST-/ }).first().waitFor({ timeout: 10000 });
+      
       // Primero marco todos como presente
       await attendancePage.markAllStudents('present');
-      await profesorPage.waitForTimeout(500);
+      await profesorPage.waitForTimeout(1000); // Wait for UI to update
       
       // When hago clic en la fila del primer estudiante
       const firstStudent = profesorPage.getByRole('button').filter({ hasText: /EST-/ }).first();
       
+      // Wait for button to be visible and have content
+      await firstStudent.waitFor({ state: 'visible', timeout: 5000 });
+      
       // Then debe ciclar: PRESENTE → AUSENTE → TARDANZA → PRESENTE
-      await expect(firstStudent).toContainText('PRESENTE');
+      // After marking all as present, they should show PRESENTE
+      await expect(firstStudent).toContainText('PRESENTE', { timeout: 5000 });
       
       await firstStudent.click();
       await profesorPage.waitForTimeout(200);
@@ -268,13 +283,17 @@ test.describe('Manual Attendance System - Complete HU Coverage', () => {
       
       // Establezco un estado inicial
       await attendancePage.markAllStudents('present');
-      await profesorPage.waitForTimeout(500);
+      await profesorPage.waitForTimeout(1000); // Wait for UI to update
+      
+      // Verify students are loaded before proceeding
+      await attendancePage.verifySessionCreated();
       
       const initialStats = await attendancePage.getStatistics();
+      expect(initialStats.present).toBeGreaterThan(0); // Verify initial state
       
       // When cambio el estado de un estudiante de "Presente" a "Ausente"
       await attendancePage.changeStudentStatus(0);
-      await profesorPage.waitForTimeout(500);
+      await profesorPage.waitForTimeout(1000); // Wait for UI to update
       
       // Then el contador debe actualizarse inmediatamente
       const newStats = await attendancePage.getStatistics();
@@ -371,10 +390,10 @@ test.describe('Manual Attendance System - Complete HU Coverage', () => {
       
       // Search for non-existent student
       await attendancePage.searchStudents('ZZZZZ_NO_EXISTE_12345');
-      await profesorPage.waitForTimeout(500);
+      await profesorPage.waitForTimeout(1000); // Wait for search to filter
       
-      // Should show "no results" message
-      await expect(profesorPage.getByText(/no se encontraron estudiantes/i)).toBeVisible();
+      // Should show "no results" message - the message includes the search term
+      await expect(profesorPage.getByText(/no se encontraron estudiantes/i)).toBeVisible({ timeout: 5000 });
     });
 
     test('Prevenir guardar sin crear sesión (precondition boundary)', async ({ profesorPage }) => {

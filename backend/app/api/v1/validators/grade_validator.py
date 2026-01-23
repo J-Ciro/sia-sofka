@@ -33,9 +33,9 @@ class GradeValidator:
             raise NotFoundError("Enrollment", enrollment_id)
 
         subject_repo = SubjectRepository(db)
-        subject = await subject_repo.get_by_id(enrollment.subject_id)
+        subject = await subject_repo.get_by_id(int(enrollment.subject_id))
 
-        if not subject or subject.profesor_id != current_user.id:
+        if not subject or int(subject.profesor_id) != int(current_user.id):
             raise ForbiddenError("Cannot access grade for unassigned subject")
 
     @staticmethod

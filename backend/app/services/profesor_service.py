@@ -1,5 +1,6 @@
 """Profesor service with profesor-specific business logic."""
 
+from typing import Any
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.user import User
 from app.models.subject import Subject
@@ -37,7 +38,7 @@ class ProfesorService:
         Returns:
             List of assigned subjects
         """
-        return await self.subject_repo.get_by_profesor(self.profesor_user.id)
+        return await self.subject_repo.get_by_profesor(int(self.profesor_user.id))
     
     async def get_students_by_subject(self, subject_id: int) -> list[User]:
         """Get all students enrolled in a subject assigned to this profesor.
@@ -131,7 +132,7 @@ class ProfesorService:
         Returns:
             Dictionary with report data structure
         """
-        report_data = {
+        report_data: dict[str, Any] = {
             "subject": {
                 "id": subject.id,
                 "nombre": subject.nombre,
@@ -205,6 +206,12 @@ class ProfesorService:
         
         Returns:
             Updated profesor
+        
+        Raises:
+            NotFoundError: If user not found
         """
-        return await self.user_service.update_user(self.profesor_user.id, user_data)
+        updated = await self.user_service.update_user(int(self.profesor_user.id), user_data)
+        if not updated:
+            raise NotFoundError("User", int(self.profesor_user.id))
+        return updated
 

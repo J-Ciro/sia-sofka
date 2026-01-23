@@ -39,7 +39,7 @@ async def create_enrollment(
         )
         
         if not enrollment_with_relations:
-            raise NotFoundError("Enrollment", enrollment.id)
+            raise NotFoundError("Enrollment", int(enrollment.id))
         
         # Serialize single enrollment using serializer
         responses = await EnrollmentSerializer.serialize_batch([enrollment_with_relations], db)

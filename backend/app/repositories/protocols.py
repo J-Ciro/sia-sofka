@@ -9,8 +9,8 @@ from typing import Protocol, TypeVar, Generic, Optional, List, Any
 from sqlalchemy.ext.asyncio import AsyncSession
 
 T = TypeVar("T")
-CreateSchemaType = TypeVar("CreateSchemaType")
-UpdateSchemaType = TypeVar("UpdateSchemaType")
+CreateSchemaType = TypeVar("CreateSchemaType", contravariant=True)
+UpdateSchemaType = TypeVar("UpdateSchemaType", contravariant=True)
 
 
 class BaseRepositoryProtocol(Protocol, Generic[T, CreateSchemaType, UpdateSchemaType]):

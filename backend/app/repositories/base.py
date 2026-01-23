@@ -45,7 +45,7 @@ class AbstractRepository(Generic[ModelType]):
         Returns:
             Model instance or None
         """
-        stmt = select(self.model).where(self.model.id == id)
+        stmt = select(self.model).where(self.model.id == id)  # type: ignore[attr-defined]
         result = await self.db.execute(stmt)
         return result.scalar_one_or_none()
     
@@ -75,7 +75,7 @@ class AbstractRepository(Generic[ModelType]):
         """
         stmt = (
             update(self.model)
-            .where(self.model.id == id)
+            .where(self.model.id == id)  # type: ignore[attr-defined]
             .values(**data)
             .execution_options(synchronize_session="fetch")
         )
@@ -92,7 +92,7 @@ class AbstractRepository(Generic[ModelType]):
         Returns:
             True if deleted, False if not found
         """
-        stmt = delete(self.model).where(self.model.id == id)
+        stmt = delete(self.model).where(self.model.id == id)  # type: ignore[attr-defined]
         result = await self.db.execute(stmt)
         await self.db.commit()
         return result.rowcount > 0

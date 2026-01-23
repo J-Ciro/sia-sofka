@@ -70,7 +70,7 @@ class BulkImportError(BaseAppException):
 class FileFormatError(BulkImportError):
     """Exception for invalid file format."""
     
-    def __init__(self, filename: str = None, expected_format: str = ".xlsx"):
+    def __init__(self, filename: str | None = None, expected_format: str = ".xlsx"):
         if filename:
             detail = f"Archivo '{filename}' no es válido. Solo se aceptan archivos {expected_format}"
         else:
@@ -89,8 +89,10 @@ class FileSizeError(BulkImportError):
 class FileCorruptedError(BulkImportError):
     """Exception for corrupted or unreadable files."""
     
-    def __init__(self, filename: str = None):
-        if filename:
+    def __init__(self, filename: str | None = None, context: str | None = None):
+        if context:
+            detail = f"Error al {context}. El archivo está corrupto o no se puede procesar correctamente"
+        elif filename:
             detail = f"El archivo '{filename}' está corrupto o no se puede leer. Verifique que sea un archivo Excel válido"
         else:
             detail = "El archivo está corrupto o no se puede leer. Verifique que sea un archivo Excel válido"
@@ -125,7 +127,7 @@ class TooManyRowsError(BulkImportError):
 class DatabaseOperationError(BulkImportError):
     """Exception for database operation failures during bulk import."""
     
-    def __init__(self, operation: str, details: str = None):
+    def __init__(self, operation: str, details: str | None = None):
         if details:
             detail = f"Error en operación de base de datos ({operation}): {details}"
         else:

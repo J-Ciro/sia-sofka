@@ -335,7 +335,7 @@ test.describe('Horarios Management - Core Functionality', () => {
       if (events.length > 0) {
         const firstEvent = events[0];
         const eventText = await firstEvent.textContent();
-        console.log(`✅ Calendar event found: ${eventText}`);
+        console.log(` Calendar event found: ${eventText}`);
       }
     });
 
@@ -376,9 +376,9 @@ test.describe('Horarios Management - Core Functionality', () => {
         await authenticatedPage.waitForTimeout(1000);
         
         const finalEventCount = await schedulePage.countCalendarEvents();
-        console.log(`✅ View switching works: ${initialEventCount} -> ${finalEventCount} events`);
+        console.log(` View switching works: ${initialEventCount} -> ${finalEventCount} events`);
       } else {
-        console.log('✅ View buttons not found - single view implementation');
+        console.log(' View buttons not found - single view implementation');
       }
     });
 
@@ -391,9 +391,9 @@ test.describe('Horarios Management - Core Functionality', () => {
       if (clearButtonVisible) {
         await authenticatedPage.click(schedulePage.selectors.clearFiltersButton);
         await authenticatedPage.waitForTimeout(500);
-        console.log('✅ Clear filters functionality available');
+        console.log(' Clear filters functionality available');
       } else {
-        console.log('✅ No filter functionality in current implementation');
+        console.log(' No filter functionality in current implementation');
       }
     });
   });
@@ -553,10 +553,10 @@ test.describe('Horarios Management - Edge Cases', () => {
         const accessDeniedVisible = await estudiantePage.getByText(/acceso.*denegado|no.*autorizado|forbidden/i).isVisible({ timeout: 5000 }).catch(() => false);
         
         if (accessDeniedVisible) {
-          console.log('✅ Access control working correctly');
+          console.log(' Access control working correctly');
         }
       } catch (error) {
-        console.log('✅ Access properly restricted for student role');
+        console.log(' Access properly restricted for student role');
       }
     });
   });
@@ -573,7 +573,7 @@ test.describe('Horarios Management - Edge Cases', () => {
       const loadTime = endTime - startTime;
       expect(loadTime).toBeLessThan(5000); // Should load in less than 5 seconds
       
-      console.log(`✅ Calendar loaded in ${loadTime}ms`);
+      console.log(` Calendar loaded in ${loadTime}ms`);
     });
 
     test('should apply filters quickly', async ({ authenticatedPage }) => {
@@ -587,7 +587,7 @@ test.describe('Horarios Management - Edge Cases', () => {
       const filterTime = filterEndTime - filterStartTime;
       expect(filterTime).toBeLessThan(3000); // Should apply in less than 3 seconds
       
-      console.log(`✅ Filter applied in ${filterTime}ms`);
+      console.log(` Filter applied in ${filterTime}ms`);
     });
   });
 });
@@ -630,7 +630,7 @@ test.describe('Horarios Management - Error Handling', () => {
     
     // Either error message visible or modal still open (error prevented submission)
     if (networkErrorVisible || modalStillOpen) {
-      console.log('✅ Network error handling working correctly');
+      console.log(' Network error handling working correctly');
     }
   });
 
@@ -656,7 +656,7 @@ test.describe('Horarios Management - Error Handling', () => {
     const serverErrorVisible = await authenticatedPage.getByText(/error.*servidor|server.*error|error.*interno/i).isVisible({ timeout: 10000 }).catch(() => false);
     
     if (serverErrorVisible) {
-      console.log('✅ Server error handling working correctly');
+      console.log(' Server error handling working correctly');
     }
   });
 });

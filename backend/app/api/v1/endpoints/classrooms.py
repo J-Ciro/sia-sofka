@@ -81,11 +81,11 @@ async def update_classroom(
     if not c:
         raise NotFoundError("Classroom", classroom_id)
     if data.nombre is not None:
-        c.nombre = data.nombre
+        setattr(c, 'nombre', data.nombre)
     if data.capacidad is not None:
-        c.capacidad = data.capacidad
+        setattr(c, 'capacidad', data.capacidad)
     if data.ubicacion is not None:
-        c.ubicacion = data.ubicacion
+        setattr(c, 'ubicacion', data.ubicacion)
     await db.commit()
     await db.refresh(c)
     return ClassroomResponse.model_validate(c)

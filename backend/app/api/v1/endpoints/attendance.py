@@ -237,7 +237,7 @@ async def update_attendance(
         raise HTTPException(status_code=404, detail=f"Attendance {attendance_id} not found")
     
     # Update attendance directly using async session
-    attendance.estado = attendance_data.estado
+    setattr(attendance, 'estado', attendance_data.estado)
     await db.commit()
     await db.refresh(attendance)
     

@@ -185,18 +185,18 @@ async def get_weekly_schedules(
     r = current_user.role
 
     if current_user.role == UserRole.ADMIN and user_id is not None:
-        uid = user_id
+        uid = int(user_id)
         r = role if role is not None else current_user.role
 
     if r == UserRole.PROFESOR:
-        rows = await service.get_professor_schedule(uid)
+        rows = await service.get_professor_schedule(int(uid))
     elif r == UserRole.ESTUDIANTE:
-        rows = await service.get_student_schedule(uid)
+        rows = await service.get_student_schedule(int(uid))
     elif r == UserRole.ADMIN and user_id is not None and role is not None:
         if role == UserRole.PROFESOR:
-            rows = await service.get_professor_schedule(uid)
+            rows = await service.get_professor_schedule(int(uid))
         elif role == UserRole.ESTUDIANTE:
-            rows = await service.get_student_schedule(uid)
+            rows = await service.get_student_schedule(int(uid))
         else:
             rows = []
     elif current_user.role == UserRole.ADMIN and user_id is None:
@@ -242,21 +242,21 @@ async def get_schedules_by_date_range(
 
     # Handle admin user filtering
     if current_user.role == UserRole.ADMIN and user_id is not None:
-        uid = user_id
+        uid = int(user_id)
         r = role if role is not None else current_user.role
 
     # Get schedules for calendar display (expanded to specific dates)
     if r == UserRole.PROFESOR:
         schedules = await service.get_schedules_for_calendar(
-            start_date, end_date, uid, UserRole.PROFESOR
+            start_date, end_date, int(uid), UserRole.PROFESOR
         )
     elif r == UserRole.ESTUDIANTE:
         schedules = await service.get_schedules_for_calendar(
-            start_date, end_date, uid, UserRole.ESTUDIANTE
+            start_date, end_date, int(uid), UserRole.ESTUDIANTE
         )
     elif current_user.role == UserRole.ADMIN:
         # Admin can see all schedules or filtered by user_id/role
-        filter_uid = uid if user_id is not None else None
+        filter_uid = int(uid) if user_id is not None else None
         filter_role = r if user_id is not None and role is not None else None
         schedules = await service.get_schedules_for_calendar(
             start_date, end_date, filter_uid, filter_role

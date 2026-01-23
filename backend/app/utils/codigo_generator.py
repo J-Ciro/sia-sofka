@@ -14,6 +14,9 @@ def generar_codigo_institucional_sync(
 ) -> str:
     """Generate institutional code for a user based on role (synchronous version).
     
+    Generates a unique code by checking if the generated code already exists
+    and incrementing the sequential number until a unique code is found.
+    
     Args:
         db: Synchronous database session
         role: User role (Estudiante, Profesor, Admin)
@@ -30,7 +33,7 @@ def generar_codigo_institucional_sync(
     prefix = prefixes.get(role, "USR")
     current_year = datetime.now().year
     
-    # Get the count of users with the same role and year
+    # Get the count of users with the same role and year as starting point
     stmt = select(func.count(User.id)).where(
         User.role == role,
         User.codigo_institucional.like(f"{prefix}-{current_year}-%")
@@ -38,16 +41,37 @@ def generar_codigo_institucional_sync(
     result = db.execute(stmt)
     count = result.scalar() or 0
     
-    # Generate sequential number with 4 digits
-    sequential = str(count + 1).zfill(4)
+    # Generate sequential number starting from count + 1
+    max_attempts = 1000  # Safety limit to avoid infinite loops
+    for attempt in range(max_attempts):
+        sequential = str(count + 1 + attempt).zfill(4)
+        codigo = f"{prefix}-{current_year}-{sequential}"
+        
+        # Check if this code already exists
+        check_stmt = select(User).where(
+            User.codigo_institucional == codigo
+        )
+        check_result = db.execute(check_stmt)
+        existing_user = check_result.scalar_one_or_none()
+        
+        if not existing_user:
+            # Code is unique, return it
+            return codigo
     
-    return f"{prefix}-{current_year}-{sequential}"
+    # If we exhausted all attempts, raise an error
+    raise ValueError(
+        f"No se pudo generar un código único después de {max_attempts} intentos. "
+        f"Por favor, contacte al administrador."
+    )
 
 
 async def generar_codigo_institucional(
     db: AsyncSession, role: str
 ) -> str:
     """Generate institutional code for a user based on role (async version).
+    
+    Generates a unique code by checking if the generated code already exists
+    and incrementing the sequential number until a unique code is found.
     
     Args:
         db: Async database session
@@ -65,7 +89,7 @@ async def generar_codigo_institucional(
     prefix = prefixes.get(role, "USR")
     current_year = datetime.now().year
     
-    # Get the count of users with the same role and year
+    # Get the count of users with the same role and year as starting point
     stmt = select(func.count(User.id)).where(
         User.role == role,
         User.codigo_institucional.like(f"{prefix}-{current_year}-%")
@@ -73,10 +97,28 @@ async def generar_codigo_institucional(
     result = await db.execute(stmt)
     count = result.scalar() or 0
     
-    # Generate sequential number with 4 digits
-    sequential = str(count + 1).zfill(4)
+    # Generate sequential number starting from count + 1
+    max_attempts = 1000  # Safety limit to avoid infinite loops
+    for attempt in range(max_attempts):
+        sequential = str(count + 1 + attempt).zfill(4)
+        codigo = f"{prefix}-{current_year}-{sequential}"
+        
+        # Check if this code already exists
+        check_stmt = select(User).where(
+            User.codigo_institucional == codigo
+        )
+        check_result = await db.execute(check_stmt)
+        existing_user = check_result.scalar_one_or_none()
+        
+        if not existing_user:
+            # Code is unique, return it
+            return codigo
     
-    return f"{prefix}-{current_year}-{sequential}"
+    # If we exhausted all attempts, raise an error
+    raise ValueError(
+        f"No se pudo generar un código único después de {max_attempts} intentos. "
+        f"Por favor, contacte al administrador."
+    )
 
 
 def generar_codigo_materia_sync(

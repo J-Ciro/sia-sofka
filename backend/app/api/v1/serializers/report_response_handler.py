@@ -13,8 +13,8 @@ class ReportResponseHandler:
     def handle_response(
         report: Dict[str, Any],
         format: str,
-        error: Exception = None,
-        error_type: str = None,
+        error: Exception | None = None,
+        error_type: str | None = None,
     ) -> Response | Dict[str, Any]:
         """Handle report response based on format.
         
@@ -48,9 +48,11 @@ class ReportResponseHandler:
         if format_lower == "json":
             content = report["content"]
             if isinstance(content, bytes):
-                return json.loads(content.decode("utf-8"))
+                result: Dict[str, Any] = json.loads(content.decode("utf-8"))
+                return result
             else:
-                return json.loads(content)
+                result: Dict[str, Any] = json.loads(content)
+                return result
 
         # Handle PDF and HTML formats
         content = report["content"]

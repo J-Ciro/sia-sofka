@@ -30,7 +30,7 @@ const testFiles = {
  * - HU-07: Manejo de Contraseñas en Importación
  * - HU-08: Validar Formato de Archivo
  */
-test.describe('🔄 Importación/Exportación Masiva de Excel (Administrador)', () => {
+test.describe('Importación/Exportación Masiva de Excel (Administrador)', () => {
   let bulkImportPage
 
   test.beforeEach(async ({ authenticatedPage }) => {
@@ -58,7 +58,7 @@ test.describe('🔄 Importación/Exportación Masiva de Excel (Administrador)', 
    * 🎯 CASOS EXITOSOS - Happy Path
    * Cubren las funcionalidades principales cuando todo funciona correctamente
    */
-  test.describe('✅ Casos Exitosos - Happy Path', () => {
+  test.describe(' Casos Exitosos', () => {
     
     test('HU-01: Debe mostrar modal con todos los elementos de UI requeridos', async ({ authenticatedPage }) => {
       // Abrir el modal de importación
@@ -161,10 +161,10 @@ test.describe('🔄 Importación/Exportación Masiva de Excel (Administrador)', 
   })
 
   /**
-   * ⚠️ MANEJO DE ERRORES - Casos de Falla
+   * MANEJO DE ERRORES - Casos de Falla
    * Cubren escenarios donde el sistema debe manejar errores graciosamente
    */
-  test.describe('⚠️ Manejo de Errores - Casos de Falla', () => {
+  test.describe('Manejo de Errores - Casos de Falla', () => {
     
     test('HU-01: Debe manejar falla en descarga de plantilla', async ({ authenticatedPage }) => {
       // Configurar interceptor para simular falla de red con mensaje específico
@@ -364,8 +364,8 @@ test.describe('🔄 Importación/Exportación Masiva de Excel (Administrador)', 
               created: 0,
               updated: 0,
               errors: [
-                { row: 2, field: 'email', message: 'Email inválido', value: 'invalid-email' },
-                { row: 3, field: 'fecha_nacimiento', message: 'Fecha inválida', value: '2050-01-01' }
+                { row: 2, field: 'email', message: 'El email no es válido', value: 'invalid-email' },
+                { row: 3, field: 'fecha_nacimiento', message: 'La fecha no es válida o tiene un formato incorrecto', value: '2050-01-01' }
               ]
             })
           })
@@ -385,8 +385,8 @@ test.describe('🔄 Importación/Exportación Masiva de Excel (Administrador)', 
       // Wait for UI to update after response
       await authenticatedPage.waitForTimeout(1000)
       
-      // Verificar errores específicos
-      await bulkImportPage.verifyValidationErrors(['Email inválido'])
+      // Verificar errores específicos (mensajes traducidos al español)
+      await bulkImportPage.verifyValidationErrors(['El email no es válido'])
     })
 
     test('HU-03: Debe detectar emails duplicados en el archivo', async ({ authenticatedPage }) => {
@@ -436,7 +436,7 @@ test.describe('🔄 Importación/Exportación Masiva de Excel (Administrador)', 
               created: 1,
               updated: 0,
               errors: [
-                { row: 3, field: 'email', message: 'Email inválido', value: 'invalid-email' }
+                { row: 3, field: 'email', message: 'El email no es válido', value: 'invalid-email' }
               ]
             })
           })

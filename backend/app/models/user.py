@@ -1,11 +1,49 @@
 """User model."""
 
-from sqlalchemy import Column, Integer, String, Date, DateTime, Enum as SQLEnum
+from sqlalchemy import Column, Integer, String, Date, DateTime, Enum as SQLEnum, TypeDecorator
+from sqlalchemy.dialects.postgresql import UUID as PostgresUUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from datetime import date, datetime
 import enum
+import uuid
 from app.core.database import Base
+
+
+class GUID(TypeDecorator):
+    """Platform-independent GUID type.
+    
+    Uses PostgreSQL's UUID type when available, otherwise uses String(36)
+    for SQLite compatibility.
+    """
+    impl = String
+    cache_ok = True
+    
+    def load_dialect_impl(self, dialect):
+        if dialect.name == 'postgresql':
+            return dialect.type_descriptor(PostgresUUID(as_uuid=True))
+        else:
+            return dialect.type_descriptor(String(36))
+    
+    def process_bind_param(self, value, dialect):
+        if value is None:
+            return value
+        elif dialect.name == 'postgresql':
+            return value
+        else:
+            if isinstance(value, uuid.UUID):
+                return str(value)
+            return value
+    
+    def process_result_value(self, value, dialect):
+        if value is None:
+            return value
+        elif dialect.name == 'postgresql':
+            return value
+        else:
+            if isinstance(value, str):
+                return uuid.UUID(value)
+            return value
 
 
 class UserRole(str, enum.Enum):
@@ -20,10 +58,21 @@ class User(Base):
     
     __tablename__ = "users"
     
+    # Technical identifier (UUID) - for backend use
+    uuid = Column(
+        GUID(),
+        primary_key=False,
+        default=uuid.uuid4,
+        unique=True,
+        index=True,
+        nullable=False
+    )
+    
+    # User-friendly identifier (Integer) - for easy identification by users
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True, nullable=False)
     password_hash = Column(String, nullable=False)
-    role = Column(SQLEnum(UserRole), nullable=False, index=True)
+    role: UserRole = Column(SQLEnum(UserRole), nullable=False, index=True)  # type: ignore[assignment]
     
     # Personal information
     nombre = Column(String, nullable=False)
@@ -90,7 +139,7 @@ class User(Base):
         if not self.fecha_nacimiento:
             return 0
         today = date.today()
-        age = today.year - self.fecha_nacimiento.year
+        age: int = today.year - self.fecha_nacimiento.year
         if (today.month, today.day) < (
             self.fecha_nacimiento.month,
             self.fecha_nacimiento.day,

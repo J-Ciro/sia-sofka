@@ -1,5 +1,6 @@
 """Estudiante service with estudiante-specific business logic."""
 
+from typing import Any
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.user import User
 from app.services.user_service import UserService
@@ -128,7 +129,7 @@ class EstudianteService:
                 "programa_academico": self.estudiante_user.programa_academico,
             },
             "subjects": [],
-        }
+        }  # type: dict[str, Any]
         
         for enrollment in enrollments:
             # Subject already loaded via eager loading
@@ -212,6 +213,12 @@ class EstudianteService:
         
         Returns:
             Updated estudiante
+        
+        Raises:
+            NotFoundError: If user not found
         """
-        return await self.user_service.update_user(self.estudiante_user.id, user_data)
+        updated = await self.user_service.update_user(int(self.estudiante_user.id), user_data)
+        if not updated:
+            raise NotFoundError("User", int(self.estudiante_user.id))
+        return updated
 

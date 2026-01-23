@@ -67,7 +67,7 @@ class Attendance(Base):
     id = Column(Integer, primary_key=True, index=True)
     clase_session_id = Column(Integer, ForeignKey("clase_sessions.id"), nullable=False, index=True)
     estudiante_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
-    estado = Column(SQLEnum(AttendanceStatus), nullable=False, default=AttendanceStatus.PRESENTE)
+    estado: AttendanceStatus = Column(SQLEnum(AttendanceStatus), nullable=False, default=AttendanceStatus.PRESENTE)  # type: ignore[assignment]
     
     # Timestamps
     created_at = Column(
