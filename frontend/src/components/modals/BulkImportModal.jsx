@@ -49,10 +49,14 @@ const BulkImportModal = ({ isOpen, onClose, onSuccess }) => {
         }
       } else {
         // This shouldn't happen with our current backend, but handle unexpected responses
-        setError('Respuesta inesperada del servidor')
+        setError('El servidor respondió con un formato inesperado. Por favor, inténtelo de nuevo o contacte al administrador.')
       }
     } catch (err) {
-      setError(formatError(err, 'importación'))
+      // Check if error has a specific message
+      const errorMessage = formatError(err, 'importación')
+      setError(errorMessage)
+      // Clear result on error
+      setResult(null)
     } finally {
       setLoading(false)
     }
@@ -83,18 +87,24 @@ const BulkImportModal = ({ isOpen, onClose, onSuccess }) => {
   function formatError(err, operation) {
     if (!err) return `Error durante ${operation}`
     
-    // If we have a structured error from our API service
-    if (err.message && err.type) {
+    // If we have a structured error from our API service (preferred)
+    if (err.message && (err.type || err.status)) {
       return err.message
     }
     
     // Legacy error handling for backward compatibility
-    if (typeof err.message === 'string') return err.message
+    if (typeof err.message === 'string' && err.message.length > 0) {
+      return err.message
+    }
     
-    const detail = err.response?.data?.detail
+    // Try to extract from response
+    const detail = err.response?.data?.detail || err.originalError
     if (detail) {
       if (Array.isArray(detail)) {
         return detail.map((x) => x.msg || (x.loc && x.loc.join('.'))).filter(Boolean).join('; ')
+      }
+      if (typeof detail === 'string') {
+        return detail
       }
       return String(detail)
     }
@@ -103,7 +113,8 @@ const BulkImportModal = ({ isOpen, onClose, onSuccess }) => {
       return err.message.map((x) => x?.msg || (x?.loc && x.loc.join('.'))).filter(Boolean).join('; ') || `Error durante ${operation}`
     }
     
-    return `Error durante ${operation}`
+    // Last resort: generic error message
+    return `Error durante ${operation}. Por favor, inténtelo de nuevo.`
   }
 
   if (!isOpen) return null
@@ -128,7 +139,15 @@ const BulkImportModal = ({ isOpen, onClose, onSuccess }) => {
                   </svg>
                 </div>
                 <div className="flex-1">
-                  <h4 className="text-sm font-medium text-red-800 mb-1">Error en la operación</h4>
+                  <h4 className="text-sm font-medium text-red-800 mb-1">
+                    {error.includes('sesión') || error.includes('permisos') 
+                      ? 'Error de autenticación o permisos'
+                      : error.includes('base de datos') || error.includes('Database')
+                      ? 'Error en la base de datos'
+                      : error.includes('servidor') || error.includes('servicio')
+                      ? 'Error del servidor'
+                      : 'Error en la operación'}
+                  </h4>
                   <p className="text-sm text-red-700">{error}</p>
                 </div>
               </div>

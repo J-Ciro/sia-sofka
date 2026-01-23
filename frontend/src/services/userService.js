@@ -50,17 +50,57 @@ export const userService = {
         if (data instanceof FormData) delete headers['Content-Type']
         return data
       }],
-      // Don't use interceptors for this request
+      // Accept 200 (success) and 400 (validation errors with BulkImportResult)
       validateStatus: (status) => status === 200 || status === 400,
     }
     
     try {
       const response = await axios(config)
+      
+      // Success case (200)
+      if (response.status === 200) {
+        return response.data
+      }
+      
+      // Handle 400 responses
+      if (response.status === 400) {
+        // Check if response is a BulkImportResult (has created/updated/errors)
+        // BulkImportResult has created, updated, and errors fields
+        const isBulkImportResult = response.data && 
+          (typeof response.data.created === 'number' || 
+           typeof response.data.updated === 'number' || 
+           Array.isArray(response.data.errors))
+        
+        if (isBulkImportResult) {
+          // It's a BulkImportResult with validation errors (row-level errors)
+          return response.data
+        } else {
+          // It's an error message (like file format, size, corruption, etc.)
+          // These are file-level errors that should be shown as error, not as result
+          const errorDetail = response.data?.detail
+          const errorMessage = userService._getSpecificErrorMessage(errorDetail, 400, 'importación')
+          
+          throw {
+            message: errorMessage,
+            type: userService._getErrorType(errorDetail, 400),
+            originalError: errorDetail,
+            status: 400,
+            response: response,
+          }
+        }
+      }
+      
+      // Should not reach here, but return data if we do
       return response.data
     } catch (error) {
       // Handle specific error types from backend
-      const errorDetail = error.response?.data?.detail
-      const status = error.response?.status
+      const errorDetail = error.response?.data?.detail || error.originalError
+      const status = error.response?.status || error.status || 500
+      
+      // If error already has structured format, re-throw it
+      if (error.message && error.type) {
+        throw error
+      }
       
       // Create structured error object with specific messages
       const structuredError = {
