@@ -205,7 +205,7 @@ export class SchedulePage {
           const selectedValue = await subjectSelect.inputValue();
           if (selectedValue === value) {
             found = true;
-            console.log(`✅ Selected subject: ${text} (value: ${value})`);
+            console.log(` Selected subject: ${text} (value: ${value})`);
             break;
           }
         }
@@ -270,7 +270,7 @@ export class SchedulePage {
           const selectedValue = await classroomSelect.inputValue();
           if (selectedValue === value) {
             found = true;
-            console.log(`✅ Selected classroom: ${text} (value: ${value})`);
+            console.log(` Selected classroom: ${text} (value: ${value})`);
             break;
           }
         }

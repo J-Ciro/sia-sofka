@@ -48,35 +48,77 @@ async function login(page, email, password) {
   // Wait for login page to load
   await page.waitForLoadState('networkidle');
   
-  // Fill credentials using more specific selectors
-  const emailInput = page.getByRole('textbox', { name: /correo electrónico/i });
-  const passwordInput = page.getByRole('textbox', { name: /contraseña/i });
+  // Fill credentials using specific selectors (matching auth.spec.js pattern)
+  await page.fill('input[name="email"]', email);
+  await page.fill('input[name="password"]', password);
   
-  await emailInput.fill(email);
-  await passwordInput.fill(password);
+  // Set up response listener before clicking
+  const loginResponsePromise = page.waitForResponse(
+    response => {
+      const url = response.url();
+      return url.includes('/api/v1/auth/login') || url.includes('/auth/login');
+    },
+    { timeout: 15000 }
+  ).catch(() => null);
   
   // Click login button
-  const loginButton = page.getByRole('button', { name: /iniciar sesión/i });
-  await loginButton.click();
+  await page.click('button[type="submit"]');
+  
+  // Wait for API response
+  const loginResponse = await loginResponsePromise;
+  
+  if (loginResponse) {
+    const status = loginResponse.status();
+    if (status !== 200) {
+      const responseBody = await loginResponse.json().catch(() => ({}));
+      const errorDetail = responseBody.detail || responseBody.message || JSON.stringify(responseBody);
+      throw new Error(`Login API returned ${status}: ${errorDetail}`);
+    }
+  } else {
+    // No response received - might be a network issue or form not submitting
+    console.warn('⚠️  No login API response received. Checking if form submitted...');
+  }
   
   // Wait for navigation to complete - expect successful login
   try {
-    await page.waitForURL('/', { timeout: 15000 });
+    // Use pattern matching like auth.spec.js does
+    await page.waitForURL('**/', { timeout: 20000 });
+    
+    // Wait for network to be idle before checking for dashboard content
+    await page.waitForLoadState('networkidle');
     
     // Verify we're on dashboard by looking for the dashboard content
     await page.waitForSelector('h1:has-text("Dashboard")', { timeout: 10000 });
     
     console.log(`✅ Login successful for ${email}`);
   } catch (error) {
+    // Take screenshot for debugging
+    const screenshotPath = `test-results/login-failed-${Date.now()}.png`;
+    await page.screenshot({ path: screenshotPath, fullPage: true }).catch(() => {
+      // Ignore screenshot errors
+    });
+    
+    // Log current URL for debugging
+    const currentUrl = page.url();
+    console.error(`❌ Login failed. Current URL: ${currentUrl}`);
+    
     // Check if there's an error message on the login page
-    const errorVisible = await page.getByText(/error al iniciar sesión/i).isVisible().catch(() => false);
-    if (errorVisible) {
-      const errorText = await page.getByText(/error al iniciar sesión/i).textContent();
-      throw new Error(`Login failed: ${errorText}`);
+    const errorSelectors = [
+      page.getByText(/error al iniciar sesión/i),
+      page.getByText(/invalid|incorrect|incorrecto/i),
+      page.locator('.bg-red-50, .text-red-700, [role="alert"]')
+    ];
+    
+    for (const errorSelector of errorSelectors) {
+      const errorVisible = await errorSelector.isVisible().catch(() => false);
+      if (errorVisible) {
+        const errorText = await errorSelector.textContent().catch(() => 'Error message found but text not readable');
+        throw new Error(`Login failed: ${errorText}. Current URL: ${currentUrl}`);
+      }
     }
     
-    // If no error message but still failed, throw the original error
-    throw new Error(`Login failed for ${email}: ${error.message}`);
+    // If no error message but still failed, throw the original error with more context
+    throw new Error(`Login failed for ${email}: ${error.message}. Current URL: ${currentUrl}. Screenshot saved to: ${screenshotPath}`);
   }
 }
 

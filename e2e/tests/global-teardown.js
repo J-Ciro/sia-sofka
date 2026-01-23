@@ -9,5 +9,5 @@ export default async function globalTeardown() {
   // Optional: Clean up test database or leave it for inspection
   // For now, we'll leave the test database intact for debugging
   
-  console.log('✅ Teardown complete!\n');
+  console.log(' Teardown complete!\n');
 }
