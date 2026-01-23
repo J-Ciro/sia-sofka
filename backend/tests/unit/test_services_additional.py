@@ -8,7 +8,7 @@ from app.models.user import User, UserRole
 from app.models.subject import Subject
 from app.models.enrollment import Enrollment
 from app.models.grade import Grade
-from app.models.attendance import ClaseSession, Attendance
+from app.models.attendance import ClaseSession, Attendance, AttendanceStatus
 from app.core.exceptions import ConflictError
 from app.services.user_service import UserService
 from app.services.subject_service import SubjectService
@@ -563,7 +563,7 @@ async def test_subject_service_delete_subject_with_grades_raises_conflict(async_
     grade = Grade(
         enrollment_id=enrollment.id,
         nota=Decimal("4.5"),
-        tipo_evaluacion="Parcial",
+        periodo="2024-1",
         fecha=date(2024, 1, 15),
     )
     async_db_session.add(grade)
@@ -629,8 +629,8 @@ async def test_subject_service_delete_subject_with_attendance_raises_conflict(as
     clase_session = ClaseSession(
         subject_id=subject.id,
         fecha=date(2024, 1, 15),
-        hora_inicio=time(8, 0),
-        hora_fin=time(10, 0),
+        hora_inicio=datetime(2024, 1, 15, 8, 0),
+        hora_fin=datetime(2024, 1, 15, 10, 0),
         creado_por=profesor.id,
     )
     async_db_session.add(clase_session)
@@ -641,7 +641,7 @@ async def test_subject_service_delete_subject_with_attendance_raises_conflict(as
     attendance = Attendance(
         clase_session_id=clase_session.id,
         estudiante_id=estudiante.id,
-        estado="Presente",
+        estado=AttendanceStatus.PRESENTE,
     )
     async_db_session.add(attendance)
     await async_db_session.commit()
@@ -714,7 +714,7 @@ async def test_subject_service_delete_subject_with_both_conflicts_raises_conflic
     grade = Grade(
         enrollment_id=enrollment.id,
         nota=Decimal("4.5"),
-        tipo_evaluacion="Parcial",
+        periodo="2024-1",
         fecha=date(2024, 1, 15),
     )
     async_db_session.add(grade)
@@ -724,8 +724,8 @@ async def test_subject_service_delete_subject_with_both_conflicts_raises_conflic
     clase_session = ClaseSession(
         subject_id=subject.id,
         fecha=date(2024, 1, 15),
-        hora_inicio=time(8, 0),
-        hora_fin=time(10, 0),
+        hora_inicio=datetime(2024, 1, 15, 8, 0),
+        hora_fin=datetime(2024, 1, 15, 10, 0),
         creado_por=profesor.id,
     )
     async_db_session.add(clase_session)
@@ -735,7 +735,7 @@ async def test_subject_service_delete_subject_with_both_conflicts_raises_conflic
     attendance = Attendance(
         clase_session_id=clase_session.id,
         estudiante_id=estudiante.id,
-        estado="Presente",
+        estado=AttendanceStatus.PRESENTE,
     )
     async_db_session.add(attendance)
     await async_db_session.commit()
