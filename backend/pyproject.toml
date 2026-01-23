@@ -18,6 +18,8 @@ extend-exclude = '''
   | alembic
 )/
 '''
+[tool.pytest.ini_options]
+norecursedirs = ["data"]
 
 [tool.isort]
 profile = "black"
@@ -40,11 +42,32 @@ ignore_errors = true
 
 [tool.pytest.ini_options]
 minversion = "7.0"
-addopts = "-ra -q --strict-markers --cov=app"
+addopts = "-ra -q --strict-markers"
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
+norecursedirs = [
+    "data",
+    ".*",
+    "build",
+    "dist",
+    "CVS",
+    "_darcs",
+    "{arch}",
+    "*.egg",
+    "venv",
+    "env",
+    ".venv",
+    ".env",
+    "node_modules",
+    "migrations",
+    "alembic",
+    "__pycache__",
+    ".git",
+    ".tox",
+    ".eggs",
+]
 markers = [
     "unit: Unit tests",
     "integration: Integration tests",

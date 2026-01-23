@@ -1,13 +1,49 @@
 """User model."""
 
-from sqlalchemy import Column, Integer, String, Date, DateTime, Enum as SQLEnum
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Column, Integer, String, Date, DateTime, Enum as SQLEnum, TypeDecorator
+from sqlalchemy.dialects.postgresql import UUID as PostgresUUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from datetime import date, datetime
 import enum
 import uuid
 from app.core.database import Base
+
+
+class GUID(TypeDecorator):
+    """Platform-independent GUID type.
+    
+    Uses PostgreSQL's UUID type when available, otherwise uses String(36)
+    for SQLite compatibility.
+    """
+    impl = String
+    cache_ok = True
+    
+    def load_dialect_impl(self, dialect):
+        if dialect.name == 'postgresql':
+            return dialect.type_descriptor(PostgresUUID(as_uuid=True))
+        else:
+            return dialect.type_descriptor(String(36))
+    
+    def process_bind_param(self, value, dialect):
+        if value is None:
+            return value
+        elif dialect.name == 'postgresql':
+            return value
+        else:
+            if isinstance(value, uuid.UUID):
+                return str(value)
+            return value
+    
+    def process_result_value(self, value, dialect):
+        if value is None:
+            return value
+        elif dialect.name == 'postgresql':
+            return value
+        else:
+            if isinstance(value, str):
+                return uuid.UUID(value)
+            return value
 
 
 class UserRole(str, enum.Enum):
@@ -24,7 +60,7 @@ class User(Base):
     
     # Technical identifier (UUID) - for backend use
     uuid = Column(
-        UUID(as_uuid=True),
+        GUID(),
         primary_key=False,
         default=uuid.uuid4,
         unique=True,
