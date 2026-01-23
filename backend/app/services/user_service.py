@@ -40,7 +40,7 @@ class UserService:
         # Generate institutional code
         codigo = await generar_codigo_institucional(self.db, user_data.role.value)
         
-        # Create user data dict
+        # Create user data dict - only include fields that are not None
         user_dict = {
             "email": user_data.email,
             "password_hash": get_password_hash(user_data.password),
@@ -49,11 +49,22 @@ class UserService:
             "apellido": user_data.apellido,
             "codigo_institucional": codigo,
             "fecha_nacimiento": user_data.fecha_nacimiento,
-            "numero_contacto": user_data.numero_contacto,
-            "programa_academico": user_data.programa_academico,
-            "ciudad_residencia": user_data.ciudad_residencia,
-            "area_ensenanza": user_data.area_ensenanza,
         }
+        
+        # Add optional fields only if they are provided
+        if user_data.numero_contacto is not None:
+            user_dict["numero_contacto"] = user_data.numero_contacto
+        
+        # Role-specific fields
+        from app.models.user import UserRole
+        if user_data.role == UserRole.ESTUDIANTE:
+            if user_data.programa_academico is not None:
+                user_dict["programa_academico"] = user_data.programa_academico
+            if user_data.ciudad_residencia is not None:
+                user_dict["ciudad_residencia"] = user_data.ciudad_residencia
+        elif user_data.role == UserRole.PROFESOR:
+            if user_data.area_ensenanza is not None:
+                user_dict["area_ensenanza"] = user_data.area_ensenanza
         
         # Create user
         user = await self.repository.create(user_dict)

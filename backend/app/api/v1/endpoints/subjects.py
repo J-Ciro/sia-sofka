@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from app.core.database import get_db
-from app.core.exceptions import NotFoundError, ValidationError, ForbiddenError
+from app.core.exceptions import NotFoundError, ValidationError, ForbiddenError, ConflictError
 from app.models.user import User, UserRole
 from app.models.subject import Subject
 from app.schemas.subject import SubjectCreate, SubjectUpdate, SubjectResponse
@@ -240,7 +240,21 @@ async def update_subject(
     if not subject:
         raise NotFoundError("Subject", subject_id)
     
-    return subject
+    # Load profesor relationship with eager loading before serialization
+    stmt = (
+        select(Subject)
+        .where(Subject.id == subject_id)
+        .options(selectinload(Subject.profesor))
+    )
+    result = await db.execute(stmt)
+    subject_with_profesor = result.scalar_one_or_none()
+    
+    if not subject_with_profesor:
+        raise NotFoundError("Subject", subject_id)
+    
+    # Use serializer to properly serialize with profesor relationship
+    serialized = SubjectSerializer.serialize_batch([subject_with_profesor])
+    return serialized[0] if serialized else None
 
 
 @router.delete("/{subject_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -249,10 +263,20 @@ async def delete_subject(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_admin),
 ):
-    """Delete subject (Admin only)."""
-    admin_service = AdminService(db, current_user)
-    deleted = await admin_service.delete_subject(subject_id)
+    """Delete subject (Admin only).
     
-    if not deleted:
-        raise NotFoundError("Subject", subject_id)
+    Raises ConflictError if subject has historical data that prevents deletion.
+    """
+    admin_service = AdminService(db, current_user)
+    try:
+        deleted = await admin_service.delete_subject(subject_id)
+        
+        if not deleted:
+            raise NotFoundError("Subject", subject_id)
+    except ConflictError:
+        # Re-raise ConflictError as-is (already has proper status code and message)
+        raise
+    except ValueError as e:
+        # Handle business logic validation errors
+        raise ValidationError(str(e))
 
