@@ -148,7 +148,7 @@ class ScheduleService:
         end_date: date,
         user_id: Optional[int] = None,
         role: Optional[UserRole] = None,
-    ) -> List[Schedule]:
+    ) -> List:
         """Get schedules for calendar display, expanding weekly schedules to specific dates.
         
         This method is designed for calendar components that need to display schedules
@@ -177,7 +177,7 @@ class ScheduleService:
         weekly_schedules = [s for s in schedules if s.fecha_especifica is None]
         
         # Start with date-specific schedules (they already have their dates)
-        expanded_schedules = date_specific_schedules.copy()
+        expanded_schedules = list(date_specific_schedules)  # Make a copy of the list
         
         # Expand weekly schedules to specific dates within the range
         current_date = start_date
@@ -201,23 +201,29 @@ class ScheduleService:
                     
                     if not has_date_specific_override:
                         # Create a virtual schedule instance for this specific date
-                        # Note: This creates a new Schedule object for display purposes
-                        # The original weekly schedule remains unchanged in the database
-                        virtual_schedule = Schedule(
-                            id=schedule.id,
-                            codigo=schedule.codigo,
-                            subject_id=schedule.subject_id,
-                            classroom_id=schedule.classroom_id,
-                            dia_semana=schedule.dia_semana,
-                            hora_inicio=schedule.hora_inicio,
-                            hora_fin=schedule.hora_fin,
-                            fecha_especifica=current_date,  # Virtual date for display
-                            created_at=schedule.created_at,
-                            updated_at=schedule.updated_at,
-                        )
-                        # Copy relationships for display
-                        virtual_schedule.subject = schedule.subject
-                        virtual_schedule.classroom = schedule.classroom
+                        # Use a simple class to avoid SQLAlchemy issues
+                        class VirtualSchedule:
+                            """Simple class to hold schedule data for virtual instances."""
+                            def __init__(self, schedule, fecha_especifica):
+                                self.id = schedule.id
+                                self.codigo = schedule.codigo
+                                self.subject_id = schedule.subject_id
+                                self.classroom_id = schedule.classroom_id
+                                self.dia_semana = schedule.dia_semana
+                                self.hora_inicio = schedule.hora_inicio
+                                self.hora_fin = schedule.hora_fin
+                                self.fecha_especifica = fecha_especifica
+                                self.created_at = schedule.created_at
+                                self.updated_at = schedule.updated_at
+                                # Copy relationships if they exist
+                                if hasattr(schedule, 'subject') and schedule.subject is not None:
+                                    self.subject = schedule.subject
+                                if hasattr(schedule, 'classroom') and schedule.classroom is not None:
+                                    self.classroom = schedule.classroom
+                                # Mark as virtual for _to_response
+                                self._sa_instance_state = None
+                        
+                        virtual_schedule = VirtualSchedule(schedule, current_date)
                         expanded_schedules.append(virtual_schedule)
             
             current_date += timedelta(days=1)

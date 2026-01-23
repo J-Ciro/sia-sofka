@@ -324,6 +324,25 @@ async def async_enrollment2(async_db_session, async_estudiante_user, async_subje
     return e
 
 
+# ===== ASYNC FIXTURES FOR ATTENDANCE TESTS =====
+@pytest.fixture
+async def async_clase_session(async_db_session, async_subject, async_profesor_user):
+    """Clase session para tests async de attendance."""
+    today = date.today()
+    clase = ClaseSession(
+        subject_id=async_subject.id,
+        fecha=today,
+        hora_inicio=datetime.combine(today, datetime.min.time().replace(hour=8)),
+        hora_fin=datetime.combine(today, datetime.min.time().replace(hour=10)),
+        descripcion="Clase de prueba async",
+        creado_por=async_profesor_user.id,
+    )
+    async_db_session.add(clase)
+    await async_db_session.commit()
+    await async_db_session.refresh(clase)
+    return clase
+
+
 # ===== HTTP CLIENT FIXTURE =====
 @pytest.fixture
 async def client():

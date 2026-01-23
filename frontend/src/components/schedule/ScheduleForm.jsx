@@ -133,15 +133,21 @@ export default function ScheduleForm({ isOpen, onClose, onSuccess }) {
       const endTime = formData.hora_fin.split(':').map(Number)
       const startMinutes = startTime[0] * 60 + startTime[1]
       const endMinutes = endTime[0] * 60 + endTime[1]
+      const duration = endMinutes - startMinutes
       
       // Check time consistency
       if (startMinutes >= endMinutes) {
         e.hora_fin = 'La hora de fin debe ser posterior a la hora de inicio'
       }
       
-      // Check minimum duration (at least 30 minutes)
-      if (endMinutes - startMinutes < 30) {
-        e.hora_fin = 'La clase debe durar al menos 30 minutos'
+      // Check minimum duration (at least 1 hour / 60 minutes)
+      if (duration < 60) {
+        e.hora_fin = 'La clase debe durar al menos 1 hora'
+      }
+      
+      // Check maximum duration (4 hours / 240 minutes)
+      if (duration > 240) {
+        e.hora_fin = 'La clase no puede durar más de 4 horas'
       }
     }
     
@@ -172,20 +178,48 @@ export default function ScheduleForm({ isOpen, onClose, onSuccess }) {
       onSuccess?.()
       onClose?.()
     } catch (err) {
-      const data = err?.data || err
-      if (err?.status === 422 && data?.detail) {
-        const d = data.detail
+      console.error('Error creating schedule:', err)
+      
+      // Extract error message from different error formats
+      let errorMessage = 'Error al crear el horario.'
+      
+      // Handle validation errors (400) - includes duration validation errors
+      if (err?.status === 400 || err?.response?.status === 400) {
+        const detail = err?.response?.data?.detail || err?.data?.detail || err?.detail
+        if (typeof detail === 'string') {
+          errorMessage = detail
+        } else if (typeof detail === 'object' && detail?.message) {
+          errorMessage = detail.message
+        } else if (err?.message && !err.message.includes('Error de conexión')) {
+          errorMessage = err.message
+        }
+      }
+      // Handle conflict errors (422)
+      else if (err?.status === 422 || err?.response?.status === 422) {
+        const data = err?.response?.data || err?.data || err
+        const d = data?.detail || data
         if (typeof d === 'object' && d.conflicts) {
           const parts = (d.conflicts || []).map((c) =>
             c.type === 'classroom' ? 'Aula ocupada en ese horario' : c.type === 'professor' ? 'El profesor tiene otra clase a esa hora' : `Conflicto: ${c.type}`
           )
-          setConflictError(parts.join('. ') || d.message || err.response?.data?.detail || err.message || 'Conflictos de horario.')
-        } else {
-          setConflictError(d.message || err.response?.data?.detail || err.message || 'Conflictos de horario.')
+          errorMessage = parts.join('. ') || d.message || 'Conflictos de horario.'
+        } else if (typeof d === 'string') {
+          errorMessage = d
+        } else if (d?.message) {
+          errorMessage = d.message
         }
-      } else {
-        setConflictError(err.response?.data?.detail || err.message || 'Error al crear el horario.')
       }
+      // Handle other errors (but not network errors)
+      else if (err?.message && !err.message.includes('Error de conexión') && !err?.isNetworkError) {
+        const detail = err?.response?.data?.detail || err?.data?.detail || err?.detail
+        if (detail) {
+          errorMessage = typeof detail === 'string' ? detail : detail?.message || errorMessage
+        } else {
+          errorMessage = err.message
+        }
+      }
+      
+      setConflictError(errorMessage)
     } finally {
       setLoading(false)
     }

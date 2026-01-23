@@ -15,6 +15,9 @@ from app.models.schedule import Schedule
 from app.models.subject import Subject
 from app.models.enrollment import Enrollment
 from app.models.user import UserRole
+from app.repositories.base import AbstractRepository
+from app.repositories.mixins import EagerLoadMixin, PaginationMixin
+from app.core.decorators import handle_repository_errors
 
 
 def _overlap_condition(hora_inicio: time, hora_fin: time):
@@ -25,12 +28,13 @@ def _overlap_condition(hora_inicio: time, hora_fin: time):
     )
 
 
-class ScheduleRepository:
+class ScheduleRepository(AbstractRepository[Schedule], EagerLoadMixin, PaginationMixin):
     """Repositorio para Schedule y consultas de solapamiento (async)."""
 
     def __init__(self, db: AsyncSession):
-        self.db = db
+        super().__init__(db, Schedule)
 
+    @handle_repository_errors
     async def find_classroom_overlaps(
         self,
         classroom_id: int,
@@ -52,7 +56,8 @@ class ScheduleRepository:
             stmt = stmt.where(Schedule.id != exclude_schedule_id)
         result = await self.db.execute(stmt)
         return list(result.scalars().all())
-
+    
+    @handle_repository_errors
     async def find_professor_overlaps(
         self,
         profesor_id: int,
@@ -75,7 +80,8 @@ class ScheduleRepository:
             stmt = stmt.where(Schedule.id != exclude_schedule_id)
         result = await self.db.execute(stmt)
         return list(result.scalars().all())
-
+    
+    @handle_repository_errors
     async def find_student_overlaps(
         self,
         estudiante_id: int,
@@ -102,8 +108,16 @@ class ScheduleRepository:
         result = await self.db.execute(stmt)
         return list(result.scalars().all())
 
-    async def get_all_schedules(self) -> List[Schedule]:
+    @handle_repository_errors
+    async def get_all_schedules(
+        self,
+        skip: int = 0,
+        limit: int = 100
+    ) -> List[Schedule]:
         """Todos los horarios (para Admin en calendario)."""
+        skip, limit = self._validate_pagination(skip, limit)
+        
+        # Use direct query with eager loading since we need ordering
         stmt = (
             select(Schedule)
             .options(
@@ -111,68 +125,92 @@ class ScheduleRepository:
                 joinedload(Schedule.classroom),
             )
             .order_by(Schedule.dia_semana, Schedule.hora_inicio)
+            .offset(skip)
+            .limit(limit)
         )
         result = await self.db.execute(stmt)
         return list(result.scalars().all())
-
+    
+    @handle_repository_errors
     async def get_weekly_schedule(
         self,
         user_id: int,
         role: UserRole,
+        skip: int = 0,
+        limit: int = 100,
     ) -> List[Schedule]:
         """TASK-009: Horario semanal según rol (Profesor: sus materias; Estudiante: inscripciones)."""
-        stmt = select(Schedule).options(
-            joinedload(Schedule.subject).joinedload(Subject.profesor),
-            joinedload(Schedule.classroom),
-        ).order_by(Schedule.dia_semana, Schedule.hora_inicio)
-
+        skip, limit = self._validate_pagination(skip, limit)
+        
+        # Build condition based on role
+        condition = None
         if role == UserRole.PROFESOR:
-            stmt = stmt.join(Subject, Schedule.subject_id == Subject.id).where(
-                Subject.profesor_id == user_id
-            )
-        elif role == UserRole.ESTUDIANTE:
+            # For professors, we need to join Subject to filter by profesor_id
+            # This requires a custom query
             stmt = (
-                stmt.join(Subject, Schedule.subject_id == Subject.id)
+                select(Schedule)
+                .join(Subject, Schedule.subject_id == Subject.id)
+                .where(Subject.profesor_id == user_id)
+                .options(
+                    joinedload(Schedule.subject).joinedload(Subject.profesor),
+                    joinedload(Schedule.classroom),
+                )
+                .order_by(Schedule.dia_semana, Schedule.hora_inicio)
+                .offset(skip)
+                .limit(limit)
+            )
+            result = await self.db.execute(stmt)
+            return list(result.scalars().all())
+        elif role == UserRole.ESTUDIANTE:
+            # For students, we need to join Subject and Enrollment
+            stmt = (
+                select(Schedule)
+                .join(Subject, Schedule.subject_id == Subject.id)
                 .join(Enrollment, and_(
                     Enrollment.subject_id == Subject.id,
                     Enrollment.estudiante_id == user_id,
                 ))
+                .options(
+                    joinedload(Schedule.subject).joinedload(Subject.profesor),
+                    joinedload(Schedule.classroom),
+                )
+                .order_by(Schedule.dia_semana, Schedule.hora_inicio)
+                .offset(skip)
+                .limit(limit)
             )
+            result = await self.db.execute(stmt)
+            return list(result.scalars().all())
         else:
             return []
-
-        result = await self.db.execute(stmt)
-        return list(result.scalars().all())
-
+    
+    @handle_repository_errors
     async def get_by_id(self, schedule_id: int) -> Optional[Schedule]:
         """Obtener horario por ID con subject y classroom."""
-        stmt = (
-            select(Schedule)
-            .where(Schedule.id == schedule_id)
-            .options(
-                joinedload(Schedule.subject).joinedload(Subject.profesor),
-                joinedload(Schedule.classroom),
-            )
+        return await self._get_one_with_relations(
+            Schedule,
+            Schedule.id == schedule_id,
+            use_joined=['subject.profesor', 'classroom']
         )
-        result = await self.db.execute(stmt)
-        return result.scalar_one_or_none()
-
+    
+    @handle_repository_errors
     async def get_by_classroom(
-        self, classroom_id: int
+        self,
+        classroom_id: int,
+        skip: int = 0,
+        limit: int = 100,
     ) -> List[Schedule]:
         """TASK-018: Horarios de un aula."""
-        stmt = (
-            select(Schedule)
-            .where(Schedule.classroom_id == classroom_id)
-            .options(
-                joinedload(Schedule.subject).joinedload(Subject.profesor),
-                joinedload(Schedule.classroom),
-            )
-            .order_by(Schedule.dia_semana, Schedule.hora_inicio)
+        skip, limit = self._validate_pagination(skip, limit)
+        
+        return await self._get_many_with_relations(
+            Schedule,
+            Schedule.classroom_id == classroom_id,
+            use_joined=['subject.profesor', 'classroom'],
+            skip=skip,
+            limit=limit
         )
-        result = await self.db.execute(stmt)
-        return list(result.scalars().all())
 
+    @handle_repository_errors
     async def find_classroom_overlaps_by_date(
         self,
         classroom_id: int,
@@ -206,7 +244,8 @@ class ScheduleRepository:
         
         result = await self.db.execute(stmt)
         return list(result.scalars().all())
-
+    
+    @handle_repository_errors
     async def find_professor_overlaps_by_date(
         self,
         profesor_id: int,
@@ -241,13 +280,16 @@ class ScheduleRepository:
         
         result = await self.db.execute(stmt)
         return list(result.scalars().all())
-
+    
+    @handle_repository_errors
     async def get_schedules_by_date_range(
         self,
         start_date: date,
         end_date: date,
         user_id: Optional[int] = None,
         role: Optional[UserRole] = None,
+        skip: int = 0,
+        limit: int = 100,
     ) -> List[Schedule]:
         """Get schedules for a date range, including both weekly and date-specific.
         
@@ -256,12 +298,16 @@ class ScheduleRepository:
             end_date: End date of the range (inclusive)
             user_id: Optional user ID for filtering by role
             role: Optional user role for filtering schedules
+            skip: Number of records to skip
+            limit: Maximum number of records to return
             
         Returns:
             List of schedules within the date range, including:
             - Date-specific schedules that fall within the range
             - Weekly recurring schedules (without fecha_especifica)
         """
+        skip, limit = self._validate_pagination(skip, limit)
+        
         # Base query for date-specific schedules within the range
         date_query = (
             select(Schedule)
@@ -304,6 +350,10 @@ class ScheduleRepository:
                         Enrollment.estudiante_id == user_id,
                     ))
                 )
+        
+        # Apply pagination
+        date_query = date_query.offset(skip).limit(limit)
+        weekly_query = weekly_query.offset(skip).limit(limit)
         
         # Execute both queries
         date_result = await self.db.execute(date_query)

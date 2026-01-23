@@ -1,8 +1,7 @@
 """Attendance Service - Business logic for attendance operations."""
 
-from typing import Optional, Dict, Any, Union
+from typing import Optional, Dict, Any
 from datetime import datetime, date, timedelta
-from sqlalchemy.orm import Session
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.user import User
@@ -21,11 +20,11 @@ from app.utils.attendance_validators import SessionValidator, AttendanceCalculat
 class AttendanceService:
     """Service for attendance-related business logic."""
     
-    def __init__(self, db: Union[Session, AsyncSession], usuario_autenticado: Optional[User] = None):
+    def __init__(self, db: AsyncSession, usuario_autenticado: Optional[User] = None):
         """Initialize attendance service.
         
         Args:
-            db: Database session
+            db: Database session (async only)
             usuario_autenticado: Authenticated user making the request
         """
         self.db = db
@@ -119,40 +118,44 @@ class AttendanceService:
         Returns:
             Number of students marked
         """
-        clase_session = self.db.query(ClaseSession).filter(
-            ClaseSession.id == clase_session_id
-        ).first()
+        from sqlalchemy import select
+        from app.models.enrollment import Enrollment
+        
+        stmt = select(ClaseSession).where(ClaseSession.id == clase_session_id)
+        result = await self.db.execute(stmt)
+        clase_session = result.scalar_one_or_none()
         
         if not clase_session:
             raise NotFoundError("ClaseSession", clase_session_id)
         
         # Get all enrolled students for the subject
-        from app.models.enrollment import Enrollment
-        enrollments = self.db.query(Enrollment).filter(
+        enrollment_stmt = select(Enrollment).where(
             Enrollment.subject_id == clase_session.subject_id
-        ).all()
+        )
+        enrollment_result = await self.db.execute(enrollment_stmt)
+        enrollments = enrollment_result.scalars().all()
         
         count = 0
         for enrollment in enrollments:
             # Check if attendance already exists
-            existing = self.attendance_repo.get_by_session_and_student(
+            existing = await self.attendance_repo.get_by_session_and_student(
                 clase_session_id,
                 enrollment.estudiante_id,
             )
             
             if existing:
-                # Update existing
-                self.attendance_repo.update(
+                # Update existing using AbstractRepository.update
+                await self.attendance_repo.update(
                     existing.id,
-                    estado=AttendanceStatus.PRESENTE,
+                    {"estado": AttendanceStatus.PRESENTE}
                 )
             else:
-                # Create new
-                self.attendance_repo.create(
-                    clase_session_id=clase_session_id,
-                    estudiante_id=enrollment.estudiante_id,
-                    estado=AttendanceStatus.PRESENTE,
-                )
+                # Create new using AbstractRepository.create
+                await self.attendance_repo.create({
+                    "clase_session_id": clase_session_id,
+                    "estudiante_id": enrollment.estudiante_id,
+                    "estado": AttendanceStatus.PRESENTE,
+                })
             count += 1
         
         return count
@@ -166,37 +169,41 @@ class AttendanceService:
         Returns:
             Number of students marked
         """
-        clase_session = self.db.query(ClaseSession).filter(
-            ClaseSession.id == clase_session_id
-        ).first()
+        from sqlalchemy import select
+        from app.models.enrollment import Enrollment
+        
+        stmt = select(ClaseSession).where(ClaseSession.id == clase_session_id)
+        result = await self.db.execute(stmt)
+        clase_session = result.scalar_one_or_none()
         
         if not clase_session:
             raise NotFoundError("ClaseSession", clase_session_id)
         
         # Get all enrolled students
-        from app.models.enrollment import Enrollment
-        enrollments = self.db.query(Enrollment).filter(
+        enrollment_stmt = select(Enrollment).where(
             Enrollment.subject_id == clase_session.subject_id
-        ).all()
+        )
+        enrollment_result = await self.db.execute(enrollment_stmt)
+        enrollments = enrollment_result.scalars().all()
         
         count = 0
         for enrollment in enrollments:
-            existing = self.attendance_repo.get_by_session_and_student(
+            existing = await self.attendance_repo.get_by_session_and_student(
                 clase_session_id,
                 enrollment.estudiante_id,
             )
             
             if existing:
-                self.attendance_repo.update(
+                await self.attendance_repo.update(
                     existing.id,
-                    estado=AttendanceStatus.AUSENTE,
+                    {"estado": AttendanceStatus.AUSENTE}
                 )
             else:
-                self.attendance_repo.create(
-                    clase_session_id=clase_session_id,
-                    estudiante_id=enrollment.estudiante_id,
-                    estado=AttendanceStatus.AUSENTE,
-                )
+                await self.attendance_repo.create({
+                    "clase_session_id": clase_session_id,
+                    "estudiante_id": enrollment.estudiante_id,
+                    "estado": AttendanceStatus.AUSENTE,
+                })
             count += 1
         
         return count
@@ -218,12 +225,12 @@ class AttendanceService:
         Raises:
             NotFoundError: If attendance not found
         """
-        attendance = self.attendance_repo.get_by_id(attendance_id)
+        attendance = await self.attendance_repo.get_by_id(attendance_id)
         
         if not attendance:
             raise NotFoundError("Attendance", attendance_id)
         
-        return self.attendance_repo.update(attendance_id, estado=estado)
+        return await self.attendance_repo.update(attendance_id, {"estado": estado})
     
     async def get_session_statistics(self, clase_session_id: int) -> Dict[str, Any]:
         """Get attendance statistics for a session.
@@ -247,7 +254,7 @@ class AttendanceService:
             "porcentaje_asistencia": percentage,
         }
     
-    def create_attendance_stats(
+    async def create_attendance_stats(
         self,
         estudiante_id: int,
         subject_id: int,
@@ -269,15 +276,19 @@ class AttendanceService:
         Returns:
             AttendanceStats instance
         """
+        from sqlalchemy import select
+        
         # Calculate percentage
         valid_attendance = presentes + tardanzas
         porcentaje = (valid_attendance / total_sesiones * 100) if total_sesiones > 0 else 0.0
         
         # Check if stats already exist
-        existing = self.db.query(AttendanceStats).filter(
+        stmt = select(AttendanceStats).where(
             AttendanceStats.estudiante_id == estudiante_id,
             AttendanceStats.subject_id == subject_id,
-        ).first()
+        )
+        result = await self.db.execute(stmt)
+        existing = result.scalar_one_or_none()
         
         if existing:
             # Update existing
@@ -286,8 +297,8 @@ class AttendanceService:
             existing.ausentes = ausentes
             existing.tardanzas = tardanzas
             existing.porcentaje_asistencia = porcentaje
-            self.db.commit()
-            self.db.refresh(existing)
+            await self.db.commit()
+            await self.db.refresh(existing)
             return existing
         else:
             # Create new
@@ -301,6 +312,6 @@ class AttendanceService:
                 porcentaje_asistencia=porcentaje,
             )
             self.db.add(stats)
-            self.db.commit()
-            self.db.refresh(stats)
+            await self.db.commit()
+            await self.db.refresh(stats)
             return stats

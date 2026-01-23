@@ -1,68 +1,34 @@
 """Attendance Repository - Data access layer for attendance operations."""
 
 from datetime import date, datetime
-from typing import Optional, Dict, Any, Union
-from sqlalchemy.orm import Session
+from typing import Optional, Dict, Any
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
+from sqlalchemy import select, and_, desc
 from app.models.attendance import (
     Attendance,
     AttendanceStatus,
     ClaseSession,
 )
 from app.repositories.base import AbstractRepository
+from app.repositories.mixins import EagerLoadMixin, PaginationMixin
+from app.core.decorators import handle_repository_errors
 
 
-class AttendanceRepository:
+class AttendanceRepository(AbstractRepository[Attendance], EagerLoadMixin, PaginationMixin):
     """Repository for Attendance model operations."""
     
-    def __init__(self, db: Union[Session, AsyncSession]):
+    def __init__(self, db: AsyncSession):
         """Initialize attendance repository.
         
         Args:
-            db: Database session (sync or async)
+            db: Database session (async only)
         """
-        self.db = db
-        self.model = Attendance
+        super().__init__(db, Attendance)
     
-    def create(
-        self,
-        clase_session_id: int,
-        estudiante_id: int,
-        estado: AttendanceStatus = AttendanceStatus.PRESENTE,
-    ) -> Attendance:
-        """Create a new attendance record.
-        
-        Args:
-            clase_session_id: ID of the clase session
-            estudiante_id: ID of the student
-            estado: Attendance status (default: PRESENTE)
-        
-        Returns:
-            Created Attendance instance
-        """
-        attendance = Attendance(
-            clase_session_id=clase_session_id,
-            estudiante_id=estudiante_id,
-            estado=estado,
-        )
-        self.db.add(attendance)
-        self.db.commit()
-        self.db.refresh(attendance)
-        return attendance
+    # CRUD methods (create, get_by_id, update, delete) come from AbstractRepository
     
-    def get_by_id(self, attendance_id: int) -> Optional[Attendance]:
-        """Get attendance by ID.
-        
-        Args:
-            attendance_id: Attendance ID
-        
-        Returns:
-            Attendance instance or None
-        """
-        return self.db.query(Attendance).filter(Attendance.id == attendance_id).first()
-    
-    def get_by_session_and_student(
+    @handle_repository_errors
+    async def get_by_session_and_student(
         self,
         clase_session_id: int,
         estudiante_id: int,
@@ -76,138 +42,87 @@ class AttendanceRepository:
         Returns:
             Attendance instance or None
         """
-        return self.db.query(Attendance).filter(
-            Attendance.clase_session_id == clase_session_id,
-            Attendance.estudiante_id == estudiante_id,
-        ).first()
+        return await self._get_one_with_relations(
+            Attendance,
+            and_(
+                Attendance.clase_session_id == clase_session_id,
+                Attendance.estudiante_id == estudiante_id,
+            ),
+            use_joined=['clase_session', 'estudiante']
+        )
     
-    def get_all_by_session(self, clase_session_id: int) -> list[Attendance]:
+    @handle_repository_errors
+    async def get_all_by_session(
+        self, 
+        clase_session_id: int,
+        skip: int = 0,
+        limit: int = 100
+    ) -> list[Attendance]:
         """Get all attendance records for a specific session.
         
         Args:
             clase_session_id: ID of the clase session
+            skip: Number of records to skip
+            limit: Maximum number of records to return
         
         Returns:
             List of Attendance instances
         """
-        return self.db.query(Attendance).filter(
+        skip, limit = self._validate_pagination(skip, limit)
+        
+        return await self._get_many_with_relations(
+            Attendance,
             Attendance.clase_session_id == clase_session_id,
-        ).all()
+            use_joined=['clase_session', 'estudiante'],
+            skip=skip,
+            limit=limit
+        )
     
-    def get_by_student_and_subject(
+    @handle_repository_errors
+    async def get_by_student_and_subject(
         self,
         estudiante_id: int,
         subject_id: int,
+        skip: int = 0,
+        limit: int = 100,
     ) -> list[Attendance]:
         """Get all attendance records for a student in a specific subject.
         
         Args:
             estudiante_id: ID of the student
             subject_id: ID of the subject
+            skip: Number of records to skip
+            limit: Maximum number of records to return
         
         Returns:
             List of Attendance instances
         """
-        return self.db.query(Attendance).join(
-            ClaseSession,
-            Attendance.clase_session_id == ClaseSession.id,
-        ).filter(
-            Attendance.estudiante_id == estudiante_id,
-            ClaseSession.subject_id == subject_id,
-        ).all()
-    
-    def update(self, attendance_id: int, **kwargs) -> Optional[Attendance]:
-        """Update an attendance record.
+        skip, limit = self._validate_pagination(skip, limit)
         
-        Args:
-            attendance_id: Attendance ID
-            **kwargs: Fields to update
+        from sqlalchemy.orm import joinedload
         
-        Returns:
-            Updated Attendance instance or None
-        """
-        attendance = self.get_by_id(attendance_id)
-        if attendance is None:
-            return None
-        
-        for key, value in kwargs.items():
-            if hasattr(attendance, key):
-                setattr(attendance, key, value)
-        
-        self.db.commit()
-        self.db.refresh(attendance)
-        return attendance
-    
-    def delete(self, attendance_id: int) -> bool:
-        """Delete an attendance record.
-
-        Args:
-            attendance_id: Attendance ID
-
-        Returns:
-            True if deleted, False if not found
-        """
-        # Use direct query to avoid conflicting get_by_id method
-        try:
-            attendance = self.db.query(Attendance).filter(Attendance.id == attendance_id).first()
-            if attendance is None:
-                return False
-
-            self.db.delete(attendance)
-            self.db.commit()
-            return True
-        except (AttributeError, TypeError):
-            # Fallback for async sessions
-            return False
-    
-    def calculate_attendance_percentage(self, clase_session_id: int) -> float:
-        """Calculate attendance percentage for a session.
-        
-        Attendance percentage = (PRESENTE + TARDANZA) / TOTAL * 100
-        
-        Args:
-            clase_session_id: ID of the clase session
-        
-        Returns:
-            Attendance percentage (0-100)
-        """
-        attendances = self.get_all_by_session(clase_session_id)
-        
-        if not attendances:
-            return 0.0
-        
-        present_or_late = sum(
-            1 for a in attendances
-            if a.estado in (AttendanceStatus.PRESENTE, AttendanceStatus.TARDANZA)
+        # Use direct query with join since we need to join ClaseSession
+        stmt = (
+            select(Attendance)
+            .join(ClaseSession, Attendance.clase_session_id == ClaseSession.id)
+            .where(
+                Attendance.estudiante_id == estudiante_id,
+                ClaseSession.subject_id == subject_id,
+            )
+            .options(
+                joinedload(Attendance.clase_session),
+                joinedload(Attendance.estudiante)
+            )
+            .offset(skip)
+            .limit(limit)
         )
         
-        return (present_or_late / len(attendances)) * 100
-    
-    def count_by_status(self, clase_session_id: int) -> Dict[AttendanceStatus, int]:
-        """Count attendance records by status for a session.
-        
-        Args:
-            clase_session_id: ID of the clase session
-        
-        Returns:
-            Dictionary with counts by status
-        """
-        attendances = self.get_all_by_session(clase_session_id)
-        
-        counts = {
-            AttendanceStatus.PRESENTE: 0,
-            AttendanceStatus.AUSENTE: 0,
-            AttendanceStatus.TARDANZA: 0,
-        }
-        
-        for attendance in attendances:
-            counts[attendance.estado] += 1
-        
-        return counts
+        result = await self.db.execute(stmt)
+        return list(result.scalars().all())
     
     # Async methods for FastAPI endpoints
     
-    
+    @handle_repository_errors
     async def get_sessions_by_profesor(
         self,
         profesor_id: int,
@@ -232,6 +147,7 @@ class AttendanceRepository:
         result = await self.db.execute(query)
         return list(result.scalars().all())
     
+    @handle_repository_errors
     async def get_sessions_for_student(
         self,
         estudiante_id: int,
@@ -270,22 +186,34 @@ class AttendanceRepository:
         result = await self.db.execute(query)
         return list(result.scalars().all())
     
-    async def get_attendances_by_session(self, clase_session_id: int) -> list[Attendance]:
+    @handle_repository_errors
+    async def get_attendances_by_session(
+        self, 
+        clase_session_id: int,
+        skip: int = 0,
+        limit: int = 100
+    ) -> list[Attendance]:
         """Get all attendance records for a session (async version).
         
         Args:
             clase_session_id: ClaseSession ID
+            skip: Number of records to skip
+            limit: Maximum number of records to return
         
         Returns:
             List of Attendance instances
         """
-        query = select(Attendance).where(
-            Attendance.clase_session_id == clase_session_id
-        ).order_by(Attendance.estudiante_id)
+        skip, limit = self._validate_pagination(skip, limit)
         
-        result = await self.db.execute(query)
-        return list(result.scalars().all())
+        return await self._get_many_with_relations(
+            Attendance,
+            Attendance.clase_session_id == clase_session_id,
+            use_joined=['clase_session', 'estudiante'],
+            skip=skip,
+            limit=limit
+        )
     
+    @handle_repository_errors
     async def count_by_status_async(self, clase_session_id: int) -> Dict[AttendanceStatus, int]:
         """Count attendance records by status for a session (async version).
         
@@ -308,6 +236,7 @@ class AttendanceRepository:
         
         return counts
     
+    @handle_repository_errors
     async def calculate_attendance_percentage_async(self, clase_session_id: int) -> float:
         """Calculate attendance percentage for a session (async version).
         
@@ -331,15 +260,25 @@ class AttendanceRepository:
         
         return (present_or_late / len(attendances)) * 100
     
+    @handle_repository_errors
     async def get_student_history_by_subject(
         self,
         estudiante_id: int,
         subject_id: int,
+        skip: int = 0,
+        limit: int = 100,
     ) -> list[Attendance]:
         """Asistencia del estudiante en una materia, con ClaseSession. Orden: sesión más reciente primero."""
+        skip, limit = self._validate_pagination(skip, limit)
+        
+        condition = and_(
+            Attendance.estudiante_id == estudiante_id,
+            ClaseSession.subject_id == subject_id,
+        )
+        
         from sqlalchemy.orm import joinedload
-        from sqlalchemy import desc
-
+        
+        # Use direct query with join and order by
         stmt = (
             select(Attendance)
             .join(ClaseSession, Attendance.clase_session_id == ClaseSession.id)
@@ -347,12 +286,17 @@ class AttendanceRepository:
                 Attendance.estudiante_id == estudiante_id,
                 ClaseSession.subject_id == subject_id,
             )
-            .options(joinedload(Attendance.clase_session))
+            .options(
+                joinedload(Attendance.clase_session)
+            )
             .order_by(desc(ClaseSession.fecha), desc(ClaseSession.hora_inicio))
+            .offset(skip)
+            .limit(limit)
         )
         result = await self.db.execute(stmt)
         return list(result.scalars().all())
 
+    @handle_repository_errors
     async def get_session_by_subject_and_date(
         self,
         subject_id: int,
@@ -375,6 +319,7 @@ class AttendanceRepository:
         result = await self.db.execute(query)
         return result.scalar_one_or_none()
 
+    @handle_repository_errors
     async def find_overlapping_sessions(
         self,
         subject_id: int,
