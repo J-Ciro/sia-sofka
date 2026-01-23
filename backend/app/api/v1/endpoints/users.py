@@ -91,7 +91,7 @@ async def bulk_import_users(
     
     # Validate file format
     if not (file.filename and file.filename.lower().endswith(".xlsx")):
-        raise FileFormatError(file.filename)
+        raise FileFormatError(file.filename if file.filename else None)
     
     # Read and validate file size
     try:

@@ -47,15 +47,15 @@ async def update_profile(
             service = ProfesorService(db, current_user)
             updated_user = await service.update_profile(user_data)
         elif current_user.role == UserRole.ESTUDIANTE:
-            service = EstudianteService(db, current_user)
-            updated_user = await service.update_profile(user_data)
+            estudiante_service = EstudianteService(db, current_user)
+            updated_user = await estudiante_service.update_profile(user_data)
         else:
             # Admin can also update their profile
             user_service = UserService(db)
-            updated_user = await user_service.update_user(current_user.id, user_data)
+            updated_user = await user_service.update_user(int(current_user.id), user_data)
         
         if not updated_user:
-            raise NotFoundError("User", current_user.id)
+            raise NotFoundError("User", int(current_user.id))
         
         return updated_user
     except ValueError as e:

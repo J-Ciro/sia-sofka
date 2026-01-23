@@ -136,7 +136,7 @@ async def create_subject(
         subject_with_profesor = result.scalar_one_or_none()
         
         if not subject_with_profesor:
-            raise NotFoundError("Subject", subject.id)
+            raise NotFoundError("Subject", int(subject.id))
         
         # Serialize using SubjectSerializer
         serialized = SubjectSerializer.serialize_batch([subject_with_profesor])

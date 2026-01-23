@@ -50,7 +50,7 @@ async def create_grade(
         grade_with_enrollment = await grade_repo.get_with_relations(grade.id)
         
         if not grade_with_enrollment:
-            raise NotFoundError("Grade", grade.id)
+            raise NotFoundError("Grade", int(grade.id))
         
         # Serialize single grade using serializer
         responses = await GradeSerializer.serialize_batch([grade_with_enrollment], db)
@@ -88,8 +88,10 @@ async def _get_grades_with_filters(
     if is_estudiante and current_user:
         # Estudiante: get grades through service first
         estudiante_service = EstudianteService(db, current_user)
+        if subject_id is None:
+            raise HTTPException(status_code=400, detail="subject_id is required")
         grades = await estudiante_service.get_grades_by_subject(subject_id)
-        grade_ids = [grade.id for grade in grades]
+        grade_ids = [int(grade.id) for grade in grades]
         grades_with_enrollment = await grade_repo.get_many_with_relations(
             grade_ids=grade_ids,
             relations=['enrollment']
@@ -98,6 +100,8 @@ async def _get_grades_with_filters(
     
     if is_profesor and current_user:
         # Profesor: verify access first
+        if subject_id is None:
+            raise HTTPException(status_code=400, detail="subject_id is required")
         await GradeValidator.verify_profesor_can_access_subject(db, current_user, subject_id)
     
     # Admin or Profesor: use repository directly
@@ -186,7 +190,7 @@ async def update_grade(
     # Verify profesor permissions
     if current_user.role == UserRole.PROFESOR:
         await GradeValidator.verify_profesor_subject_permission(
-            db, current_user, existing_grade.enrollment_id
+            db, current_user, int(existing_grade.enrollment_id)
         )
     
     # Update grade using service (business logic)
@@ -220,7 +224,7 @@ async def delete_grade(
     # Verify profesor permissions
     if current_user.role == UserRole.PROFESOR:
         await GradeValidator.verify_profesor_subject_permission(
-            db, current_user, existing_grade.enrollment_id
+            db, current_user, int(existing_grade.enrollment_id)
         )
     
     # Delete grade using service (business logic)
