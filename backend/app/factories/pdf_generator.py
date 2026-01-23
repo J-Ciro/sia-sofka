@@ -11,7 +11,7 @@ from reportlab.lib import colors
 from app.factories.report_factory import ReportGenerator, ReportFactory
 
 
-@ReportFactory.register('pdf')
+@ReportFactory.register('pdf')  # type: ignore[misc]
 class PDFReportGenerator(ReportGenerator):
     """PDF report generator implementation."""
     

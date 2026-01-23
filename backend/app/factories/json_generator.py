@@ -6,7 +6,7 @@ from datetime import datetime
 from app.factories.report_factory import ReportGenerator, ReportFactory
 
 
-@ReportFactory.register('json')
+@ReportFactory.register('json')  # type: ignore[misc]
 class JSONReportGenerator(ReportGenerator):
     """JSON report generator implementation."""
     

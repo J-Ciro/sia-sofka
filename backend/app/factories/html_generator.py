@@ -6,7 +6,7 @@ from jinja2 import Template
 from app.factories.report_factory import ReportGenerator, ReportFactory
 
 
-@ReportFactory.register('html')
+@ReportFactory.register('html')  # type: ignore[misc]
 class HTMLReportGenerator(ReportGenerator):
     """HTML report generator implementation."""
     
