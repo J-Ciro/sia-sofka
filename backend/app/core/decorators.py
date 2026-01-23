@@ -171,7 +171,10 @@ def retry_on_db_lock(max_retries: int = 3, delay: float = 0.1):
             
             # All retries exhausted (lines 171-172)
             logger.error(f"Max retries exceeded in {func.__name__}")
-            raise last_exception
+            if last_exception is not None:
+                raise last_exception
+            # Fallback: raise a generic exception if last_exception is None (shouldn't happen)
+            raise RuntimeError(f"Max retries exceeded in {func.__name__}") from None
         
         return wrapper
     return decorator
@@ -222,7 +225,7 @@ def cache_result(ttl_seconds: int = 300):
         async def get_expensive_data(self):
             # ... expensive operation
     """
-    cache = {}
+    cache: dict[str, tuple[Any, float]] = {}
     
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)

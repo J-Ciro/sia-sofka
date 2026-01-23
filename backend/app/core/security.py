@@ -19,11 +19,9 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     """
     try:
         # Convert string to bytes if needed
-        if isinstance(plain_password, str):
-            plain_password = plain_password.encode('utf-8')
-        if isinstance(hashed_password, str):
-            hashed_password = hashed_password.encode('utf-8')
-        return bcrypt.checkpw(plain_password, hashed_password)
+        plain_password_bytes: bytes = plain_password.encode('utf-8') if isinstance(plain_password, str) else plain_password
+        hashed_password_bytes: bytes = hashed_password.encode('utf-8') if isinstance(hashed_password, str) else hashed_password
+        return bcrypt.checkpw(plain_password_bytes, hashed_password_bytes)
     except Exception:
         return False
 
@@ -68,7 +66,7 @@ def create_access_token(data: Dict[str, Any], expires_delta: Optional[timedelta]
         )
     
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(
+    encoded_jwt: str = jwt.encode(
         to_encode, settings.secret_key, algorithm=settings.algorithm
     )
     return encoded_jwt
@@ -87,7 +85,7 @@ def decode_access_token(token: str) -> Dict[str, Any]:
         JWTError: If token is invalid or expired
     """
     try:
-        payload = jwt.decode(
+        payload: Dict[str, Any] = jwt.decode(
             token, settings.secret_key, algorithms=[settings.algorithm]
         )
         return payload

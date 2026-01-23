@@ -70,7 +70,9 @@ class _AsyncSessionLocalProxy:
 AsyncSessionLocal = _AsyncSessionLocalProxy()
 
 
-async def get_db() -> AsyncSession:
+from typing import AsyncGenerator
+
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
     """Dependency to get database session.
     
     This is a FastAPI dependency that provides a database session for each request.

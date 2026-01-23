@@ -25,7 +25,7 @@ else:
     RateLimitExceededException = Exception
 
 
-def rate_limit(limit: str = "10/minute") -> Callable:
+def rate_limit(limit: str = "10/minute") -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """
     Decorator for rate limiting endpoints.
     
@@ -41,10 +41,10 @@ def rate_limit(limit: str = "10/minute") -> Callable:
         async def login(...):
             ...
     """
-    def decorator(func: Callable) -> Callable:
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         if ENABLE_RATE_LIMITING and limiter is not None:
             # Apply actual rate limiting
-            return limiter.limit(limit)(func)
+            return limiter.limit(limit)(func)  # type: ignore[no-any-return]
         else:
             # No rate limiting, just return the function as-is
             return func
