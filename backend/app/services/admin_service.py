@@ -1,6 +1,7 @@
 """Admin service with admin-specific business logic."""
 
 from decimal import Decimal
+from typing import Any
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.user import User, UserRole
 from app.models.subject import Subject
@@ -200,7 +201,7 @@ class AdminService:
                 "programa_academico": estudiante.programa_academico,
             },
             "subjects": [],
-        }
+        }  # type: dict[str, Any]
         
         # Add enrollment and grade data (subjects already loaded via eager loading)
         for enrollment in enrollments:

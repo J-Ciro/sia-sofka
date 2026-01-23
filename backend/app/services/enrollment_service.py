@@ -84,7 +84,8 @@ class EnrollmentService:
         Returns:
             List of enrollments
         """
-        return await self.repository.get_by_estudiante(estudiante_id, skip, limit)
+        result = await self.repository.get_by_estudiante(estudiante_id, skip, limit)
+        return list(result) if result else []
     
     async def get_enrollments_by_subject(
         self, subject_id: int, skip: int = 0, limit: int = 100
@@ -99,7 +100,8 @@ class EnrollmentService:
         Returns:
             List of enrollments
         """
-        return await self.repository.get_by_subject(subject_id, skip, limit)
+        result = await self.repository.get_by_subject(subject_id, skip, limit)
+        return list(result) if result else []
     
     async def delete_enrollment(self, enrollment_id: int) -> bool:
         """Delete enrollment.

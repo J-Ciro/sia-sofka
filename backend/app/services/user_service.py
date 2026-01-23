@@ -70,7 +70,9 @@ class UserService:
         user = await self.repository.create(user_dict)
         
         # Calculate and set age
-        user.edad = user.calcular_edad()
+        calculated_age = user.calcular_edad()
+        # Use setattr to avoid mypy Column type issues
+        setattr(user, 'edad', calculated_age)
         await self.db.commit()
         await self.db.refresh(user)
         

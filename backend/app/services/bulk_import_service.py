@@ -3,7 +3,7 @@
 from collections import Counter
 from datetime import date
 from io import BytesIO
-from typing import BinaryIO
+from typing import BinaryIO, Callable, Any
 import logging
 import re
 
@@ -88,7 +88,7 @@ class BulkImportService:
             raise TooManyRowsError(len(df), MAX_ROWS)
         
         # Process rows
-        out = []
+        out: list[dict[str, Any]] = []
         try:
             for _, r in df.iterrows():
                 d = r.to_dict()
@@ -202,7 +202,7 @@ class BulkImportService:
                 return msg.split(prefix, 1)[-1].strip()
         return msg
 
-    def _get_error_translators(self) -> list[tuple[callable, callable]]:
+    def _get_error_translators(self) -> list[tuple[Callable[[str], bool], Callable[[str, str], str]]]:
         """Get list of (pattern_checker, translator) tuples for error translation.
         
         This registry pattern allows adding new error translators without modifying
@@ -277,7 +277,8 @@ class BulkImportService:
         
         for pattern_check, translator in translators:
             if pattern_check(msg):
-                return translator(msg, field)
+                translated: str = translator(msg, field)
+                return translated
         
         # Return original message if no pattern matches
         return msg
@@ -359,13 +360,13 @@ class BulkImportService:
                     existing = await self.repository.get_by_email(r.email)
                     if existing:
                         # Update existing user
-                        existing.nombre = r.nombre
-                        existing.apellido = r.apellido
-                        existing.fecha_nacimiento = r.fecha_nacimiento
-                        existing.numero_contacto = r.numero_contacto
-                        existing.programa_academico = r.programa_academico
-                        existing.ciudad_residencia = r.ciudad_residencia
-                        existing.edad = existing.calcular_edad()
+                        setattr(existing, 'nombre', r.nombre)
+                        setattr(existing, 'apellido', r.apellido)
+                        setattr(existing, 'fecha_nacimiento', r.fecha_nacimiento)
+                        setattr(existing, 'numero_contacto', r.numero_contacto)
+                        setattr(existing, 'programa_academico', r.programa_academico)
+                        setattr(existing, 'ciudad_residencia', r.ciudad_residencia)
+                        setattr(existing, 'edad', existing.calcular_edad())
                         updated += 1
                         logger.info(f"Updated user: {r.email}")
                     else:
@@ -388,7 +389,7 @@ class BulkImportService:
                             programa_academico=r.programa_academico,
                             ciudad_residencia=r.ciudad_residencia,
                         )
-                        user.edad = user.calcular_edad()
+                        setattr(user, 'edad', user.calcular_edad())
                         self.db.add(user)
                         await self.db.flush()  # hace visible el nuevo usuario para el siguiente generar_codigo
                         created += 1

@@ -106,7 +106,8 @@ class GradeService:
         Returns:
             List of grades
         """
-        return await self.repository.get_by_enrollment(enrollment_id, skip, limit)
+        result = await self.repository.get_by_enrollment(enrollment_id, skip, limit)
+        return list(result) if result else []
     
     async def calculate_average(self, enrollment_id: int) -> Decimal:
         """Calculate average grade for an enrollment.

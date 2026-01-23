@@ -148,7 +148,7 @@ class ScheduleService:
         end_date: date,
         user_id: Optional[int] = None,
         role: Optional[UserRole] = None,
-    ) -> List:
+    ) -> List[Schedule]:
         """Get schedules for calendar display, expanding weekly schedules to specific dates.
         
         This method is designed for calendar components that need to display schedules
@@ -232,15 +232,18 @@ class ScheduleService:
 
     async def get_all_schedules(self) -> List[Schedule]:
         """Todos los horarios (Admin en calendario)."""
-        return await self.repo.get_all_schedules()
+        result = await self.repo.get_all_schedules()
+        return list(result) if result else []
 
     async def get_professor_schedule(self, profesor_id: int) -> List[Schedule]:
         """TASK-012: Horario semanal del profesor."""
-        return await self.repo.get_weekly_schedule(profesor_id, UserRole.PROFESOR)
+        result = await self.repo.get_weekly_schedule(profesor_id, UserRole.PROFESOR)
+        return list(result) if result else []
 
     async def get_student_schedule(self, estudiante_id: int) -> List[Schedule]:
         """TASK-013: Horario semanal del estudiante (materias inscritas)."""
-        return await self.repo.get_weekly_schedule(estudiante_id, UserRole.ESTUDIANTE)
+        result = await self.repo.get_weekly_schedule(estudiante_id, UserRole.ESTUDIANTE)
+        return list(result) if result else []
 
     async def create_schedule(self, data: ScheduleCreate) -> Schedule:
         """Crear horario tras validar conflictos. TASK-014.
@@ -274,7 +277,8 @@ class ScheduleService:
 
     async def get_by_id(self, schedule_id: int) -> Optional[Schedule]:
         """Obtener horario por ID."""
-        return await self.repo.get_by_id(schedule_id)
+        result = await self.repo.get_by_id(schedule_id)
+        return result if result else None
 
     async def update_schedule(
         self, schedule_id: int, data: ScheduleUpdate
@@ -306,21 +310,22 @@ class ScheduleService:
             raise ScheduleConflictError(_serialize_conflicts(conflicts))
 
         if data.subject_id is not None:
-            s.subject_id = data.subject_id
+            setattr(s, 'subject_id', data.subject_id)
         if data.classroom_id is not None:
-            s.classroom_id = data.classroom_id
+            setattr(s, 'classroom_id', data.classroom_id)
         if data.dia_semana is not None:
-            s.dia_semana = data.dia_semana
+            setattr(s, 'dia_semana', data.dia_semana)
         if data.hora_inicio is not None:
-            s.hora_inicio = data.hora_inicio
+            setattr(s, 'hora_inicio', data.hora_inicio)
         if data.hora_fin is not None:
-            s.hora_fin = data.hora_fin
+            setattr(s, 'hora_fin', data.hora_fin)
         if hasattr(data, 'fecha_especifica') and data.fecha_especifica is not None:
-            s.fecha_especifica = data.fecha_especifica
+            setattr(s, 'fecha_especifica', data.fecha_especifica)
 
         await self.db.commit()
         await self.db.refresh(s)
-        return await self.repo.get_by_id(schedule_id)
+        result = await self.repo.get_by_id(schedule_id)
+        return result if result else None
 
     async def delete_schedule(self, schedule_id: int) -> bool:
         """Eliminar horario. TASK-017."""
@@ -333,4 +338,5 @@ class ScheduleService:
 
     async def get_by_classroom(self, classroom_id: int) -> List[Schedule]:
         """TASK-018: Horarios de un aula."""
-        return await self.repo.get_by_classroom(classroom_id)
+        result = await self.repo.get_by_classroom(classroom_id)
+        return list(result) if result else []

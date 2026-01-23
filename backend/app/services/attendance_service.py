@@ -56,7 +56,7 @@ class AttendanceService:
             UnauthorizedError: If user is not authorized
         """
         # Validate that user is a professor
-        if self.usuario_autenticado.role != "Profesor":
+        if not self.usuario_autenticado or self.usuario_autenticado.role != "Profesor":
             raise UnauthorizedError("Solo profesores pueden crear sesiones de clase")
         
         # Use validators (SOLID - Single Responsibility)
@@ -80,7 +80,7 @@ class AttendanceService:
             hora_inicio=hora_inicio,
             hora_fin=hora_fin,
             descripcion=descripcion,
-            creado_por=self.usuario_autenticado.id,
+            creado_por=self.usuario_autenticado.id if self.usuario_autenticado else None,
         )
         
         self.db.add(clase_session)
@@ -230,7 +230,10 @@ class AttendanceService:
         if not attendance:
             raise NotFoundError("Attendance", attendance_id)
         
-        return await self.attendance_repo.update(attendance_id, {"estado": estado})
+        updated = await self.attendance_repo.update(attendance_id, {"estado": estado})
+        if not updated:
+            raise NotFoundError("Attendance", attendance_id)
+        return updated
     
     async def get_session_statistics(self, clase_session_id: int) -> Dict[str, Any]:
         """Get attendance statistics for a session.
@@ -292,11 +295,11 @@ class AttendanceService:
         
         if existing:
             # Update existing
-            existing.total_sesiones = total_sesiones
-            existing.presentes = presentes
-            existing.ausentes = ausentes
-            existing.tardanzas = tardanzas
-            existing.porcentaje_asistencia = porcentaje
+            setattr(existing, 'total_sesiones', total_sesiones)
+            setattr(existing, 'presentes', presentes)
+            setattr(existing, 'ausentes', ausentes)
+            setattr(existing, 'tardanzas', tardanzas)
+            setattr(existing, 'porcentaje_asistencia', porcentaje)
             await self.db.commit()
             await self.db.refresh(existing)
             return existing
