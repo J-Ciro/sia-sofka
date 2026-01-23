@@ -328,11 +328,11 @@ Este documento describe las mejoras aplicadas a los repositorios de las nuevas f
 
 Las mejoras implementadas han logrado:
 
-- ✅ Reducción significativa de código duplicado
-- ✅ Mayor consistencia con el resto del proyecto
-- ✅ Mejor mantenibilidad y extensibilidad
-- ✅ Uso adecuado de patrones de diseño establecidos
-- ✅ Mejor manejo de errores y validaciones
+-  Reducción significativa de código duplicado
+-  Mayor consistencia con el resto del proyecto
+-  Mejor mantenibilidad y extensibilidad
+-  Uso adecuado de patrones de diseño establecidos
+-  Mejor manejo de errores y validaciones
 
 El código ahora sigue los mismos patrones que el resto del proyecto, facilitando el mantenimiento futuro y reduciendo la posibilidad de errores.
 

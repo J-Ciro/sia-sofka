@@ -111,15 +111,15 @@ const newUser = await userService.create(userData)
 
 ## ✨ Características
 
-- ✅ Autenticación con JWT
-- ✅ Dashboard con diferentes vistas según rol
-- ✅ Gestión de usuarios (Admin)
-- ✅ Gestión de materias (Admin)
-- ✅ Gestión de inscripciones (Admin)
-- ✅ Gestión de notas (Profesor/Admin)
-- ✅ Diseño responsive con Tailwind CSS
-- ✅ Manejo de errores robusto
-- ✅ Interceptores de axios para autenticación automática
+-  Autenticación con JWT
+-  Dashboard con diferentes vistas según rol
+-  Gestión de usuarios (Admin)
+-  Gestión de materias (Admin)
+-  Gestión de inscripciones (Admin)
+-  Gestión de notas (Profesor/Admin)
+-  Diseño responsive con Tailwind CSS
+-  Manejo de errores robusto
+-  Interceptores de axios para autenticación automática
 
 ## 👥 Roles y Permisos
 

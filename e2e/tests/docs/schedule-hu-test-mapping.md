@@ -12,17 +12,17 @@ Este documento mapea las Historias de Usuario del sistema de horarios y calendar
 
 | Escenario | Criterio de Aceptación | Test E2E | Estado |
 |-----------|------------------------|----------|--------|
-| **Escenario 1** | Crear horario exitosamente sin conflictos | `schedules.spec.js` → `HU-01: Crear Horario de Clase` → `Escenario 1: Crear horario exitosamente sin conflictos` | ✅ |
-| **Escenario 2** | Validación de hora fin posterior a hora inicio | `schedules.spec.js` → `HU-01: Crear Horario de Clase` → `Escenario 2: Validación de hora fin posterior a hora inicio` | ✅ |
-| **Escenario 3** | Validación de duración mínima y máxima | `schedules.spec.js` → `HU-01: Crear Horario de Clase` → `Escenario 3: Validación de duración mínima y máxima` | ✅ |
+| **Escenario 1** | Crear horario exitosamente sin conflictos | `schedules.spec.js` → `HU-01: Crear Horario de Clase` → `Escenario 1: Crear horario exitosamente sin conflictos` |  |
+| **Escenario 2** | Validación de hora fin posterior a hora inicio | `schedules.spec.js` → `HU-01: Crear Horario de Clase` → `Escenario 2: Validación de hora fin posterior a hora inicio` |  |
+| **Escenario 3** | Validación de duración mínima y máxima | `schedules.spec.js` → `HU-01: Crear Horario de Clase` → `Escenario 3: Validación de duración mínima y máxima` |  |
 
 **Validaciones Cubiertas:**
-- ✅ Formulario con campos obligatorios (Materia, Profesor, Salón, Día, Hora Inicio, Hora Fin)
-- ✅ Validación de hora fin posterior a hora inicio
-- ✅ Validación de duración mínima (30 minutos)
-- ✅ Validación de duración máxima (6 horas)
-- ✅ Generación de código único para horario
-- ✅ Aparición del horario en calendario
+-  Formulario con campos obligatorios (Materia, Profesor, Salón, Día, Hora Inicio, Hora Fin)
+-  Validación de hora fin posterior a hora inicio
+-  Validación de duración mínima (30 minutos)
+-  Validación de duración máxima (6 horas)
+-  Generación de código único para horario
+-  Aparición del horario en calendario
 
 ---
 
@@ -30,16 +30,16 @@ Este documento mapea las Historias de Usuario del sistema de horarios y calendar
 
 | Escenario | Criterio de Aceptación | Test E2E | Estado |
 |-----------|------------------------|----------|--------|
-| **Escenario 1** | Detectar conflicto de salón | `schedules.spec.js` → `HU-02: Validar Conflictos de Salón` → `Escenario 1: Detectar conflicto de salón` | ✅ |
-| **Escenario 2** | Horarios consecutivos sin conflicto | `schedules.spec.js` → `HU-02: Validar Conflictos de Salón` → `Escenario 2: Horarios consecutivos sin conflicto` | ✅ |
-| **Escenario 3** | Salones diferentes sin conflicto | `schedules.spec.js` → `HU-02: Validar Conflictos de Salón` → `Escenario 3: Salones diferentes sin conflicto` | ✅ |
+| **Escenario 1** | Detectar conflicto de salón | `schedules.spec.js` → `HU-02: Validar Conflictos de Salón` → `Escenario 1: Detectar conflicto de salón` |  |
+| **Escenario 2** | Horarios consecutivos sin conflicto | `schedules.spec.js` → `HU-02: Validar Conflictos de Salón` → `Escenario 2: Horarios consecutivos sin conflicto` |  |
+| **Escenario 3** | Salones diferentes sin conflicto | `schedules.spec.js` → `HU-02: Validar Conflictos de Salón` → `Escenario 3: Salones diferentes sin conflicto` |  |
 
 **Validaciones Cubiertas:**
-- ✅ Detección de solapamiento de horarios en mismo salón
-- ✅ Mensaje de error específico con detalles del conflicto
-- ✅ Sugerencia de horario conflictivo existente
-- ✅ Permitir horarios consecutivos (10:00-12:00 después de 08:00-10:00)
-- ✅ Permitir mismo horario en salones diferentes
+-  Detección de solapamiento de horarios en mismo salón
+-  Mensaje de error específico con detalles del conflicto
+-  Sugerencia de horario conflictivo existente
+-  Permitir horarios consecutivos (10:00-12:00 después de 08:00-10:00)
+-  Permitir mismo horario en salones diferentes
 
 ---
 
@@ -47,17 +47,17 @@ Este documento mapea las Historias de Usuario del sistema de horarios y calendar
 
 | Escenario | Criterio de Aceptación | Test E2E | Estado |
 |-----------|------------------------|----------|--------|
-| **Escenario 1** | Detectar conflicto de profesor | `schedules.spec.js` → `HU-03: Validar Conflictos de Profesor` → `Escenario 1: Detectar conflicto de profesor` | ✅ |
-| **Escenario 2** | Profesor con clases en días diferentes | `schedules.spec.js` → `HU-03: Validar Conflictos de Profesor` → `Escenario 2: Profesor con clases en días diferentes` | ✅ |
-| **Escenario 3** | Validación de tiempo de traslado entre salones | `schedules.spec.js` → `HU-03: Validar Conflictos de Profesor` → `Escenario 3: Validación de tiempo de traslado entre salones` | ✅ |
+| **Escenario 1** | Detectar conflicto de profesor | `schedules.spec.js` → `HU-03: Validar Conflictos de Profesor` → `Escenario 1: Detectar conflicto de profesor` |  |
+| **Escenario 2** | Profesor con clases en días diferentes | `schedules.spec.js` → `HU-03: Validar Conflictos de Profesor` → `Escenario 2: Profesor con clases en días diferentes` |  |
+| **Escenario 3** | Validación de tiempo de traslado entre salones | `schedules.spec.js` → `HU-03: Validar Conflictos de Profesor` → `Escenario 3: Validación de tiempo de traslado entre salones` |  |
 
 **Validaciones Cubiertas:**
-- ✅ Detección de conflicto cuando profesor tiene clases simultáneas
-- ✅ Mensaje de error con detalles del horario conflictivo
-- ✅ Opción "Ver Horario del Profesor"
-- ✅ Permitir clases del mismo profesor en días diferentes
-- ✅ Advertencia de tiempo de traslado entre salones lejanos
-- ✅ Opciones de confirmar o cancelar asignación con advertencia
+-  Detección de conflicto cuando profesor tiene clases simultáneas
+-  Mensaje de error con detalles del horario conflictivo
+-  Opción "Ver Horario del Profesor"
+-  Permitir clases del mismo profesor en días diferentes
+-  Advertencia de tiempo de traslado entre salones lejanos
+-  Opciones de confirmar o cancelar asignación con advertencia
 
 ---
 
@@ -65,17 +65,17 @@ Este documento mapea las Historias de Usuario del sistema de horarios y calendar
 
 | Escenario | Criterio de Aceptación | Test E2E | Estado |
 |-----------|------------------------|----------|--------|
-| **Escenario 1** | Editar horario sin conflictos | `schedules.spec.js` → `HU-04: Editar Horario Existente` → `Escenario 1: Editar horario sin conflictos` | ✅ |
-| **Escenario 2** | Editar horario que genera conflicto | `schedules.spec.js` → `HU-04: Editar Horario Existente` → `Escenario 2: Editar horario que genera conflicto` | ✅ |
-| **Escenario 3** | Historial de cambios | `schedules.spec.js` → `HU-04: Editar Horario Existente` → `Escenario 3: Historial de cambios` | ✅ |
+| **Escenario 1** | Editar horario sin conflictos | `schedules.spec.js` → `HU-04: Editar Horario Existente` → `Escenario 1: Editar horario sin conflictos` |  |
+| **Escenario 2** | Editar horario que genera conflicto | `schedules.spec.js` → `HU-04: Editar Horario Existente` → `Escenario 2: Editar horario que genera conflicto` |  |
+| **Escenario 3** | Historial de cambios | `schedules.spec.js` → `HU-04: Editar Horario Existente` → `Escenario 3: Historial de cambios` |  |
 
 **Validaciones Cubiertas:**
-- ✅ Edición exitosa de horarios sin conflictos
-- ✅ Mensaje "Horario actualizado exitosamente"
-- ✅ Actualización del calendario con nuevos horarios
-- ✅ Detección de conflictos durante edición
-- ✅ Prevención de guardado cuando hay conflictos
-- ✅ Historial de cambios con fecha, usuario, campo modificado, valores anterior y nuevo
+-  Edición exitosa de horarios sin conflictos
+-  Mensaje "Horario actualizado exitosamente"
+-  Actualización del calendario con nuevos horarios
+-  Detección de conflictos durante edición
+-  Prevención de guardado cuando hay conflictos
+-  Historial de cambios con fecha, usuario, campo modificado, valores anterior y nuevo
 
 ---
 
@@ -83,16 +83,16 @@ Este documento mapea las Historias de Usuario del sistema de horarios y calendar
 
 | Escenario | Criterio de Aceptación | Test E2E | Estado |
 |-----------|------------------------|----------|--------|
-| **Escenario 1** | Eliminar horario sin dependencias | `schedules.spec.js` → `HU-05: Eliminar Horario` → `Escenario 1: Eliminar horario sin dependencias` | ✅ |
-| **Escenario 2** | Eliminar horario con dependencias | `schedules.spec.js` → `HU-05: Eliminar Horario` → `Escenario 2: Eliminar horario con dependencias` | ✅ |
-| **Escenario 3** | Cancelar eliminación | `schedules.spec.js` → `HU-05: Eliminar Horario` → `Escenario 3: Cancelar eliminación` | ✅ |
+| **Escenario 1** | Eliminar horario sin dependencias | `schedules.spec.js` → `HU-05: Eliminar Horario` → `Escenario 1: Eliminar horario sin dependencias` |  |
+| **Escenario 2** | Eliminar horario con dependencias | `schedules.spec.js` → `HU-05: Eliminar Horario` → `Escenario 2: Eliminar horario con dependencias` |  |
+| **Escenario 3** | Cancelar eliminación | `schedules.spec.js` → `HU-05: Eliminar Horario` → `Escenario 3: Cancelar eliminación` |  |
 
 **Validaciones Cubiertas:**
-- ✅ Modal de confirmación con detalles del horario
-- ✅ Eliminación exitosa sin dependencias
-- ✅ Advertencia cuando existen sesiones de asistencia
-- ✅ Opciones "Eliminar De Todas Formas" y "Cancelar"
-- ✅ Cancelación de eliminación mantiene horario intacto
+-  Modal de confirmación con detalles del horario
+-  Eliminación exitosa sin dependencias
+-  Advertencia cuando existen sesiones de asistencia
+-  Opciones "Eliminar De Todas Formas" y "Cancelar"
+-  Cancelación de eliminación mantiene horario intacto
 
 ---
 
@@ -100,19 +100,19 @@ Este documento mapea las Historias de Usuario del sistema de horarios y calendar
 
 | Escenario | Criterio de Aceptación | Test E2E | Estado |
 |-----------|------------------------|----------|--------|
-| **Escenario 1** | Ver calendario con horarios | `schedules.spec.js` → `HU-06: Visualizar Calendario Semanal` → `Escenario 1: Ver calendario con horarios` | ✅ |
-| **Escenario 2** | Clases superpuestas visualmente distinguibles | `schedules.spec.js` → `HU-06: Visualizar Calendario Semanal` → `Escenario 2: Clases superpuestas visualmente distinguibles` | ✅ |
-| **Escenario 3** | Navegación entre semanas | `schedules.spec.js` → `HU-06: Visualizar Calendario Semanal` → `Escenario 3: Navegación entre semanas` | ✅ |
+| **Escenario 1** | Ver calendario con horarios | `schedules.spec.js` → `HU-06: Visualizar Calendario Semanal` → `Escenario 1: Ver calendario con horarios` |  |
+| **Escenario 2** | Clases superpuestas visualmente distinguibles | `schedules.spec.js` → `HU-06: Visualizar Calendario Semanal` → `Escenario 2: Clases superpuestas visualmente distinguibles` |  |
+| **Escenario 3** | Navegación entre semanas | `schedules.spec.js` → `HU-06: Visualizar Calendario Semanal` → `Escenario 3: Navegación entre semanas` |  |
 
 **Validaciones Cubiertas:**
-- ✅ Calendario semanal con columnas Lunes-Sábado
-- ✅ Filas representando horas (07:00-22:00)
-- ✅ Bloques visuales con información completa (Materia, Profesor, Salón, Hora)
-- ✅ Colores diferentes por materia
-- ✅ Bloques en conflicto con borde rojo y ícono de advertencia
-- ✅ Tooltips explicando conflictos
-- ✅ Navegación "Semana Anterior", "Semana Siguiente", "Hoy"
-- ✅ Rango de fechas visible
+-  Calendario semanal con columnas Lunes-Sábado
+-  Filas representando horas (07:00-22:00)
+-  Bloques visuales con información completa (Materia, Profesor, Salón, Hora)
+-  Colores diferentes por materia
+-  Bloques en conflicto con borde rojo y ícono de advertencia
+-  Tooltips explicando conflictos
+-  Navegación "Semana Anterior", "Semana Siguiente", "Hoy"
+-  Rango de fechas visible
 
 ---
 
@@ -120,20 +120,20 @@ Este documento mapea las Historias de Usuario del sistema de horarios y calendar
 
 | Escenario | Criterio de Aceptación | Test E2E | Estado |
 |-----------|------------------------|----------|--------|
-| **Escenario 1** | Filtrar por profesor | `schedules.spec.js` → `HU-07: Filtrar Horarios en Calendario` → `Escenario 1: Filtrar por profesor` | ✅ |
-| **Escenario 2** | Filtrar por salón | `schedules.spec.js` → `HU-07: Filtrar Horarios en Calendario` → `Escenario 2: Filtrar por salón` | ✅ |
-| **Escenario 3** | Filtrar por materia | `schedules.spec.js` → `HU-07: Filtrar Horarios en Calendario` → `Escenario 3: Filtrar por materia` | ✅ |
-| **Escenario 4** | Combinar múltiples filtros | `schedules.spec.js` → `HU-07: Filtrar Horarios en Calendario` → `Escenario 4: Combinar múltiples filtros` | ✅ |
-| **Escenario 5** | Limpiar todos los filtros | `schedules.spec.js` → `HU-07: Filtrar Horarios en Calendario` → `Escenario 5: Limpiar todos los filtros` | ✅ |
+| **Escenario 1** | Filtrar por profesor | `schedules.spec.js` → `HU-07: Filtrar Horarios en Calendario` → `Escenario 1: Filtrar por profesor` |  |
+| **Escenario 2** | Filtrar por salón | `schedules.spec.js` → `HU-07: Filtrar Horarios en Calendario` → `Escenario 2: Filtrar por salón` |  |
+| **Escenario 3** | Filtrar por materia | `schedules.spec.js` → `HU-07: Filtrar Horarios en Calendario` → `Escenario 3: Filtrar por materia` |  |
+| **Escenario 4** | Combinar múltiples filtros | `schedules.spec.js` → `HU-07: Filtrar Horarios en Calendario` → `Escenario 4: Combinar múltiples filtros` |  |
+| **Escenario 5** | Limpiar todos los filtros | `schedules.spec.js` → `HU-07: Filtrar Horarios en Calendario` → `Escenario 5: Limpiar todos los filtros` |  |
 
 **Validaciones Cubiertas:**
-- ✅ Filtro por profesor con actualización en tiempo real
-- ✅ Contador "Mostrando X de Y horarios"
-- ✅ Filtro por salón mostrando solo clases del salón seleccionado
-- ✅ Filtro por materia con selección múltiple via checkboxes
-- ✅ Combinación de múltiples filtros (Profesor + Día)
-- ✅ Resumen de resultados filtrados
-- ✅ Botón "Limpiar Filtros" restaura vista completa
+-  Filtro por profesor con actualización en tiempo real
+-  Contador "Mostrando X de Y horarios"
+-  Filtro por salón mostrando solo clases del salón seleccionado
+-  Filtro por materia con selección múltiple via checkboxes
+-  Combinación de múltiples filtros (Profesor + Día)
+-  Resumen de resultados filtrados
+-  Botón "Limpiar Filtros" restaura vista completa
 
 ---
 
@@ -141,13 +141,13 @@ Este documento mapea las Historias de Usuario del sistema de horarios y calendar
 
 | Escenario | Criterio de Aceptación | Test E2E | Estado |
 |-----------|------------------------|----------|--------|
-| **Escenario 1** | Ver modal de detalle | `schedules.spec.js` → `HU-08: Ver Detalle de Horario desde Calendario` → `Escenario 1: Ver modal de detalle` | ✅ |
-| **Escenario 2** | Acciones rápidas desde el modal | `schedules.spec.js` → `HU-08: Ver Detalle de Horario desde Calendario` → `Escenario 2: Acciones rápidas desde el modal` | ✅ |
+| **Escenario 1** | Ver modal de detalle | `schedules.spec.js` → `HU-08: Ver Detalle de Horario desde Calendario` → `Escenario 1: Ver modal de detalle` |  |
+| **Escenario 2** | Acciones rápidas desde el modal | `schedules.spec.js` → `HU-08: Ver Detalle de Horario desde Calendario` → `Escenario 2: Acciones rápidas desde el modal` |  |
 
 **Validaciones Cubiertas:**
-- ✅ Modal con información detallada (Código, Materia, Profesor, Email, Salón, Día, Hora, Duración, Estudiantes Inscritos)
-- ✅ Botones de acción: "Editar Horario", "Ver Asistencias", "Cerrar"
-- ✅ Redirección a sección de asistencia con horario pre-seleccionado
+-  Modal con información detallada (Código, Materia, Profesor, Email, Salón, Día, Hora, Duración, Estudiantes Inscritos)
+-  Botones de acción: "Editar Horario", "Ver Asistencias", "Cerrar"
+-  Redirección a sección de asistencia con horario pre-seleccionado
 
 ---
 
@@ -155,14 +155,14 @@ Este documento mapea las Historias de Usuario del sistema de horarios y calendar
 
 | Escenario | Criterio de Aceptación | Test E2E | Estado |
 |-----------|------------------------|----------|--------|
-| **Escenario 1** | Exportar calendario semanal completo | `schedules.spec.js` → `HU-09: Exportar Horarios a PDF` → `Escenario 1: Exportar calendario semanal completo` | ✅ |
-| **Escenario 2** | Exportar horarios de un profesor | `schedules.spec.js` → `HU-09: Exportar Horarios a PDF` → `Escenario 2: Exportar horarios de un profesor` | ✅ |
+| **Escenario 1** | Exportar calendario semanal completo | `schedules.spec.js` → `HU-09: Exportar Horarios a PDF` → `Escenario 1: Exportar calendario semanal completo` |  |
+| **Escenario 2** | Exportar horarios de un profesor | `schedules.spec.js` → `HU-09: Exportar Horarios a PDF` → `Escenario 2: Exportar horarios de un profesor` |  |
 
 **Validaciones Cubiertas:**
-- ✅ Opciones de exportación (Vista: Semanal/Mensual, Orientación: Horizontal/Vertical, Incluir: Todos/Solo filtrados)
-- ✅ Descarga de PDF con nombre "horarios_semana_XX_2026.pdf"
-- ✅ Exportación de horarios filtrados por profesor
-- ✅ PDF incluye nombre del profesor en encabezado cuando está filtrado
+-  Opciones de exportación (Vista: Semanal/Mensual, Orientación: Horizontal/Vertical, Incluir: Todos/Solo filtrados)
+-  Descarga de PDF con nombre "horarios_semana_XX_2026.pdf"
+-  Exportación de horarios filtrados por profesor
+-  PDF incluye nombre del profesor en encabezado cuando está filtrado
 
 ---
 
@@ -170,19 +170,19 @@ Este documento mapea las Historias de Usuario del sistema de horarios y calendar
 
 | Escenario | Criterio de Aceptación | Test E2E | Estado |
 |-----------|------------------------|----------|--------|
-| **Escenario 1** | Notificación por edición de horario | `schedules.spec.js` → `HU-10: Notificar Cambios de Horario` → `Escenario 1: Notificación por edición de horario` | ✅ |
-| **Escenario 2** | Notificación por eliminación de horario | `schedules.spec.js` → `HU-10: Notificar Cambios de Horario` → `Escenario 2: Notificación por eliminación de horario` | ✅ |
-| **Escenario 3** | Centro de notificaciones | `schedules.spec.js` → `HU-10: Notificar Cambios de Horario` → `Escenario 3: Centro de notificaciones` | ✅ |
+| **Escenario 1** | Notificación por edición de horario | `schedules.spec.js` → `HU-10: Notificar Cambios de Horario` → `Escenario 1: Notificación por edición de horario` |  |
+| **Escenario 2** | Notificación por eliminación de horario | `schedules.spec.js` → `HU-10: Notificar Cambios de Horario` → `Escenario 2: Notificación por eliminación de horario` |  |
+| **Escenario 3** | Centro de notificaciones | `schedules.spec.js` → `HU-10: Notificar Cambios de Horario` → `Escenario 3: Centro de notificaciones` |  |
 
 **Validaciones Cubiertas:**
-- ✅ Notificación en sistema cuando horario es modificado
-- ✅ Email con detalles del cambio
-- ✅ Botón "Ver Horario Actualizado"
-- ✅ Notificación de cancelación de clase
-- ✅ Fecha y hora de cancelación
-- ✅ Centro de notificaciones con ícono de campana
-- ✅ Indicador visual para notificaciones no leídas
-- ✅ Función "Marcar todas como leídas"
+-  Notificación en sistema cuando horario es modificado
+-  Email con detalles del cambio
+-  Botón "Ver Horario Actualizado"
+-  Notificación de cancelación de clase
+-  Fecha y hora de cancelación
+-  Centro de notificaciones con ícono de campana
+-  Indicador visual para notificaciones no leídas
+-  Función "Marcar todas como leídas"
 
 ---
 
@@ -195,7 +195,7 @@ Este documento mapea las Historias de Usuario del sistema de horarios y calendar
 #### 🔴 Casos Negativos por Historia de Usuario
 
 **HU-01: Crear Horario de Clase** (9 tests)
-- ✅ **Happy Path**: Creación exitosa sin conflictos
+-  **Happy Path**: Creación exitosa sin conflictos
 - ❌ **Casos Negativos**: 
   - Hora fin antes de hora inicio
   - Duración menor a 30 minutos / mayor a 6 horas
@@ -207,21 +207,21 @@ Este documento mapea las Historias de Usuario del sistema de horarios y calendar
   - Formato de hora inválido
 
 **HU-02: Validar Conflictos de Salón** (6 tests)
-- ✅ **Happy Path**: Detección correcta de conflictos
+-  **Happy Path**: Detección correcta de conflictos
 - ❌ **Casos Negativos**:
   - Triple conflicto (salón + profesor + horario)
   - Solapamiento mínimo (1 minuto)
   - Conflicto en horario límite (23:59)
 
 **HU-03: Validar Conflictos de Profesor** (6 tests)
-- ✅ **Happy Path**: Detección de conflictos de profesor
+-  **Happy Path**: Detección de conflictos de profesor
 - ❌ **Casos Negativos**:
   - Profesor con múltiples materias simultáneas
   - Carga horaria excesiva (>8 horas diarias)
   - Días consecutivos sin descanso
 
 **HU-07: Filtrar Horarios** (9 tests)
-- ✅ **Happy Path**: Filtros funcionando correctamente
+-  **Happy Path**: Filtros funcionando correctamente
 - ❌ **Casos Negativos**:
   - Filtros con resultados vacíos
   - Caracteres especiales en filtros
@@ -304,7 +304,7 @@ Este documento mapea las Historias de Usuario del sistema de horarios y calendar
 
 ### 🎯 Distribución de Cobertura
 
-- ✅ **Happy Path**: 30 tests (42%)
+-  **Happy Path**: 30 tests (42%)
 - ❌ **Casos Negativos**: 16 tests (23%)
 - 🔄 **Edge Cases**: 25 tests (35%)
 - 🛡️ **Seguridad**: 8 tests (11%)
@@ -355,10 +355,10 @@ formData.persist() // DEBE mantener datos tras error
 
 | Métrica | Validación en Tests | Estado |
 |---------|-------------------|--------|
-| **Tiempo de creación de horario < 30 segundos** | Timeout de 10 segundos en formularios | ✅ |
-| **Detección de conflictos 100% precisión** | Tests específicos para cada tipo de conflicto | ✅ |
-| **Tiempo de carga del calendario < 2 segundos** | Performance test con timeout de 5 segundos | ✅ |
-| **Tasa de error en creación < 1%** | Validación de mensajes de éxito/error | ✅ |
+| **Tiempo de creación de horario < 30 segundos** | Timeout de 10 segundos en formularios |  |
+| **Detección de conflictos 100% precisión** | Tests específicos para cada tipo de conflicto |  |
+| **Tiempo de carga del calendario < 2 segundos** | Performance test con timeout de 5 segundos |  |
+| **Tasa de error en creación < 1%** | Validación de mensajes de éxito/error |  |
 
 ---
 
@@ -453,7 +453,7 @@ npm run test:e2e:report
 
 ## Estado de Implementación
 
-- ✅ **Tests E2E**: Completos y listos para ejecución
+-  **Tests E2E**: Completos y listos para ejecución
 - ⏳ **Backend**: En desarrollo según plan de implementación
 - ⏳ **Frontend**: En desarrollo según plan de implementación
 - ⏳ **Integración**: Pendiente de completar backend y frontend

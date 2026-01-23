@@ -6,7 +6,7 @@ Guía para continuar la implementación. Hacer **commit con conventional-commits
 
 ---
 
-## ✅ Hecho
+##  Hecho
 
 - **Fase 1**: `Classroom`, `Schedule`, migración Alembic, tests `test_schedule_models.py`
 - **Fase 2**: `ScheduleRepository` (overlaps + `get_weekly_schedule`), tests `test_schedule_repository.py`
@@ -16,7 +16,7 @@ Guía para continuar la implementación. Hacer **commit con conventional-commits
 
 ---
 
-## 📋 Fase 3: ScheduleService (TDD) ✅
+## 📋 Fase 3: ScheduleService (TDD) 
 
 **Objetivo**: TASK-010 a TASK-013. **Completado.**
 

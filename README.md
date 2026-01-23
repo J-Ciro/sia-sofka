@@ -716,7 +716,7 @@ async def _get_students_for_role(...):
 ```python
 async def _get_students_for_role(...):
     # ...
-    # ✅ Usar eager loading para cargar estudiantes en una sola query
+    #  Usar eager loading para cargar estudiantes en una sola query
     enrollments = await enrollment_repo.get_many_with_relations(
         subject_id=subject_id,
         relations=['estudiante']  # Eager load estudiantes
@@ -767,7 +767,7 @@ async def create_subject(...):
     # El servicio maneja el commit internamente
     subject = await admin_service.create_subject(subject_data)
     
-    # ✅ Usar eager loading para cargar relaciones después del commit
+    #  Usar eager loading para cargar relaciones después del commit
     from sqlalchemy import select
     from sqlalchemy.orm import selectinload
     
@@ -779,7 +779,7 @@ async def create_subject(...):
     result = await db.execute(stmt)
     subject_with_profesor = result.scalar_one()
     
-    # ✅ Usar serializer para garantizar serialización correcta
+    #  Usar serializer para garantizar serialización correcta
     from app.api.v1.serializers.subject_serializer import SubjectSerializer
     serialized = await SubjectSerializer.serialize_batch([subject_with_profesor], db)
     return serialized[0]

@@ -49,10 +49,10 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - El token tiene tiempo de expiración configurado
 
 **Criterios de Aceptación:**
-- ✅ Usuario puede iniciar sesión con credenciales válidas
-- ✅ Sistema genera token JWT
-- ✅ Token incluye rol del usuario
-- ✅ Token tiene tiempo de expiración configurable
+-  Usuario puede iniciar sesión con credenciales válidas
+-  Sistema genera token JWT
+-  Token incluye rol del usuario
+-  Token tiene tiempo de expiración configurable
 
 ---
 
@@ -72,7 +72,7 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Mensaje de error: "Incorrect email or password"
 
 **Criterios de Aceptación:**
-- ✅ Si las credenciales son incorrectas, se muestra error 401
+-  Si las credenciales son incorrectas, se muestra error 401
 
 ---
 
@@ -93,7 +93,7 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Mensaje de error: "Incorrect email or password"
 
 **Criterios de Aceptación:**
-- ✅ Si las credenciales son incorrectas, se muestra error 401
+-  Si las credenciales son incorrectas, se muestra error 401
 
 ---
 
@@ -113,7 +113,7 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - El payload contiene `exp` con la fecha de expiración
 
 **Criterios de Aceptación:**
-- ✅ Token incluye el rol del usuario para autorización
+-  Token incluye el rol del usuario para autorización
 
 ---
 
@@ -133,7 +133,7 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Mensaje: "Could not validate credentials"
 
 **Criterios de Aceptación:**
-- ✅ Token tiene tiempo de expiración configurable
+-  Token tiene tiempo de expiración configurable
 
 ---
 
@@ -159,12 +159,12 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Contraseña almacenada como hash
 
 **Criterios de Aceptación:**
-- ✅ Solo administradores pueden registrar usuarios
-- ✅ Se puede crear estudiante o profesor
-- ✅ Sistema genera código institucional único
-- ✅ Email no duplicado
-- ✅ Edad calculada automáticamente
-- ✅ Contraseña almacenada de forma segura (hash)
+-  Solo administradores pueden registrar usuarios
+-  Se puede crear estudiante o profesor
+-  Sistema genera código institucional único
+-  Email no duplicado
+-  Edad calculada automáticamente
+-  Contraseña almacenada de forma segura (hash)
 
 ---
 
@@ -185,7 +185,7 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Mensaje: "Email already registered"
 
 **Criterios de Aceptación:**
-- ✅ Se valida que el email no esté duplicado
+-  Se valida que el email no esté duplicado
 
 ---
 
@@ -207,7 +207,7 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Mensaje: "Not enough permissions"
 
 **Criterios de Aceptación:**
-- ✅ Solo administradores pueden registrar usuarios
+-  Solo administradores pueden registrar usuarios
 
 ---
 
@@ -229,9 +229,9 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Solo se muestra información del usuario autenticado
 
 **Criterios de Aceptación:**
-- ✅ Usuario puede ver su información personal
-- ✅ Se muestra información completa
-- ✅ Solo se puede acceder a la propia información
+-  Usuario puede ver su información personal
+-  Se muestra información completa
+-  Solo se puede acceder a la propia información
 
 ---
 
@@ -257,11 +257,11 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Programa académico y ciudad de residencia guardados
 
 **Criterios de Aceptación:**
-- ✅ Se puede crear estudiante con todos sus datos
-- ✅ Código institucional único (formato: EST-XXXX)
-- ✅ Email no duplicado
-- ✅ Edad calculada automáticamente
-- ✅ Programa académico y ciudad de residencia especificables
+-  Se puede crear estudiante con todos sus datos
+-  Código institucional único (formato: EST-XXXX)
+-  Email no duplicado
+-  Edad calculada automáticamente
+-  Programa académico y ciudad de residencia especificables
 
 ---
 
@@ -285,11 +285,11 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Área de enseñanza guardada
 
 **Criterios de Aceptación:**
-- ✅ Se puede crear profesor con todos sus datos
-- ✅ Código institucional único (formato: PRO-XXXX)
-- ✅ Email no duplicado
-- ✅ Área de enseñanza especificable
-- ✅ Edad calculada automáticamente
+-  Se puede crear profesor con todos sus datos
+-  Código institucional único (formato: PRO-XXXX)
+-  Email no duplicado
+-  Área de enseñanza especificable
+-  Edad calculada automáticamente
 
 ---
 
@@ -312,10 +312,10 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Paginación funciona correctamente (skip y limit)
 
 **Criterios de Aceptación:**
-- ✅ Se muestran todos los estudiantes y profesores
-- ✅ Lista es paginable (skip y limit)
-- ✅ Información relevante mostrada
-- ✅ Solo administradores pueden acceder
+-  Se muestran todos los estudiantes y profesores
+-  Lista es paginable (skip y limit)
+-  Información relevante mostrada
+-  Solo administradores pueden acceder
 
 ---
 
@@ -335,7 +335,7 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Mensaje: "Not enough permissions"
 
 **Criterios de Aceptación:**
-- ✅ Solo administradores pueden acceder
+-  Solo administradores pueden acceder
 
 ---
 
@@ -357,9 +357,9 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Incluye: nombre, apellido, email, código institucional, rol, edad, etc.
 
 **Criterios de Aceptación:**
-- ✅ Se puede buscar usuario por ID
-- ✅ Se muestra toda la información
-- ✅ Solo administradores pueden acceder
+-  Se puede buscar usuario por ID
+-  Se muestra toda la información
+-  Solo administradores pueden acceder
 
 ---
 
@@ -380,7 +380,7 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Mensaje: "User with id 99999 not found"
 
 **Criterios de Aceptación:**
-- ✅ Si el usuario no existe, se muestra error 404
+-  Si el usuario no existe, se muestra error 404
 
 ---
 
@@ -403,10 +403,10 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Respuesta contiene usuario actualizado
 
 **Criterios de Aceptación:**
-- ✅ Se puede actualizar cualquier campo (excepto email y código institucional)
-- ✅ Campos son opcionales (solo se actualizan los proporcionados)
-- ✅ Usuario existe
-- ✅ Solo administradores pueden actualizar
+-  Se puede actualizar cualquier campo (excepto email y código institucional)
+-  Campos son opcionales (solo se actualizan los proporcionados)
+-  Usuario existe
+-  Solo administradores pueden actualizar
 
 ---
 
@@ -426,7 +426,7 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Mensaje: "User with id 99999 not found"
 
 **Criterios de Aceptación:**
-- ✅ Si el usuario no existe, se muestra error 404
+-  Si el usuario no existe, se muestra error 404
 
 ---
 
@@ -447,9 +447,9 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Usuario eliminado de la base de datos
 
 **Criterios de Aceptación:**
-- ✅ Se puede eliminar usuario por ID
-- ✅ Operación retorna código 204
-- ✅ Solo administradores pueden eliminar
+-  Se puede eliminar usuario por ID
+-  Operación retorna código 204
+-  Solo administradores pueden eliminar
 
 ---
 
@@ -468,7 +468,7 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Mensaje: "User with id 99999 not found"
 
 **Criterios de Aceptación:**
-- ✅ Si el usuario no existe, se muestra error 404
+-  Si el usuario no existe, se muestra error 404
 
 ---
 
@@ -493,11 +493,11 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Todos los campos guardados
 
 **Criterios de Aceptación:**
-- ✅ Se puede crear materia con todos los campos
-- ✅ Profesor asignado
-- ✅ Código institucional único (formato: MAT-XXXX)
-- ✅ Profesor existe y es de rol PROFESOR
-- ✅ Solo administradores pueden crear
+-  Se puede crear materia con todos los campos
+-  Profesor asignado
+-  Código institucional único (formato: MAT-XXXX)
+-  Profesor existe y es de rol PROFESOR
+-  Solo administradores pueden crear
 
 ---
 
@@ -517,7 +517,7 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Mensaje: "User with id 99999 not found" o "Profesor not found"
 
 **Criterios de Aceptación:**
-- ✅ Se valida que el profesor exista
+-  Se valida que el profesor exista
 
 ---
 
@@ -538,7 +538,7 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Mensaje indicando que el usuario debe ser de rol PROFESOR
 
 **Criterios de Aceptación:**
-- ✅ Se valida que el profesor sea de rol PROFESOR
+-  Se valida que el profesor sea de rol PROFESOR
 
 ---
 
@@ -560,10 +560,10 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Paginación funciona (skip y limit)
 
 **Criterios de Aceptación:**
-- ✅ Se muestran todas las materias
-- ✅ Lista incluye información del profesor
-- ✅ Lista es paginable
-- ✅ Solo administradores pueden acceder
+-  Se muestran todas las materias
+-  Lista incluye información del profesor
+-  Lista es paginable
+-  Solo administradores pueden acceder
 
 ---
 
@@ -584,9 +584,9 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Incluye información del profesor asignado
 
 **Criterios de Aceptación:**
-- ✅ Se puede buscar materia por ID
-- ✅ Se muestra toda la información incluyendo profesor
-- ✅ Solo administradores pueden acceder
+-  Se puede buscar materia por ID
+-  Se muestra toda la información incluyendo profesor
+-  Solo administradores pueden acceder
 
 ---
 
@@ -605,7 +605,7 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Mensaje: "Subject with id 99999 not found"
 
 **Criterios de Aceptación:**
-- ✅ Si la materia no existe, se muestra error 404
+-  Si la materia no existe, se muestra error 404
 
 ---
 
@@ -629,10 +629,10 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Si se cambia profesor, se valida que exista y sea PROFESOR
 
 **Criterios de Aceptación:**
-- ✅ Se puede actualizar cualquier campo (excepto código institucional)
-- ✅ Campos son opcionales
-- ✅ Si se cambia profesor, se valida que exista y sea PROFESOR
-- ✅ Solo administradores pueden actualizar
+-  Se puede actualizar cualquier campo (excepto código institucional)
+-  Campos son opcionales
+-  Si se cambia profesor, se valida que exista y sea PROFESOR
+-  Solo administradores pueden actualizar
 
 ---
 
@@ -652,9 +652,9 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Materia eliminada de la base de datos
 
 **Criterios de Aceptación:**
-- ✅ Se puede eliminar materia por ID
-- ✅ Operación retorna código 204
-- ✅ Solo administradores pueden eliminar
+-  Se puede eliminar materia por ID
+-  Operación retorna código 204
+-  Solo administradores pueden eliminar
 
 ---
 
@@ -680,10 +680,10 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Materia validada (existe)
 
 **Criterios de Aceptación:**
-- ✅ Se puede crear inscripción
-- ✅ Estudiante existe y es de rol ESTUDIANTE
-- ✅ Materia existe
-- ✅ Solo administradores pueden crear
+-  Se puede crear inscripción
+-  Estudiante existe y es de rol ESTUDIANTE
+-  Materia existe
+-  Solo administradores pueden crear
 
 ---
 
@@ -704,7 +704,7 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Mensaje indicando que la inscripción ya existe
 
 **Criterios de Aceptación:**
-- ✅ No se puede inscribir dos veces al mismo estudiante en la misma materia (error 409)
+-  No se puede inscribir dos veces al mismo estudiante en la misma materia (error 409)
 
 ---
 
@@ -726,7 +726,7 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Mensaje indicando que el usuario debe ser ESTUDIANTE
 
 **Criterios de Aceptación:**
-- ✅ Se valida que el estudiante sea de rol ESTUDIANTE
+-  Se valida que el estudiante sea de rol ESTUDIANTE
 
 ---
 
@@ -748,10 +748,10 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Paginación funciona
 
 **Criterios de Aceptación:**
-- ✅ Se muestran todas las inscripciones
-- ✅ Lista incluye información completa
-- ✅ Lista es paginable
-- ✅ Solo administradores pueden acceder
+-  Se muestran todas las inscripciones
+-  Lista incluye información completa
+-  Lista es paginable
+-  Solo administradores pueden acceder
 
 ---
 
@@ -772,9 +772,9 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Incluye datos del estudiante y la materia
 
 **Criterios de Aceptación:**
-- ✅ Se puede buscar inscripción por ID
-- ✅ Se muestra toda la información
-- ✅ Solo administradores pueden acceder
+-  Se puede buscar inscripción por ID
+-  Se muestra toda la información
+-  Solo administradores pueden acceder
 
 ---
 
@@ -794,9 +794,9 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Inscripción eliminada de la base de datos
 
 **Criterios de Aceptación:**
-- ✅ Se puede eliminar inscripción por ID
-- ✅ Operación retorna código 204
-- ✅ Solo administradores pueden eliminar
+-  Se puede eliminar inscripción por ID
+-  Operación retorna código 204
+-  Solo administradores pueden eliminar
 
 ---
 
@@ -824,10 +824,10 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Nota entre 0 y 5
 
 **Criterios de Aceptación:**
-- ✅ Profesor solo puede crear notas para materias asignadas
-- ✅ Estudiante inscrito en la materia
-- ✅ Nota entre 0 y 5
-- ✅ Campos opcionales funcionan
+-  Profesor solo puede crear notas para materias asignadas
+-  Estudiante inscrito en la materia
+-  Nota entre 0 y 5
+-  Campos opcionales funcionan
 
 ---
 
@@ -849,7 +849,7 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Mensaje: "Not enough permissions" o "Subject is not assigned to this profesor"
 
 **Criterios de Aceptación:**
-- ✅ Si el profesor intenta crear nota para materia no asignada, se muestra error 403
+-  Si el profesor intenta crear nota para materia no asignada, se muestra error 403
 
 ---
 
@@ -872,9 +872,9 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Estudiante validado (inscrito)
 
 **Criterios de Aceptación:**
-- ✅ Administrador puede crear notas para cualquier materia
-- ✅ Estudiante inscrito en la materia
-- ✅ Nota entre 0 y 5
+-  Administrador puede crear notas para cualquier materia
+-  Estudiante inscrito en la materia
+-  Nota entre 0 y 5
 
 ---
 
@@ -895,7 +895,7 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Mensaje de validación indicando que la nota debe estar entre 0 y 5
 
 **Criterios de Aceptación:**
-- ✅ Nota debe estar entre 0 y 5
+-  Nota debe estar entre 0 y 5
 
 ---
 
@@ -918,10 +918,10 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Estudiante validado (inscrito en materia)
 
 **Criterios de Aceptación:**
-- ✅ Estudiante solo puede ver sus propias notas
-- ✅ Se debe especificar ID de materia
-- ✅ Estudiante inscrito en materia
-- ✅ Se muestran todas las notas con información completa
+-  Estudiante solo puede ver sus propias notas
+-  Se debe especificar ID de materia
+-  Estudiante inscrito en materia
+-  Se muestran todas las notas con información completa
 
 ---
 
@@ -941,7 +941,7 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Mensaje: "Not enough permissions" o "Estudiante not enrolled in subject"
 
 **Criterios de Aceptación:**
-- ✅ Si el estudiante no está inscrito, se muestra error 403
+-  Si el estudiante no está inscrito, se muestra error 403
 
 ---
 
@@ -964,9 +964,9 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Profesor validado (materia asignada)
 
 **Criterios de Aceptación:**
-- ✅ Profesor solo puede ver notas de materias asignadas
-- ✅ Se debe especificar ID de materia
-- ✅ Se muestran todas las notas con información del estudiante
+-  Profesor solo puede ver notas de materias asignadas
+-  Se debe especificar ID de materia
+-  Se muestran todas las notas con información del estudiante
 
 ---
 
@@ -986,7 +986,7 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Mensaje: "Subject is not assigned to this profesor"
 
 **Criterios de Aceptación:**
-- ✅ Si el profesor intenta ver notas de materia no asignada, se muestra error 403
+-  Si el profesor intenta ver notas de materia no asignada, se muestra error 403
 
 ---
 
@@ -1008,7 +1008,7 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Profesor validado (materia asignada)
 
 **Criterios de Aceptación:**
-- ✅ Se puede filtrar por inscripción específica (enrollment_id)
+-  Se puede filtrar por inscripción específica (enrollment_id)
 
 ---
 
@@ -1029,8 +1029,8 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Cada nota incluye información completa
 
 **Criterios de Aceptación:**
-- ✅ Administrador puede ver todas las notas
-- ✅ Se muestran todas las notas con información completa
+-  Administrador puede ver todas las notas
+-  Se muestran todas las notas con información completa
 
 ---
 
@@ -1050,7 +1050,7 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Lista contiene solo las notas de la materia especificada
 
 **Criterios de Aceptación:**
-- ✅ Se puede filtrar por materia (subject_id)
+-  Se puede filtrar por materia (subject_id)
 
 ---
 
@@ -1071,8 +1071,8 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Estudiante validado (es su propia nota)
 
 **Criterios de Aceptación:**
-- ✅ Estudiante solo puede ver sus propias notas
-- ✅ Se muestra información completa
+-  Estudiante solo puede ver sus propias notas
+-  Se muestra información completa
 
 ---
 
@@ -1092,7 +1092,7 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Mensaje: "Not enough permissions"
 
 **Criterios de Aceptación:**
-- ✅ Si el usuario no tiene permiso, se muestra error 403
+-  Si el usuario no tiene permiso, se muestra error 403
 
 ---
 
@@ -1113,8 +1113,8 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Profesor validado (materia asignada)
 
 **Criterios de Aceptación:**
-- ✅ Profesor puede ver notas de materias asignadas
-- ✅ Se muestra información completa
+-  Profesor puede ver notas de materias asignadas
+-  Se muestra información completa
 
 ---
 
@@ -1136,9 +1136,9 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Profesor validado (materia asignada)
 
 **Criterios de Aceptación:**
-- ✅ Profesor solo puede actualizar notas de materias asignadas
-- ✅ Campos son opcionales
-- ✅ Nota existe
+-  Profesor solo puede actualizar notas de materias asignadas
+-  Campos son opcionales
+-  Nota existe
 
 ---
 
@@ -1160,9 +1160,9 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Solo los campos proporcionados se actualizan
 
 **Criterios de Aceptación:**
-- ✅ Administrador puede actualizar cualquier nota
-- ✅ Campos son opcionales
-- ✅ Nota existe
+-  Administrador puede actualizar cualquier nota
+-  Campos son opcionales
+-  Nota existe
 
 ---
 
@@ -1183,8 +1183,8 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Profesor validado (materia asignada)
 
 **Criterios de Aceptación:**
-- ✅ Profesor solo puede eliminar notas de materias asignadas
-- ✅ Operación retorna código 204
+-  Profesor solo puede eliminar notas de materias asignadas
+-  Operación retorna código 204
 
 ---
 
@@ -1204,8 +1204,8 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Nota eliminada de la base de datos
 
 **Criterios de Aceptación:**
-- ✅ Administrador puede eliminar cualquier nota
-- ✅ Operación retorna código 204
+-  Administrador puede eliminar cualquier nota
+-  Operación retorna código 204
 
 ---
 
@@ -1229,10 +1229,10 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Reporte incluye: información del estudiante, materias, notas por materia, promedio por materia, promedio general ponderado
 
 **Criterios de Aceptación:**
-- ✅ Se puede generar reporte para cualquier estudiante
-- ✅ Reporte incluye información completa
-- ✅ Formato PDF disponible
-- ✅ Solo administradores pueden generar
+-  Se puede generar reporte para cualquier estudiante
+-  Reporte incluye información completa
+-  Formato PDF disponible
+-  Solo administradores pueden generar
 
 ---
 
@@ -1254,8 +1254,8 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Reporte incluye información completa
 
 **Criterios de Aceptación:**
-- ✅ Formato HTML disponible
-- ✅ Reporte se descarga como archivo
+-  Formato HTML disponible
+-  Reporte se descarga como archivo
 
 ---
 
@@ -1277,8 +1277,8 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Incluye: información del estudiante, materias, notas, promedios
 
 **Criterios de Aceptación:**
-- ✅ Formato JSON disponible
-- ✅ Reporte se retorna como respuesta JSON
+-  Formato JSON disponible
+-  Reporte se retorna como respuesta JSON
 
 ---
 
@@ -1302,9 +1302,9 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Profesor validado (materia asignada)
 
 **Criterios de Aceptación:**
-- ✅ Profesor solo puede generar reportes de materias asignadas
-- ✅ Reporte incluye información completa
-- ✅ Formato PDF disponible
+-  Profesor solo puede generar reportes de materias asignadas
+-  Reporte incluye información completa
+-  Formato PDF disponible
 
 ---
 
@@ -1324,7 +1324,7 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Mensaje: "Subject is not assigned to this profesor"
 
 **Criterios de Aceptación:**
-- ✅ Si el profesor intenta generar reporte de materia no asignada, se muestra error 403
+-  Si el profesor intenta generar reporte de materia no asignada, se muestra error 403
 
 ---
 
@@ -1346,9 +1346,9 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Reporte incluye: información del estudiante, todas sus materias, notas por materia, promedio por materia, promedio general ponderado
 
 **Criterios de Aceptación:**
-- ✅ Estudiante solo puede generar su propio reporte
-- ✅ Reporte incluye información completa
-- ✅ Formato PDF disponible
+-  Estudiante solo puede generar su propio reporte
+-  Reporte incluye información completa
+-  Formato PDF disponible
 
 ---
 
@@ -1370,8 +1370,8 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Incluye promedio general ponderado por créditos
 
 **Criterios de Aceptación:**
-- ✅ Formato JSON disponible
-- ✅ Reporte incluye promedio general ponderado
+-  Formato JSON disponible
+-  Reporte incluye promedio general ponderado
 
 ---
 
@@ -1395,9 +1395,9 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Solo información del usuario autenticado
 
 **Criterios de Aceptación:**
-- ✅ Usuario puede ver su propia información
-- ✅ Se muestra información completa
-- ✅ Solo se puede acceder a la propia información
+-  Usuario puede ver su propia información
+-  Se muestra información completa
+-  Solo se puede acceder a la propia información
 
 ---
 
@@ -1419,11 +1419,11 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Si se actualiza fecha de nacimiento, edad se recalcula automáticamente
 
 **Criterios de Aceptación:**
-- ✅ Usuario puede actualizar su propia información
-- ✅ Campos actualizables: nombre, apellido, fecha_nacimiento, número_contacto, programa_academico (estudiantes), ciudad_residencia (estudiantes), área_ensenanza (profesores)
-- ✅ No se puede cambiar: email, código institucional, rol
-- ✅ Campos son opcionales
-- ✅ Si se actualiza fecha de nacimiento, edad se recalcula
+-  Usuario puede actualizar su propia información
+-  Campos actualizables: nombre, apellido, fecha_nacimiento, número_contacto, programa_academico (estudiantes), ciudad_residencia (estudiantes), área_ensenanza (profesores)
+-  No se puede cambiar: email, código institucional, rol
+-  Campos son opcionales
+-  Si se actualiza fecha de nacimiento, edad se recalcula
 
 ---
 
@@ -1443,7 +1443,7 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Email no se actualiza
 
 **Criterios de Aceptación:**
-- ✅ No se puede cambiar email
+-  No se puede cambiar email
 
 ---
 
@@ -1467,10 +1467,10 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Si no hay notas, promedio es None
 
 **Criterios de Aceptación:**
-- ✅ Promedio se calcula como media aritmética
-- ✅ Resultado redondeado a 2 decimales
-- ✅ Si no hay notas, promedio es None
-- ✅ Cálculo automático en reportes
+-  Promedio se calcula como media aritmética
+-  Resultado redondeado a 2 decimales
+-  Si no hay notas, promedio es None
+-  Cálculo automático en reportes
 
 ---
 
@@ -1489,7 +1489,7 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Redondeado a 2 decimales
 
 **Criterios de Aceptación:**
-- ✅ Cálculo correcto con múltiples notas
+-  Cálculo correcto con múltiples notas
 
 ---
 
@@ -1512,10 +1512,10 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Si no hay materias con notas, promedio general es None
 
 **Criterios de Aceptación:**
-- ✅ Promedio general ponderado por créditos
-- ✅ Solo materias con promedio calculado
-- ✅ Resultado redondeado a 2 decimales
-- ✅ Si no hay materias con notas, promedio es None
+-  Promedio general ponderado por créditos
+-  Solo materias con promedio calculado
+-  Resultado redondeado a 2 decimales
+-  Si no hay materias con notas, promedio es None
 
 ---
 
@@ -1536,7 +1536,7 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Redondeado a 2 decimales
 
 **Criterios de Aceptación:**
-- ✅ Cálculo correcto con múltiples materias y créditos
+-  Cálculo correcto con múltiples materias y créditos
 
 ---
 
@@ -1557,9 +1557,9 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Código es único
 
 **Criterios de Aceptación:**
-- ✅ Estudiantes reciben códigos con formato EST-XXXX
-- ✅ Códigos son únicos y secuenciales
-- ✅ Generación automática al crear usuario
+-  Estudiantes reciben códigos con formato EST-XXXX
+-  Códigos son únicos y secuenciales
+-  Generación automática al crear usuario
 
 ---
 
@@ -1580,9 +1580,9 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Código es único
 
 **Criterios de Aceptación:**
-- ✅ Profesores reciben códigos con formato PRO-XXXX
-- ✅ Códigos son únicos y secuenciales
-- ✅ Generación automática al crear usuario
+-  Profesores reciben códigos con formato PRO-XXXX
+-  Códigos son únicos y secuenciales
+-  Generación automática al crear usuario
 
 ---
 
@@ -1603,9 +1603,9 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Código es único
 
 **Criterios de Aceptación:**
-- ✅ Materias reciben códigos con formato MAT-XXXX
-- ✅ Códigos son únicos y secuenciales
-- ✅ Generación automática al crear materia
+-  Materias reciben códigos con formato MAT-XXXX
+-  Códigos son únicos y secuenciales
+-  Generación automática al crear materia
 
 ---
 
@@ -1625,8 +1625,8 @@ Este documento contiene los casos de prueba derivados de las historias de usuari
 - Intentar usar código duplicado genera error
 
 **Criterios de Aceptación:**
-- ✅ Códigos son únicos
-- ✅ No se pueden duplicar códigos
+-  Códigos son únicos
+-  No se pueden duplicar códigos
 
 ---
 
