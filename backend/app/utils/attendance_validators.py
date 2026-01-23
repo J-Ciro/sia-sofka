@@ -61,7 +61,8 @@ class SessionValidator:
         """
         if not overlapping:
             return
-        ids = [str(s.id) for s in overlapping]
+        from app.models.attendance import ClaseSession
+        ids = [str(s.id) for s in overlapping if isinstance(s, ClaseSession)]
         session_ids = ", ".join(ids)
         raise ValidationError(
             f"Ya existe una sesión de esta materia en la misma fecha con horario que se solapa (ID: {session_ids}). "
