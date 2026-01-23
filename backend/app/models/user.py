@@ -36,7 +36,7 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True, nullable=False)
     password_hash = Column(String, nullable=False)
-    role = Column(SQLEnum(UserRole), nullable=False, index=True)
+    role: UserRole = Column(SQLEnum(UserRole), nullable=False, index=True)  # type: ignore[assignment]
     
     # Personal information
     nombre = Column(String, nullable=False)
@@ -103,7 +103,7 @@ class User(Base):
         if not self.fecha_nacimiento:
             return 0
         today = date.today()
-        age = today.year - self.fecha_nacimiento.year
+        age: int = today.year - self.fecha_nacimiento.year
         if (today.month, today.day) < (
             self.fecha_nacimiento.month,
             self.fecha_nacimiento.day,

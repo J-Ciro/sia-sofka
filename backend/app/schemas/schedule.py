@@ -82,7 +82,6 @@ class ScheduleBase(BaseModel):
         return v
 
     @computed_field
-    @property
     def es_fecha_especifica(self) -> bool:
         """Computed field indicating if this is a date-specific schedule."""
         return self.fecha_especifica is not None
@@ -143,7 +142,6 @@ class ScheduleResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     @computed_field
-    @property
     def es_fecha_especifica(self) -> bool:
         """Computed field indicating if this is a date-specific schedule."""
         return self.fecha_especifica is not None
