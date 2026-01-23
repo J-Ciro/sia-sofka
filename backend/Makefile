@@ -40,7 +40,7 @@ type-check: ## Verificar tipos con mypy
 	mypy app
 
 quality: format-check lint type-check test-cov ## Ejecutar todas las verificaciones de calidad
-	@echo "✅ Todas las verificaciones pasaron exitosamente"
+	@echo " Todas las verificaciones pasaron exitosamente"
 
 clean: ## Limpiar archivos temporales
 	find . -type d -name "__pycache__" -exec rm -rf {} +
@@ -93,4 +93,4 @@ coverage-report: ## Abrir reporte de cobertura en el navegador
 	@python -m webbrowser htmlcov/index.html || open htmlcov/index.html || xdg-open htmlcov/index.html
 
 ci: quality ## Simular pipeline de CI localmente
-	@echo "✅ Pipeline de CI completado exitosamente"
+	@echo " Pipeline de CI completado exitosamente"

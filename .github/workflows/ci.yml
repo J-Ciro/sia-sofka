@@ -2,9 +2,9 @@ name: CI Pipeline
 
 on:
   push:
-    branches: ['**']  # ✅ Ejecutar en todas las ramas
+    branches: ['**']  #  Ejecutar en todas las ramas
   pull_request:
-    branches: [ main, develop ]  # ✅ PRs solo hacia main y develop
+    branches: [ main, develop ]  #  PRs solo hacia main y develop
 
 env:
   # Global environment variables for all jobs
