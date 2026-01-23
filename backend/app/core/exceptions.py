@@ -89,8 +89,10 @@ class FileSizeError(BulkImportError):
 class FileCorruptedError(BulkImportError):
     """Exception for corrupted or unreadable files."""
     
-    def __init__(self, filename: str = None):
-        if filename:
+    def __init__(self, filename: str = None, context: str = None):
+        if context:
+            detail = f"Error al {context}. El archivo está corrupto o no se puede procesar correctamente"
+        elif filename:
             detail = f"El archivo '{filename}' está corrupto o no se puede leer. Verifique que sea un archivo Excel válido"
         else:
             detail = "El archivo está corrupto o no se puede leer. Verifique que sea un archivo Excel válido"

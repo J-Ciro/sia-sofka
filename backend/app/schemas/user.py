@@ -3,6 +3,7 @@
 from pydantic import BaseModel, EmailStr, Field, ConfigDict, field_validator
 from datetime import date, datetime
 from typing import Optional
+from uuid import UUID
 from app.models.user import UserRole
 from app.core.sanitizers import validate_email
 
@@ -44,7 +45,8 @@ class UserUpdate(BaseModel):
 
 class UserResponse(UserBase):
     """Schema for user response."""
-    id: int
+    uuid: UUID  # Technical identifier (UUID) - for backend use
+    id: int  # User-friendly identifier (Integer) - for easy identification by users
     role: UserRole
     codigo_institucional: str
     edad: Optional[int] = None

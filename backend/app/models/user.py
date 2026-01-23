@@ -1,10 +1,12 @@
 """User model."""
 
 from sqlalchemy import Column, Integer, String, Date, DateTime, Enum as SQLEnum
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from datetime import date, datetime
 import enum
+import uuid
 from app.core.database import Base
 
 
@@ -20,6 +22,17 @@ class User(Base):
     
     __tablename__ = "users"
     
+    # Technical identifier (UUID) - for backend use
+    uuid = Column(
+        UUID(as_uuid=True),
+        primary_key=False,
+        default=uuid.uuid4,
+        unique=True,
+        index=True,
+        nullable=False
+    )
+    
+    # User-friendly identifier (Integer) - for easy identification by users
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True, nullable=False)
     password_hash = Column(String, nullable=False)
