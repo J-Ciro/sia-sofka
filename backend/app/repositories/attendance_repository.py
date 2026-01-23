@@ -180,11 +180,12 @@ class AttendanceRepository(AbstractRepository[Attendance], EagerLoadMixin, Pagin
         
         # Get sessions for enrolled subjects
         query = select(ClaseSession).where(
-            ClaseSession.subject_id.in_(enrolled_subject_ids)
+            ClaseSession.subject_id.in_(enrolled_subject_ids)  # type: ignore[arg-type]
         ).order_by(ClaseSession.fecha.desc(), ClaseSession.hora_inicio.desc())
         
         result = await self.db.execute(query)
-        return list(result.scalars().all())
+        sessions = result.scalars().all()
+        return list(sessions)
     
     @handle_repository_errors
     async def get_attendances_by_session(

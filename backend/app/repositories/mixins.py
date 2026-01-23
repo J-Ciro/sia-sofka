@@ -150,7 +150,7 @@ class EagerLoadMixin:
             nested_joined = [r for r in use_joined if '.' in r]
             
             # Group nested relations by their first relation (e.g., 'enrollment' in 'enrollment.estudiante')
-            nested_by_first = {}
+            nested_by_first: dict[str, list[str]] = {}
             for relation in nested_joined:
                 parts = relation.split('.')
                 first = parts[0]

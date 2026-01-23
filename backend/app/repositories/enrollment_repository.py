@@ -159,11 +159,11 @@ class EnrollmentRepository(AbstractRepository[Enrollment], EagerLoadMixin, Pagin
         # Build condition
         condition = None
         if estudiante_id and subject_id:
-            condition = (Enrollment.estudiante_id == estudiante_id) & (Enrollment.subject_id == subject_id)
+            condition = (Enrollment.estudiante_id == estudiante_id) & (Enrollment.subject_id == subject_id)  # type: ignore[assignment]
         elif estudiante_id:
-            condition = Enrollment.estudiante_id == estudiante_id
+            condition = Enrollment.estudiante_id == estudiante_id  # type: ignore[assignment]
         elif subject_id:
-            condition = Enrollment.subject_id == subject_id
+            condition = Enrollment.subject_id == subject_id  # type: ignore[assignment]
         
         # Separate joinedload and selectinload
         use_joined = [r for r in relations if r in ['estudiante', 'subject']]

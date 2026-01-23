@@ -172,11 +172,12 @@ class GradeRepository(AbstractRepository[Grade], EagerLoadMixin, PaginationMixin
             relations = ['enrollment']
         
         # Build condition
+        from sqlalchemy import or_
         condition = None
         if grade_ids:
-            condition = Grade.id.in_(grade_ids)
+            condition = Grade.id.in_(grade_ids)  # type: ignore[assignment]
         elif enrollment_id:
-            condition = Grade.enrollment_id == enrollment_id
+            condition = Grade.enrollment_id == enrollment_id  # type: ignore[assignment]
         elif subject_id:
             # Get enrollments for this subject first
             enrollment_stmt = select(Enrollment.id).where(Enrollment.subject_id == subject_id)
